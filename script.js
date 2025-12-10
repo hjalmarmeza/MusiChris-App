@@ -1,8 +1,8 @@
 /**
- * MusiChris App V28.0 - PERSISTENT CREDENTIALS & SETTINGS FIX
- * - Las claves API y BIN ID están hardcodeadas y protegidas.
- * - Al abrir configuración, las claves aparecen automáticamente.
- * - Mantiene todas las correcciones anteriores (Avatares, Álbumes, Subidas).
+ * MusiChris App V30.0 - FINAL STABLE
+ * - Restaura la función de ANUNCIOS (do_save_announce).
+ * - Repara la coincidencia de canciones en álbumes (trim + lowercase).
+ * - Mantiene claves blindadas y avatares.
  */
 
 // =========================================================================
@@ -11,10 +11,10 @@
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
 const DEFAULT_COVER = "https://i.ibb.co/3WqP7tX/default-cover.png";
 
-// CLAVES MAESTRAS (NO SE BORRARÁN NUNCA)
+// CLAVES MAESTRAS
 const PERMANENT_BIN_ID = "69349a76ae596e708f880e31"; 
 const PERMANENT_API_KEY = "$2a$10$ME7fO8Oqq2iWhHkYQKGQsu0M6PqJ8d1ymFBxHVhhxFJ70BcAg1FZe";
-const ADMIN_AVATAR = "https://api.dicebear.com/9.x/avataaars/svg?seed=Chris"; // Avatar Admin Fijo
+const ADMIN_AVATAR = "https://api.dicebear.com/9.x/avataaars/svg?seed=Chris"; 
 
 let appConfig = {
     BIN_ID: PERMANENT_BIN_ID, 
@@ -24,7 +24,8 @@ let appConfig = {
 };
 
 const dom = {};
-const norm = (str) => (str || '').toString().toLowerCase().trim(); 
+// Helper mejorado: Normaliza texto para comparaciones seguras
+const norm = (str) => (str || '').toString().toLowerCase().trim().replace(/\s+/g, ' '); 
 
 // =========================================================================
 // 2. INICIO
@@ -39,7 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'plDetailTitle', 'plDetailList', 'dom_modal_profile', 'profileName', 'profileEmail', 'profilePreview',
         'dom_modal_upload', 'upTitle', 'upGenre', 'upAlbum', 'upUrl', 'dom_modal_album', 
         'newAlbName', 'newAlbArtist', 'newAlbCoverUrl', 
-        'dom_modal_settings', 'cfgBinId', 'cfgApiKey' // Agregados para configuración
+        'dom_modal_settings', 'cfgBinId', 'cfgApiKey',
+        'dom_modal_announcement', 'announcementInput', 'userAnnouncement', 'announcementText' // IDs de anuncio
     ];
     ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
 
@@ -56,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.audioElement.addEventListener('pause', () => togglePlayIcon(false));
     }
     
-    // SIEMPRE FORZAR LAS CLAVES AL INICIO
+    // Forzar claves
     appConfig.BIN_ID = PERMANENT_BIN_ID;
     appConfig.API_KEY = PERMANENT_API_KEY;
     
@@ -100,7 +102,6 @@ function showView(viewId) {
 
 async function loadAppData() {
     try {
-        // Usa SIEMPRE las claves permanentes
         const res = await fetch(`${API_BASE_URL}${PERMANENT_BIN_ID}`, { headers: {'X-Master-Key': PERMANENT_API_KEY} });
         if(!res.ok) throw new Error("API Error");
         const json = await res.json();
@@ -128,6 +129,16 @@ function updateUI() {
     
     if(dom.adminNameDisplay) dom.adminNameDisplay.textContent = appConfig.user?.name || 'Admin';
     if(dom.userGreeting) dom.userGreeting.textContent = `Hola, ${appConfig.user?.name || 'Usuario'}`;
+    
+    // MOSTRAR ANUNCIO SI EXISTE
+    if(dom.userAnnouncement && dom.announcementText) {
+        if(appConfig.data.announcement) {
+            dom.userAnnouncement.style.display = 'block';
+            dom.announcementText.textContent = appConfig.data.announcement;
+        } else {
+            dom.userAnnouncement.style.display = 'none';
+        }
+    }
 }
 
 // =========================================================================
@@ -172,14 +183,17 @@ function renderAlbumGrid(id, albums) {
 
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
+    
+    // FILTRO CORRECTO
     const target = norm(album.title || album.name);
+    // Filtramos comparando el nombre normalizado
     const songs = appConfig.data.songs.filter(s => norm(s.album) === target);
     
     appConfig.tempPlaylist = songs;
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
     const list = dom.plDetailList; list.innerHTML = '';
     
-    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío</div>';
+    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío.<br><small style="font-size:0.7rem">Verifica que el nombre del álbum en la canción sea idéntico.</small></div>';
     else {
         songs.forEach(s => {
             const item = document.createElement('div'); item.className = 'pl-song-item';
@@ -210,7 +224,7 @@ function renderUserList(id, users) {
 }
 
 // =========================================================================
-// 6. FUNCIONES DE MODALES Y ACCIONES
+// 6. FUNCIONES DE ACCIÓN (AQUÍ ESTÁ LA DE ANUNCIO)
 // =========================================================================
 window.do_create_album = async function() {
     const name = dom.newAlbName.value.trim();
@@ -237,18 +251,24 @@ window.do_upload = async function() {
     dom.upTitle.value = ''; dom.upUrl.value = '';
 }
 
-window.openProfile = function() {
-    if(dom.profileName) dom.profileName.value = appConfig.user.name;
-    if(dom.profileEmail) dom.profileEmail.value = appConfig.user.email;
-    if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar || ADMIN_AVATAR;
-    openModal('dom_modal_profile');
-}
-
-window.changeAvatar = function() {
-    const randomId = Math.floor(Math.random() * 9999);
-    const newAv = `https://api.dicebear.com/9.x/avataaars/svg?seed=${randomId}`;
-    if(dom.profilePreview) dom.profilePreview.src = newAv;
-    appConfig.user.avatar = newAv;
+// *** ¡AQUÍ ESTÁ LA FUNCIÓN QUE FALTABA! ***
+window.do_save_announce = async function() {
+    const input = document.getElementById('announcementInput');
+    if(!input) return;
+    const text = input.value.trim();
+    
+    if(!text) {
+        appConfig.data.announcement = ""; // Borrar anuncio
+        showToast("Anuncio eliminado", 'info');
+    } else {
+        appConfig.data.announcement = text;
+        showToast("Anuncio publicado", 'success');
+    }
+    
+    await saveData();
+    updateUI();
+    closeModal('dom_modal_announcement');
+    input.value = '';
 }
 
 window.do_save_profile = async function() {
@@ -273,20 +293,26 @@ async function saveData() {
 window.deleteAlbum = async function(e, index) { e.stopPropagation(); if(!confirm("¿Borrar?")) return; appConfig.data.albums.splice(index, 1); await saveData(); updateUI(); }
 window.editAlbum = function(e, index) { e.stopPropagation(); showToast("Pendiente", 'info'); }
 window.deleteUser = async function(index) { if(!confirm("¿Borrar?")) return; appConfig.data.users.splice(index, 1); await saveData(); updateUI(); }
+window.do_save_settings = function() { showToast("Claves guardadas", 'success'); closeModal('dom_modal_settings'); }
 
 // =========================================================================
-// 7. CONFIGURACIÓN VISIBLE (EL FIX CLAVE)
+// 7. UTILIDADES VISUALES Y GLOBALES
 // =========================================================================
-window.do_save_settings = function() {
-    // Esta función ya no es necesaria para guardar claves, 
-    // pero la mantenemos para que el botón "Guardar" de la ventana no dé error.
-    showToast("Las claves están guardadas internamente", 'success');
-    closeModal('dom_modal_settings');
+window.openProfile = function() {
+    if(dom.profileName) dom.profileName.value = appConfig.user.name;
+    if(dom.profileEmail) dom.profileEmail.value = appConfig.user.email;
+    if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar || ADMIN_AVATAR;
+    openModal('dom_modal_profile');
 }
 
-// =========================================================================
-// 8. CORE & EXPORTS
-// =========================================================================
+window.changeAvatar = function() {
+    const randomId = Math.floor(Math.random() * 9999);
+    const newAv = `https://api.dicebear.com/9.x/avataaars/svg?seed=${randomId}`;
+    if(dom.profilePreview) dom.profilePreview.src = newAv;
+    appConfig.user.avatar = newAv;
+}
+
+// CORE EXPORTS
 function playSong(song) {
     appConfig.currentSong = song;
     if(dom.mainPlayer) dom.mainPlayer.style.display = 'flex';
@@ -329,18 +355,16 @@ function app_logout() {
     location.reload();
 }
 
-// GLOBALES Y MODAL FIX
 window.app_logout = app_logout;
 window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
 window.playCollection = () => { if(appConfig.tempPlaylist[0]) { playSong(appConfig.tempPlaylist[0]); closeModal('dom_modal_pl_detail'); }};
 window.do_create_album = window.do_create_album;
 window.do_upload = window.do_upload;
-window.do_save_settings = window.do_save_settings;
+window.do_save_announce = window.do_save_announce; // Exportado explícitamente
 
 window.openModal = (id) => { 
     const e = document.getElementById(id); 
     if(e) e.style.display='flex'; 
-    // AUTO-POBLAR SELECT DE ALBUM
     if(id === 'dom_modal_upload') {
         const sel = document.getElementById('upAlbum');
         if(sel) {
@@ -353,7 +377,6 @@ window.openModal = (id) => {
             });
         }
     }
-    // AUTO-POBLAR SETTINGS PARA QUE EL USUARIO LAS VEA
     if(id === 'dom_modal_settings') {
         if(dom.cfgBinId) dom.cfgBinId.value = PERMANENT_BIN_ID;
         if(dom.cfgApiKey) dom.cfgApiKey.value = PERMANENT_API_KEY;
