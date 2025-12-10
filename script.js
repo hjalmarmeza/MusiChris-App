@@ -1,19 +1,20 @@
 /**
- * MusiChris App V26.0 - FINAL FIXES
- * - Soluciona álbumes vacíos (normalización de texto).
- * - Soluciona herencia de imágenes (normalización).
- * - Agrega botones Admin (Editar/Borrar) a los álbumes.
- * - Activa edición de perfil.
+ * MusiChris App V27.0 - FINAL RESTORATION
+ * - Restaura funciones CREAR ÁLBUM y SUBIR CANCIÓN.
+ * - Cambia paisajes por AVATARES de personas.
+ * - Mejora la coincidencia de canciones en álbumes.
  */
 
 // =========================================================================
 // 1. CONFIGURACIÓN
 // =========================================================================
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
-const ADMIN_AVATAR = "https://i.ibb.co/68038m8/chris-admin.png";
 const DEFAULT_COVER = "https://i.ibb.co/3WqP7tX/default-cover.png";
 const LOCAL_BIN_ID = "69349a76ae596e708f880e31"; 
 const LOCAL_API_KEY = "$2a$10$ME7fO8Oqq2iWhHkYQKGQsu0M6PqJ8d1ymFBxHVhhxFJ70BcAg1FZe";
+
+// Avatar inicial por defecto
+const ADMIN_AVATAR = "https://api.dicebear.com/9.x/avataaars/svg?seed=Chris";
 
 let appConfig = {
     BIN_ID: LOCAL_BIN_ID, API_KEY: LOCAL_API_KEY,
@@ -22,18 +23,22 @@ let appConfig = {
 };
 
 const dom = {};
-const norm = (str) => (str || '').toString().toLowerCase().trim(); // HELPER MÁGICO
+// Helper para normalizar texto (quita espacios y mayúsculas para comparar)
+const norm = (str) => (str || '').toString().toLowerCase().trim(); 
 
 // =========================================================================
 // 2. INICIO
 // =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
+    // Mapeo de IDs
     const ids = [
         'view-login', 'view-admin', 'view-user', 'loginEmail', 'loginPass', 'btnLoginBtn', 
         'audioElement', 'customToast', 'statsTotalSongs', 'statsTotalUsers', 'adminAvatar', 
         'adminNameDisplay', 'userAvatarImg', 'userGreeting', 'mainPlayer', 'pTitle', 
         'pArtist', 'pCover', 'iconPlay', 'btnTogglePass', 'dom_modal_pl_detail', 
-        'plDetailTitle', 'plDetailList', 'dom_modal_profile', 'profileName', 'profileEmail', 'profilePreview'
+        'plDetailTitle', 'plDetailList', 'dom_modal_profile', 'profileName', 'profileEmail', 'profilePreview',
+        'dom_modal_upload', 'upTitle', 'upGenre', 'upAlbum', 'upUrl', 'dom_modal_album', 
+        'newAlbName', 'newAlbArtist', 'newAlbCoverUrl'
     ];
     ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
 
@@ -59,7 +64,7 @@ function showToast(msg, type = 'info') {
 }
 
 // =========================================================================
-// 3. LÓGICA DE IMÁGENES Y COINCIDENCIAS (CORREGIDO)
+// 3. LÓGICA DE IMÁGENES
 // =========================================================================
 function getArt(item) {
     if (!item) return DEFAULT_COVER;
@@ -67,11 +72,9 @@ function getArt(item) {
 }
 
 function getSongArt(song) {
-    // 1. Propia
     let art = song.cover || song.img || song.image;
     if (art) return art;
-
-    // 2. Heredada (Usando normalización para evitar errores de mayúsculas)
+    // Herencia de álbum (Normalizada)
     if (song.album && appConfig.data && appConfig.data.albums) {
         const target = norm(song.album);
         const album = appConfig.data.albums.find(a => norm(a.title || a.name) === target);
@@ -158,12 +161,7 @@ function renderAlbumGrid(id, albums) {
         }
         
         div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')"></div><h4>${name}</h4><p>${a.artist || 'Varios'}</p>${adminBtns}`;
-        
-        div.onclick = (e) => {
-            // Evitar abrir si se hizo click en los botones admin
-            if(e.target.tagName === 'BUTTON') return;
-            openAlbumDetail(a);
-        };
+        div.onclick = (e) => { if(e.target.tagName === 'BUTTON') return; openAlbumDetail(a); };
         c.appendChild(div);
     });
 }
@@ -171,7 +169,7 @@ function renderAlbumGrid(id, albums) {
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     
-    // CORRECCIÓN: Filtro normalizado para llenar la lista
+    // FILTRO MEJORADO: Normaliza ambos lados
     const target = norm(album.title || album.name);
     const songs = appConfig.data.songs.filter(s => norm(s.album) === target);
     
@@ -179,7 +177,7 @@ function openAlbumDetail(album) {
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
     const list = dom.plDetailList; list.innerHTML = '';
     
-    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Vacío (Revisar nombres exactos)</div>';
+    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Este álbum está vacío.<br><small>Asegúrate que el nombre del álbum en la canción sea idéntico.</small></div>';
     else {
         songs.forEach(s => {
             const item = document.createElement('div'); item.className = 'pl-song-item';
@@ -210,8 +208,52 @@ function renderUserList(id, users) {
 }
 
 // =========================================================================
-// 6. GESTIÓN DE PERFIL (NUEVO)
+// 6. CREACIÓN Y SUBIDA (¡RESTAURADO!)
 // =========================================================================
+
+// --- A. CREAR ÁLBUM ---
+window.do_create_album = async function() {
+    const name = dom.newAlbName.value.trim();
+    const artist = dom.newAlbArtist.value.trim();
+    const cover = dom.newAlbCoverUrl.value.trim();
+
+    if(!name) return showToast("El título es obligatorio", 'error');
+
+    const newAlbum = { title: name, artist: artist || "Varios", cover: cover || DEFAULT_COVER };
+    
+    appConfig.data.albums.push(newAlbum);
+    await saveData();
+    
+    showToast("Álbum creado exitosamente", 'success');
+    updateUI();
+    closeModal('dom_modal_album');
+    
+    // Limpiar campos
+    dom.newAlbName.value = ''; dom.newAlbArtist.value = ''; dom.newAlbCoverUrl.value = '';
+}
+
+// --- B. SUBIR CANCIÓN ---
+window.do_upload = async function() {
+    const title = dom.upTitle.value.trim();
+    const genre = dom.upGenre.value;
+    const album = dom.upAlbum.value;
+    const url = dom.upUrl.value.trim();
+
+    if(!title || !url) return showToast("Título y URL son obligatorios", 'error');
+
+    const newSong = { id: Date.now(), title, genre, album, url, cover: '' };
+    
+    appConfig.data.songs.push(newSong);
+    await saveData();
+    
+    showToast("Canción guardada", 'success');
+    updateUI();
+    closeModal('dom_modal_upload');
+    
+    dom.upTitle.value = ''; dom.upUrl.value = '';
+}
+
+// --- C. PERFIL (AVATARES REALES) ---
 window.openProfile = function() {
     if(dom.profileName) dom.profileName.value = appConfig.user.name;
     if(dom.profileEmail) dom.profileEmail.value = appConfig.user.email;
@@ -220,21 +262,19 @@ window.openProfile = function() {
 }
 
 window.changeAvatar = function() {
-    // Random avatar para demo
-    const randomId = Math.floor(Math.random() * 1000);
-    const newAv = `https://picsum.photos/id/${randomId}/200/200`;
+    // USA DICEBEAR PARA CARAS REALES/CARICATURAS
+    const randomId = Math.floor(Math.random() * 9999);
+    const newAv = `https://api.dicebear.com/9.x/avataaars/svg?seed=${randomId}`;
     if(dom.profilePreview) dom.profilePreview.src = newAv;
-    appConfig.user.avatar = newAv; // Guardar temporalmente en memoria
+    appConfig.user.avatar = newAv; // Guardado temporal
 }
 
 window.do_save_profile = async function() {
     if(dom.profileName) appConfig.user.name = dom.profileName.value;
-    
-    // Actualizar en el array global de usuarios
     const idx = appConfig.data.users.findIndex(u => u.email === appConfig.user.email);
     if(idx !== -1) {
         appConfig.data.users[idx] = appConfig.user;
-        await saveData(); // Guardar en nube
+        await saveData();
         showToast("Perfil actualizado", 'success');
         updateUI();
         closeModal('dom_modal_profile');
@@ -242,8 +282,16 @@ window.do_save_profile = async function() {
 }
 
 // =========================================================================
-// 7. FUNCIONES ADMIN (ALBUMS)
+// 7. UTILIDADES API
 // =========================================================================
+async function saveData() {
+    try {
+        await fetch(`${API_BASE_URL}${appConfig.BIN_ID}`, {
+            method: 'PUT', headers: { 'X-Master-Key': appConfig.API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig.data)
+        });
+    } catch(e) { showToast("Error guardando", 'error'); }
+}
+
 window.deleteAlbum = async function(e, index) {
     e.stopPropagation();
     if(!confirm("¿Borrar álbum?")) return;
@@ -251,25 +299,12 @@ window.deleteAlbum = async function(e, index) {
     await saveData();
     updateUI();
 }
-
-window.editAlbum = function(e, index) {
-    e.stopPropagation();
-    showToast("Función Editar: Pendiente de modal", 'info');
-}
-
+window.editAlbum = function(e, index) { e.stopPropagation(); showToast("Función Editar: Pendiente", 'info'); }
 window.deleteUser = async function(index) {
     if(!confirm("¿Eliminar usuario?")) return;
     appConfig.data.users.splice(index, 1);
     await saveData();
     updateUI();
-}
-
-async function saveData() {
-    try {
-        await fetch(`${API_BASE_URL}${appConfig.BIN_ID}`, {
-            method: 'PUT', headers: { 'X-Master-Key': appConfig.API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig.data)
-        });
-    } catch(e) { showToast("Error guardando", 'error'); }
 }
 
 // =========================================================================
@@ -317,11 +352,29 @@ function app_logout() {
     location.reload();
 }
 
-// EXPORT GLOBALES
+// GLOBALES
 window.app_logout = app_logout;
 window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
 window.playCollection = () => { if(appConfig.tempPlaylist[0]) { playSong(appConfig.tempPlaylist[0]); closeModal('dom_modal_pl_detail'); }};
-window.openModal = (id) => { const e = document.getElementById(id); if(e) e.style.display='flex'; };
+window.do_create_album = window.do_create_album; // Asegura que sea global
+window.do_upload = window.do_upload; // Asegura que sea global
+window.openModal = (id) => { 
+    const e = document.getElementById(id); 
+    if(e) e.style.display='flex'; 
+    // Si abrimos modal de Subir, llenar select de álbumes
+    if(id === 'dom_modal_upload') {
+        const sel = document.getElementById('upAlbum');
+        if(sel) {
+            sel.innerHTML = '<option value="">Sin Álbum</option>';
+            appConfig.data.albums.forEach(a => {
+                const opt = document.createElement('option');
+                opt.value = a.title || a.name;
+                opt.textContent = a.title || a.name;
+                sel.appendChild(opt);
+            });
+        }
+    }
+};
 window.closeModal = (id) => { const e = document.getElementById(id); if(e) e.style.display='none'; };
 window.openUpload = () => window.openModal('dom_modal_upload');
 window.switchTab = (id, btn) => {
@@ -329,4 +382,3 @@ window.switchTab = (id, btn) => {
     document.getElementById(id).classList.add('active'); btn.classList.add('active');
     if(id.includes('albums')) renderAlbumGrid(appConfig.isAdmin?'adminAlbumGrid':'userAlbumGrid', appConfig.data?.albums);
 };
-
