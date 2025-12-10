@@ -1,8 +1,8 @@
 /**
- * MusiChris App V23.0 - PLAYER VISIBILITY FIX
- * - Oculta el reproductor automáticamente al iniciar la App.
- * - Asegura que al cerrar sesión el reproductor desaparezca.
- * - Mantiene todas las funciones de imágenes y botones de la V22.
+ * MusiChris App V25.0 - ALBUM INTERACTION & ART INHERITANCE
+ * - Las canciones heredan visualmente la portada de su álbum.
+ * - Al hacer clic en un álbum, se abre el detalle con sus canciones.
+ * - Botón "Reproducir Todo" en el álbum funciona.
  */
 
 // =========================================================================
@@ -16,7 +16,8 @@ const LOCAL_API_KEY = "$2a$10$ME7fO8Oqq2iWhHkYQKGQsu0M6PqJ8d1ymFBxHVhhxFJ70BcAg1
 
 let appConfig = {
     BIN_ID: LOCAL_BIN_ID, API_KEY: LOCAL_API_KEY,
-    data: null, user: null, isLoggedIn: false, isAdmin: false, currentSong: null
+    data: null, user: null, isLoggedIn: false, isAdmin: false, currentSong: null,
+    tempPlaylist: [] // Para guardar las canciones del álbum abierto
 };
 
 const dom = {};
@@ -25,11 +26,16 @@ const dom = {};
 // 2. INICIO
 // =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    const ids = ['view-login', 'view-admin', 'view-user', 'loginEmail', 'loginPass', 'btnLoginBtn', 'audioElement', 'customToast', 'statsTotalSongs', 'statsTotalUsers', 'adminAvatar', 'adminNameDisplay', 'userAvatarImg', 'userGreeting', 'mainPlayer', 'pTitle', 'pArtist', 'pCover', 'iconPlay', 'btnTogglePass'];
+    const ids = [
+        'view-login', 'view-admin', 'view-user', 'loginEmail', 'loginPass', 'btnLoginBtn', 
+        'audioElement', 'customToast', 'statsTotalSongs', 'statsTotalUsers', 'adminAvatar', 
+        'adminNameDisplay', 'userAvatarImg', 'userGreeting', 'mainPlayer', 'pTitle', 
+        'pArtist', 'pCover', 'iconPlay', 'btnTogglePass', 'dom_modal_pl_detail', 
+        'plDetailTitle', 'plDetailList'
+    ];
     ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
 
-    // CORRECCIÓN CRÍTICA: Ocultar reproductor al iniciar
-    if (dom.mainPlayer) dom.mainPlayer.style.display = 'none';
+    if (dom.mainPlayer) dom.mainPlayer.style.display = 'none'; // Ocultar al inicio
 
     if (dom.btnLoginBtn) dom.btnLoginBtn.addEventListener('click', handleLoginAttempt);
     if (dom.btnTogglePass) dom.btnTogglePass.addEventListener('click', () => {
@@ -51,7 +57,7 @@ function showToast(msg, type = 'info') {
 }
 
 // =========================================================================
-// 3. LOGICA DE IMÁGENES
+// 3. LÓGICA DE IMÁGENES (MATCHING EXACTO)
 // =========================================================================
 function getArt(item) {
     if (!item) return DEFAULT_COVER;
@@ -59,10 +65,18 @@ function getArt(item) {
 }
 
 function getSongArt(song) {
+    // 1. Prioridad: Portada propia
     let art = song.cover || song.img || song.image;
     if (art) return art;
+
+    // 2. Herencia: Buscar en álbumes
     if (song.album && appConfig.data && appConfig.data.albums) {
-        const album = appConfig.data.albums.find(a => (a.title === song.album || a.name === song.album));
+        // Normalizamos a minúsculas para asegurar coincidencia
+        const targetName = song.album.toLowerCase().trim();
+        const album = appConfig.data.albums.find(a => {
+            const aName = (a.title || a.name || '').toLowerCase().trim();
+            return aName === targetName;
+        });
         if (album) return getArt(album);
     }
     return DEFAULT_COVER;
@@ -111,7 +125,7 @@ function updateUI() {
 }
 
 // =========================================================================
-// 5. RENDERIZADO
+// 5. RENDERIZADO Y DETALLE DE ÁLBUM
 // =========================================================================
 function renderSongList(id, songs) {
     const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
@@ -133,9 +147,65 @@ function renderAlbumGrid(id, albums) {
     albums.forEach(a => {
         const div = document.createElement('div'); div.className = 'collection-card';
         const art = getArt(a);
-        div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')"></div><h4>${a.title || a.name || 'Álbum'}</h4>`;
+        const name = a.title || a.name || 'Álbum';
+        
+        div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')"></div><h4>${name}</h4><p>${a.artist || 'Varios'}</p>`;
+        
+        // ACCIÓN AL HACER CLICK: ABRIR DETALLE
+        div.onclick = () => openAlbumDetail(a);
         c.appendChild(div);
     });
+}
+
+// *** NUEVO: ABRIR EL MODAL CON LAS CANCIONES DEL ÁLBUM ***
+function openAlbumDetail(album) {
+    const modal = dom.dom_modal_pl_detail;
+    if(!modal) return;
+    
+    // 1. Filtrar canciones de este álbum
+    const albumName = (album.title || album.name || '').toLowerCase().trim();
+    const albumSongs = appConfig.data.songs.filter(s => (s.album || '').toLowerCase().trim() === albumName);
+    
+    appConfig.tempPlaylist = albumSongs; // Guardar para reproducir todo
+    
+    // 2. Llenar Modal
+    if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
+    const listContainer = dom.plDetailList;
+    listContainer.innerHTML = '';
+    
+    if(albumSongs.length === 0) {
+        listContainer.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Este álbum está vacío.</div>';
+    } else {
+        albumSongs.forEach(s => {
+            const item = document.createElement('div');
+            item.className = 'pl-song-item'; // Estilo simple de lista
+            item.innerHTML = `
+                <div class="pl-song-info">
+                    <div class="pl-song-title">${s.title}</div>
+                    <div class="pl-song-artist">${s.genre}</div>
+                </div>
+                <span class="material-icons-round" style="font-size:1.2rem;color:var(--accent)">play_circle</span>
+            `;
+            item.onclick = () => {
+                playSong(s);
+                closeModal('dom_modal_pl_detail');
+            };
+            listContainer.appendChild(item);
+        });
+    }
+    
+    // 3. Mostrar Modal
+    modal.style.display = 'flex';
+}
+
+function playCollection() {
+    // Reproducir la primera canción de la lista temporal (álbum)
+    if(appConfig.tempPlaylist && appConfig.tempPlaylist.length > 0) {
+        playSong(appConfig.tempPlaylist[0]);
+        closeModal('dom_modal_pl_detail');
+    } else {
+        showToast("Lista vacía", 'info');
+    }
 }
 
 function renderUserList(id, users) {
@@ -222,13 +292,9 @@ function doLogin(user) {
 }
 
 function app_logout() {
-    // 1. Detener audio
     if(dom.audioElement) dom.audioElement.pause();
-    // 2. Ocultar reproductor visualmente
     if(dom.mainPlayer) dom.mainPlayer.style.display = 'none';
-    // 3. Borrar sesión
     localStorage.removeItem('appConfig');
-    // 4. Recargar
     location.reload();
 }
 
@@ -236,6 +302,7 @@ function app_logout() {
 window.deleteUser = deleteUser;
 window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
 window.app_logout = app_logout;
+window.playCollection = playCollection; // Nueva función global
 window.openModal = (id) => { const e = document.getElementById(id); if(e) e.style.display='flex'; };
 window.closeModal = (id) => { const e = document.getElementById(id); if(e) e.style.display='none'; };
 window.openProfile = () => window.openModal('dom_modal_profile');
@@ -245,3 +312,4 @@ window.switchTab = (id, btn) => {
     document.getElementById(id).classList.add('active'); btn.classList.add('active');
     if(id.includes('albums')) renderAlbumGrid(appConfig.isAdmin?'adminAlbumGrid':'userAlbumGrid', appConfig.data?.albums);
 };
+
