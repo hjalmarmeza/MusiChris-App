@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -10,16 +10,14 @@
     
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="/MusiChris-App/style.css"> 
 </head>
 <body>
-
 
     <div id="customToast"></div>
     <audio id="audioElement" preload="auto" crossorigin="anonymous" playsinline></audio>
 
-
-    <div id="view-login" class="view-section active">
+    <div id="view-login" class="view-section active"> 
       <div class="bg-bubble b1"></div><div class="bg-bubble b2"></div><div class="bg-bubble b3"></div>
       <div class="login-card">
         <div class="logo-text">Musi<span>Chris 🎵</span></div>
@@ -34,7 +32,6 @@
         <button class="btn-login" id="btnLoginBtn">Ingresar</button>
       </div>
     </div>
-
 
     <div id="view-admin" class="view-section">
       <div class="container">
@@ -64,7 +61,6 @@
           <div class="card"><h3>Nube</h3><div class="value" id="storageText" style="font-size:1.2rem;color:#00b894">0%</div><div style="width:100%;height:4px;background:#333;margin-top:5px"><div id="storageBar" style="width:0%;height:100%;background:#00d4ff"></div></div></div>
         </div>
 
-
         <div class="tabs">
           <button class="tab-btn active" onclick="switchTab('admin-music', this)">Música</button>
           <button class="tab-btn" onclick="switchTab('admin-playlists', this)">Playlist</button>
@@ -82,7 +78,6 @@
         <div id="admin-users" class="list-tab-content"><button class="btn-submit" onclick="openModal('dom_modal_user')" style="margin-bottom:10px">+ Usuario</button><div id="usersListGrid"></div></div>
       </div>
     </div>
-
 
     <div id="view-user" class="view-section">
       <div class="container">
@@ -106,7 +101,6 @@
         <div id="user-playlists" class="list-tab-content"><button class="btn-submit" onclick="openModal('dom_modal_playlist')" style="margin-bottom:10px">+ Lista</button><div id="userPlaylistGrid" class="playlist-grid"></div></div>
       </div>
     </div>
-
 
     <div id="view-guest-player" class="view-section">
         <div class="bg-bubble b1"></div><div class="bg-bubble b2"></div><div class="bg-bubble b3"></div>
@@ -133,7 +127,6 @@
                     <button class="btn-guest-action" onclick="openModal('dom_modal_sleep_timer')"><span class="material-icons-round">bedtime</span></button>
                 </div>
 
-
                 <div style="width:100%; max-width:400px; margin-top:15px">
                     <input type="range" id="guestSeekSlider" value="0" max="100" style="width:100%; margin-bottom:20px; height:6px">
                     <div style="display:flex; justify-content:center; gap:30px; align-items:center;">
@@ -147,7 +140,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="modal-overlay" id="dom_modal_upload"><div class="modal-content"><h2>Subir</h2><input type="text" id="upTitle" class="form-input" placeholder="Título"><select id="upGenre" class="form-input" style="background:#333;color:white"><option>Alabanza</option><option>Adoración</option><option>Pop</option><option>Instrumental</option></select><label style="color:#aaa;font-size:0.8rem">Álbum:</label><select id="upAlbum" class="form-input" style="background:#333;color:white"></select><div style="background:rgba(255,255,255,0.05);padding:10px;border-radius:10px;margin-bottom:10px;border:1px dashed #555"><label style="color:var(--accent);display:block;margin-bottom:5px">📂 Archivo MP3</label><input type="file" id="upFileMp3" class="form-input" accept="audio/*"><p style="font-size:0.7rem;color:#aaa">O enlace:</p><input type="url" id="upUrl" class="form-input" placeholder="https://..." style="margin-bottom:0"></div><button class="btn-submit" id="btnActionUpload" onclick="do_upload()">Guardar</button><button class="close-modal" onclick="closeModal('dom_modal_upload')">Cancelar</button></div></div>
     <div class="modal-overlay" id="dom_modal_edit_song"><div class="modal-content"><h2>Editar Canción</h2><input type="hidden" id="editSongId"><label>Título:</label><input type="text" id="editSongTitle" class="form-input"><label>Género:</label><select id="editSongGenre" class="form-input" style="background:#333;color:white"><option>Alabanza</option><option>Adoración</option><option>Pop</option><option>Instrumental</option></select><label>Mover a Álbum:</label><select id="editSongAlbum" class="form-input" style="background:#333;color:white"></select><div style="background:rgba(255,255,255,0.05);padding:10px;border-radius:10px;margin:10px 0;border:1px dashed #555"><label style="color:var(--accent);display:block;margin-bottom:5px">📂 Archivo MP3 (Opcional)</label><input type="file" id="editSongFile" class="form-input" accept="audio/*"><p style="font-size:0.7rem;color:#aaa">O enlace:</p><input type="url" id="editSongUrl" class="form-input" placeholder="https://..." style="margin-bottom:0"></div><button class="btn-submit" id="btnActionEditSong" onclick="doSaveEditSong()">Guardar Cambios</button><button class="close-modal" onclick="closeModal('dom_modal_edit_song')">Cancelar</button></div></div>
@@ -164,7 +156,6 @@
     <div class="modal-overlay" id="dom_modal_announcement"><div class="modal-content"><h2>Anuncio</h2><input type="text" id="announcementInput" class="form-input"><button class="btn-submit" onclick="do_save_announce()">Publicar</button><button class="close-modal" onclick="closeModal('dom_modal_announcement')">Cerrar</button></div></div>
     <div class="modal-overlay" id="dom_modal_select_pl"><div class="modal-content"><h2>Guardar en...</h2><div id="selectPlList"></div><button class="close-modal" onclick="closeModal('dom_modal_select_pl')">Cerrar</button></div></div>
     <div class="modal-overlay" id="dom_modal_pl_detail"><div class="modal-content"><h2 id="plDetailTitle">Lista</h2><button class="btn-submit" onclick="playCollection()" style="margin-bottom:10px">Reproducir Todo</button><div id="plDetailList"></div><button class="close-modal" onclick="closeModal('dom_modal_pl_detail')">Cerrar</button></div></div>
-
 
     <div class="bottom-player" id="mainPlayer">
       <div class="player-info">
