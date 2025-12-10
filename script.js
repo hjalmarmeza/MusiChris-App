@@ -1,9 +1,8 @@
 /**
- * MusiChris App V21.0 - FINAL UI POLISH
- * - Audio funcionando.
- * - Corrección de imágenes (acepta 'cover' o 'img').
- * - Corrección de nombres de álbumes (acepta 'title' o 'name').
- * - Botones de acción en lista de usuarios (Borrar/Editar).
+ * MusiChris App V23.0 - PLAYER VISIBILITY FIX
+ * - Oculta el reproductor automáticamente al iniciar la App.
+ * - Asegura que al cerrar sesión el reproductor desaparezca.
+ * - Mantiene todas las funciones de imágenes y botones de la V22.
  */
 
 // =========================================================================
@@ -12,18 +11,12 @@
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
 const ADMIN_AVATAR = "https://i.ibb.co/68038m8/chris-admin.png";
 const DEFAULT_COVER = "https://i.ibb.co/3WqP7tX/default-cover.png";
-
 const LOCAL_BIN_ID = "69349a76ae596e708f880e31"; 
 const LOCAL_API_KEY = "$2a$10$ME7fO8Oqq2iWhHkYQKGQsu0M6PqJ8d1ymFBxHVhhxFJ70BcAg1FZe";
 
 let appConfig = {
-    BIN_ID: LOCAL_BIN_ID,
-    API_KEY: LOCAL_API_KEY,
-    data: null,
-    user: null,
-    isLoggedIn: false,
-    isAdmin: false,
-    currentSong: null
+    BIN_ID: LOCAL_BIN_ID, API_KEY: LOCAL_API_KEY,
+    data: null, user: null, isLoggedIn: false, isAdmin: false, currentSong: null
 };
 
 const dom = {};
@@ -32,208 +25,123 @@ const dom = {};
 // 2. INICIO
 // =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Mapeo seguro
-    const ids = [
-        'view-login', 'view-admin', 'view-user', 'loginEmail', 'loginPass', 
-        'btnLoginBtn', 'audioElement', 'customToast', 'statsTotalSongs', 
-        'statsTotalUsers', 'adminAvatar', 'adminNameDisplay', 'userAvatarImg', 
-        'userGreeting', 'mainPlayer', 'pTitle', 'pArtist', 'pCover', 'iconPlay',
-        'btnTogglePass'
-    ];
-    
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) dom[id] = el;
-    });
+    const ids = ['view-login', 'view-admin', 'view-user', 'loginEmail', 'loginPass', 'btnLoginBtn', 'audioElement', 'customToast', 'statsTotalSongs', 'statsTotalUsers', 'adminAvatar', 'adminNameDisplay', 'userAvatarImg', 'userGreeting', 'mainPlayer', 'pTitle', 'pArtist', 'pCover', 'iconPlay', 'btnTogglePass'];
+    ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
+
+    // CORRECCIÓN CRÍTICA: Ocultar reproductor al iniciar
+    if (dom.mainPlayer) dom.mainPlayer.style.display = 'none';
 
     if (dom.btnLoginBtn) dom.btnLoginBtn.addEventListener('click', handleLoginAttempt);
-    if (dom.btnTogglePass) dom.btnTogglePass.addEventListener('click', togglePasswordVisibility);
+    if (dom.btnTogglePass) dom.btnTogglePass.addEventListener('click', () => {
+        const p = dom.loginPass; p.type = p.type === "password" ? "text" : "password";
+        dom.btnTogglePass.textContent = p.type === "password" ? "visibility_off" : "visibility";
+    });
     
     if (dom.audioElement) {
-        dom.audioElement.addEventListener('ended', () => togglePlayIcon(false));
-        dom.audioElement.addEventListener('pause', () => togglePlayIcon(false));
         dom.audioElement.addEventListener('play', () => togglePlayIcon(true));
+        dom.audioElement.addEventListener('pause', () => togglePlayIcon(false));
     }
     
     loadConfig();
 });
 
-function showToast(message, type = 'info') {
-    const toast = document.getElementById('customToast');
-    if (!toast) return;
-    toast.textContent = message;
-    toast.className = `customToast show ${type}`;
-    setTimeout(() => { toast.className = toast.className.replace(" show", ""); }, 3000);
+function showToast(msg, type = 'info') {
+    const t = document.getElementById('customToast');
+    if(t) { t.textContent = msg; t.className = `customToast show ${type}`; setTimeout(() => t.className = t.className.replace(" show",""), 3000); }
 }
 
 // =========================================================================
-// 3. VISTAS Y CONFIGURACIÓN
+// 3. LOGICA DE IMÁGENES
+// =========================================================================
+function getArt(item) {
+    if (!item) return DEFAULT_COVER;
+    return item.cover || item.img || item.image || item.coverUrl || DEFAULT_COVER;
+}
+
+function getSongArt(song) {
+    let art = song.cover || song.img || song.image;
+    if (art) return art;
+    if (song.album && appConfig.data && appConfig.data.albums) {
+        const album = appConfig.data.albums.find(a => (a.title === song.album || a.name === song.album));
+        if (album) return getArt(album);
+    }
+    return DEFAULT_COVER;
+}
+
+// =========================================================================
+// 4. VISTAS Y DATOS
 // =========================================================================
 function showView(viewId) {
-    const views = ['view-login', 'view-admin', 'view-user', 'view-guest-player'];
-    views.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.style.display = 'none';
-            el.classList.remove('active');
-        }
+    ['view-login','view-admin','view-user','view-guest-player'].forEach(id => {
+        const el = document.getElementById(id); if(el) { el.style.display='none'; el.classList.remove('active'); }
     });
-
-    const target = document.getElementById(viewId);
-    if (target) {
-        target.style.display = (viewId === 'view-login') ? 'flex' : 'block';
-        setTimeout(() => target.classList.add('active'), 10);
-    }
+    const t = document.getElementById(viewId);
+    if(t) { t.style.display = (viewId === 'view-login' ? 'flex' : 'block'); setTimeout(()=>t.classList.add('active'),10); }
 }
 
-function loadConfig() {
-    const saved = localStorage.getItem('appConfig');
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        appConfig.user = parsed.user;
-        appConfig.isLoggedIn = parsed.isLoggedIn;
-        appConfig.isAdmin = parsed.isAdmin;
-    }
-
-    appConfig.BIN_ID = LOCAL_BIN_ID;
-    appConfig.API_KEY = LOCAL_API_KEY;
-
-    if (appConfig.isLoggedIn && appConfig.user) {
-        showView(appConfig.isAdmin ? 'view-admin' : 'view-user');
-        loadAppData(); 
-    } else {
-        showView('view-login');
-    }
-}
-
-function saveConfig() {
-    localStorage.setItem('appConfig', JSON.stringify({
-        user: appConfig.user,
-        isLoggedIn: appConfig.isLoggedIn,
-        isAdmin: appConfig.isAdmin
-    }));
-}
-
-// =========================================================================
-// 4. DATOS
-// =========================================================================
 async function loadAppData() {
     try {
-        const response = await fetch(`${API_BASE_URL}${appConfig.BIN_ID}`, {
-            method: 'GET',
-            headers: { 'X-Master-Key': appConfig.API_KEY }
-        });
-
-        if (!response.ok) throw new Error("Error API");
-
-        const json = await response.json();
+        const res = await fetch(`${API_BASE_URL}${appConfig.BIN_ID}`, { headers: {'X-Master-Key': appConfig.API_KEY} });
+        if(!res.ok) throw new Error("API Error");
+        const json = await res.json();
         appConfig.data = json.record;
-
-        if (!appConfig.data.songs) appConfig.data.songs = [];
-        if (!appConfig.data.users) appConfig.data.users = [];
-        if (!appConfig.data.albums) appConfig.data.albums = [];
+        
+        if(!appConfig.data.songs) appConfig.data.songs = [];
+        if(!appConfig.data.users) appConfig.data.users = [];
+        if(!appConfig.data.albums) appConfig.data.albums = [];
 
         updateUI();
-
-    } catch (error) {
-        console.error(error);
-        showToast("Error cargando datos", 'error');
-    }
+    } catch(e) { console.error(e); showToast("Error de conexión", 'error'); }
 }
 
 function updateUI() {
-    // Estadísticas
-    if (dom.statsTotalSongs && appConfig.data) dom.statsTotalSongs.textContent = appConfig.data.songs.length;
-    if (dom.statsTotalUsers && appConfig.data) dom.statsTotalUsers.textContent = appConfig.data.users.length;
-
-    // Perfil
-    const avatarUrl = appConfig.user?.avatar || ADMIN_AVATAR;
-    if(dom.adminAvatar) dom.adminAvatar.src = avatarUrl;
-    if(dom.userAvatarImg) dom.userAvatarImg.src = avatarUrl;
+    if(dom.statsTotalSongs && appConfig.data) dom.statsTotalSongs.textContent = appConfig.data.songs.length;
+    if(dom.statsTotalUsers && appConfig.data) dom.statsTotalUsers.textContent = appConfig.data.users.length;
+    
+    renderSongList(appConfig.isAdmin ? 'adminSongList' : 'userSongList', appConfig.data.songs);
+    renderAlbumGrid(appConfig.isAdmin ? 'adminAlbumGrid' : 'userAlbumGrid', appConfig.data.albums);
+    if(appConfig.isAdmin) renderUserList('usersListGrid', appConfig.data.users);
+    
+    const avatar = appConfig.user?.avatar || ADMIN_AVATAR;
+    if(dom.adminAvatar) dom.adminAvatar.src = avatar;
+    if(dom.userAvatarImg) dom.userAvatarImg.src = avatar;
     
     if(dom.adminNameDisplay) dom.adminNameDisplay.textContent = appConfig.user?.name || 'Admin';
     if(dom.userGreeting) dom.userGreeting.textContent = `Hola, ${appConfig.user?.name || 'Usuario'}`;
-
-    // Renderizado
-    if (appConfig.isAdmin) {
-        renderSongList('adminSongList', appConfig.data.songs);
-        renderUserList('usersListGrid', appConfig.data.users);
-        renderAlbumGrid('adminAlbumGrid', appConfig.data.albums);
-    } else {
-        renderSongList('userSongList', appConfig.data.songs);
-        renderAlbumGrid('userAlbumGrid', appConfig.data.albums);
-    }
 }
 
 // =========================================================================
-// 5. RENDERIZADO (CORREGIDO PARA IMÁGENES Y BOTONES)
+// 5. RENDERIZADO
 // =========================================================================
-function renderSongList(containerId, songs) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = '';
-
-    if (!songs || songs.length === 0) {
-        container.innerHTML = '<div style="padding:20px;text-align:center;color:#666">No hay canciones.</div>';
-        return;
-    }
-
-    songs.forEach(song => {
-        const div = document.createElement('div');
-        div.className = 'song-list-item';
-        // CORRECCIÓN: Busca 'cover' O 'img' O usa default
-        const coverImg = song.cover || song.img || DEFAULT_COVER;
-        
+function renderSongList(id, songs) {
+    const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
+    songs.forEach(s => {
+        const div = document.createElement('div'); div.className = 'song-list-item';
+        const art = getSongArt(s);
         div.innerHTML = `
-            <div class="song-cover" style="background-image: url('${coverImg}')"></div>
-            <div class="song-info">
-                <div class="song-title">${song.title || 'Sin Título'}</div>
-                <div class="song-artist">${song.genre || song.artist || 'Desconocido'}</div>
-            </div>
-            <div class="song-actions">
-                <button class="btn-list-action"><span class="material-icons-round">play_arrow</span></button>
-            </div>
+            <div class="song-cover" style="background-image: url('${art}')"></div>
+            <div class="song-info"><div class="song-title">${s.title || 'Sin Título'}</div><div class="song-artist">${s.genre || 'Desconocido'}</div></div>
+            <div class="song-actions"><button class="btn-list-action"><span class="material-icons-round">play_arrow</span></button></div>
         `;
-        div.onclick = () => playSong(song);
-        container.appendChild(div);
+        div.onclick = () => playSong(s);
+        c.appendChild(div);
     });
 }
 
-function renderAlbumGrid(containerId, albums) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = '';
-
-    if (!albums || albums.length === 0) {
-        container.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#666">No hay álbumes.</div>';
-        return;
-    }
-
-    albums.forEach(album => {
-        const div = document.createElement('div');
-        div.className = 'collection-card';
-        // CORRECCIÓN: Busca 'cover' O 'img' / 'title' O 'name'
-        const coverImg = album.cover || album.img || DEFAULT_COVER;
-        const albumName = album.title || album.name || 'Álbum';
-        
-        div.innerHTML = `
-            <div class="collection-cover" style="background-image: url('${coverImg}')"></div>
-            <h4>${albumName}</h4>
-            <p>${album.artist || 'Varios'}</p>
-        `;
-        container.appendChild(div);
+function renderAlbumGrid(id, albums) {
+    const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
+    albums.forEach(a => {
+        const div = document.createElement('div'); div.className = 'collection-card';
+        const art = getArt(a);
+        div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')"></div><h4>${a.title || a.name || 'Álbum'}</h4>`;
+        c.appendChild(div);
     });
 }
 
-function renderUserList(containerId, users) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = '';
-
-    users.forEach(u => {
-        const div = document.createElement('div');
-        div.className = 'user-list-item';
-        // CORRECCIÓN: Agregados botones de acción
+function renderUserList(id, users) {
+    const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
+    users.forEach((u, index) => {
+        const div = document.createElement('div'); div.className = 'user-list-item';
         div.innerHTML = `
             <div class="user-info">
                 <img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover">
@@ -241,133 +149,99 @@ function renderUserList(containerId, users) {
                 <span class="user-role role-${u.role}" style="font-size:0.7rem;margin-left:5px;padding:2px 6px;border-radius:4px;background:${u.role==='admin'?'var(--accent)':'#3498db'}">${u.role}</span>
             </div>
             <div style="display:flex;gap:5px">
-                <button class="btn-icon" style="width:30px;height:30px;font-size:1rem" onclick="fakeAction('Editar Usuario')">
-                    <span class="material-icons-round">lock</span>
-                </button>
-                <button class="btn-icon" style="width:30px;height:30px;font-size:1rem;background:var(--danger)" onclick="fakeAction('Borrar Usuario')">
-                    <span class="material-icons-round">delete</span>
-                </button>
+                <button class="btn-icon" style="width:30px;height:30px;background:var(--danger)" onclick="deleteUser(${index})"><span class="material-icons-round">delete</span></button>
             </div>
         `;
-        container.appendChild(div);
+        c.appendChild(div);
     });
 }
 
-function fakeAction(msg) {
-    showToast(msg + " (Demo)", 'info');
+// =========================================================================
+// 6. ACCIONES Y REPRODUCTOR
+// =========================================================================
+async function deleteUser(index) {
+    if(!confirm("¿Seguro que quieres eliminar este usuario?")) return;
+    appConfig.data.users.splice(index, 1);
+    try {
+        const res = await fetch(`${API_BASE_URL}${appConfig.BIN_ID}`, {
+            method: 'PUT', headers: { 'X-Master-Key': appConfig.API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig.data)
+        });
+        if(res.ok) { showToast("Usuario eliminado", 'success'); updateUI(); }
+    } catch(e) { showToast("Error al guardar", 'error'); }
 }
 
-// =========================================================================
-// 6. REPRODUCTOR
-// =========================================================================
 function playSong(song) {
-    if(!song) return;
     appConfig.currentSong = song;
+    if(dom.mainPlayer) dom.mainPlayer.style.display = 'flex';
     
-    const player = dom.mainPlayer;
-    if(player) player.style.display = 'flex';
-    
-    // CORRECCIÓN: Busca cover/img también aquí
-    const coverImg = song.cover || song.img || DEFAULT_COVER;
-
+    const art = getSongArt(song);
     if(dom.pTitle) dom.pTitle.textContent = song.title;
-    if(dom.pArtist) dom.pArtist.textContent = song.genre || song.artist;
-    if(dom.pCover) dom.pCover.style.backgroundImage = `url('${coverImg}')`;
+    if(dom.pArtist) dom.pArtist.textContent = song.genre;
+    if(dom.pCover) dom.pCover.style.backgroundImage = `url('${art}')`;
 
-    const audioEl = dom.audioElement;
-    if(audioEl && song.url) {
-        audioEl.src = song.url;
-        audioEl.play()
-            .then(() => togglePlayIcon(true))
-            .catch(e => console.error(e));
+    if(dom.audioElement && song.url) {
+        dom.audioElement.src = song.url;
+        dom.audioElement.play().catch(e => console.error(e));
+        togglePlayIcon(true);
     }
 }
 
-function toggle_play() {
-    const audioEl = dom.audioElement;
-    if (!audioEl) return;
-    if (audioEl.paused) audioEl.play();
-    else audioEl.pause();
-}
-
 function togglePlayIcon(isPlaying) {
-    const icon = dom.iconPlay;
-    const iconMin = document.getElementById('iconPlayMin');
     const txt = isPlaying ? 'pause' : 'play_arrow';
-    if(icon) icon.textContent = txt;
-    if(iconMin) iconMin.textContent = txt;
+    if(dom.iconPlay) dom.iconPlay.textContent = txt;
 }
 
 // =========================================================================
-// 7. LOGIN Y UTILIDADES
+// 7. LOGIN Y LOGOUT
 // =========================================================================
 async function handleLoginAttempt() {
     const email = dom.loginEmail.value.trim().toLowerCase();
     const pass = dom.loginPass.value.trim();
-
     if (!email || !pass) return showToast("Faltan datos", 'error');
 
     if (email === 'hjalmar' && pass === '258632') {
-        completeLogin({ name: 'Hjalmar', email: 'hjalmar@gmail.com', role: 'admin', avatar: ADMIN_AVATAR });
+        doLogin({ name: 'Hjalmar', email: 'hjalmar@gmail.com', role: 'admin', avatar: ADMIN_AVATAR });
         return;
     }
 
     if (!appConfig.data) await loadAppData();
     const user = appConfig.data?.users?.find(u => u.email.toLowerCase() === email);
     
-    if (user) {
-        if (pass === (user.password || '123')) {
-            completeLogin(user);
-        } else {
-            showToast("Contraseña incorrecta", 'error');
-        }
+    if (user && pass === (user.password || '123')) {
+        doLogin(user);
     } else {
-        showToast("Usuario no encontrado", 'error');
+        showToast("Credenciales incorrectas", 'error');
     }
 }
 
-function completeLogin(user) {
-    appConfig.user = user;
-    appConfig.isLoggedIn = true;
-    appConfig.isAdmin = (user.role === 'admin');
-    saveConfig();
+function doLogin(user) {
+    appConfig.user = user; appConfig.isLoggedIn = true; appConfig.isAdmin = (user.role === 'admin');
+    localStorage.setItem('appConfig', JSON.stringify({ user, isLoggedIn: true, isAdmin: appConfig.isAdmin }));
     showView(appConfig.isAdmin ? 'view-admin' : 'view-user');
     loadAppData();
 }
 
-function togglePasswordVisibility() {
-    const pass = dom.loginPass;
-    const btn = dom.btnTogglePass;
-    if(pass.type === "password") {
-        pass.type = "text";
-        btn.textContent = "visibility";
-    } else {
-        pass.type = "password";
-        btn.textContent = "visibility_off";
-    }
-}
-
 function app_logout() {
+    // 1. Detener audio
+    if(dom.audioElement) dom.audioElement.pause();
+    // 2. Ocultar reproductor visualmente
+    if(dom.mainPlayer) dom.mainPlayer.style.display = 'none';
+    // 3. Borrar sesión
     localStorage.removeItem('appConfig');
+    // 4. Recargar
     location.reload();
 }
 
 // GLOBALES
+window.deleteUser = deleteUser;
+window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
 window.app_logout = app_logout;
-window.toggle_play = toggle_play;
-window.fakeAction = fakeAction;
-window.openModal = (id) => { const el = document.getElementById(id); if(el) el.style.display='flex'; };
-window.closeModal = (id) => { const el = document.getElementById(id); if(el) el.style.display='none'; };
+window.openModal = (id) => { const e = document.getElementById(id); if(e) e.style.display='flex'; };
+window.closeModal = (id) => { const e = document.getElementById(id); if(e) e.style.display='none'; };
 window.openProfile = () => window.openModal('dom_modal_profile');
 window.openUpload = () => window.openModal('dom_modal_upload');
-window.switchTab = (tabId, btn) => {
-    const parent = btn.closest('.container');
-    parent.querySelectorAll('.list-tab-content').forEach(c => c.classList.remove('active'));
-    parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    
-    document.getElementById(tabId).classList.add('active');
-    btn.classList.add('active');
-    
-    // Refrescar grids si es necesario
-    if(tabId.includes('albums') || tabId.includes('users')) updateUI();
+window.switchTab = (id, btn) => {
+    document.querySelectorAll('.list-tab-content, .tab-btn').forEach(e => e.classList.remove('active'));
+    document.getElementById(id).classList.add('active'); btn.classList.add('active');
+    if(id.includes('albums')) renderAlbumGrid(appConfig.isAdmin?'adminAlbumGrid':'userAlbumGrid', appConfig.data?.albums);
 };
