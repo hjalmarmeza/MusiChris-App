@@ -312,4 +312,5 @@ window.switchTab = (id, btn) => {
     document.getElementById(id).classList.add('active'); btn.classList.add('active');
     if(id.includes('albums')) renderAlbumGrid(appConfig.isAdmin?'adminAlbumGrid':'userAlbumGrid', appConfig.data?.albums);
 };
+ 
 
