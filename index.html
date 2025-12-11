@@ -17,11 +17,14 @@
         <div class="login-card">
             <div class="logo-text">Musi<span>Chris</span> 🎵</div>
             <p style="color:#aaa; margin-bottom:20px">Bienvenido</p>
+            
             <input type="email" id="loginEmail" class="login-input" placeholder="Usuario o Email">
+            
             <div class="password-wrapper">
                 <input type="password" id="loginPass" class="login-input" placeholder="Contraseña">
-                <span class="material-icons-round pass-toggle" onclick="togglePassLogin()">visibility_off</span>
+                <span class="material-icons-round pass-toggle" id="btnTogglePass">visibility_off</span>
             </div>
+
             <button id="btnLoginBtn" class="btn-login" onclick="handleLoginAttempt()">Ingresar</button>
         </div>
     </div>
@@ -180,10 +183,12 @@
 
         <div class="guest-container">
             <div id="guestCover"></div>
+            
             <div class="guest-info-area">
                 <h2 id="guestTitle">Título</h2>
                 <p id="guestArtist">Artista</p>
                 </div>
+
             <div class="guest-controls-extra">
                 <span class="material-icons-round btn-guest-action" onclick="shareCurrentSong()">share</span>
                 <div id="guestLikeBtn" onclick="toggleLikeCurrent()">
@@ -191,6 +196,7 @@
                 </div>
                 <span class="material-icons-round btn-guest-action">bedtime</span> 
             </div>
+
             <div class="guest-controls-main">
                 </div>
         </div>
@@ -202,9 +208,7 @@
             <h3 id="modalUploadTitle" style="margin-top:0">Subir Canción</h3>
             <input type="text" id="upTitle" class="form-input" placeholder="Título">
             <input type="text" id="upGenre" class="form-input" placeholder="Artista / Género">
-            <select id="upAlbum" class="form-input" style="background:#1a1a2e;color:#aaa">
-                <option value="">Sin Álbum</option>
-            </select>
+            <select id="upAlbum" class="form-input" style="background:#1a1a2e;color:#aaa"><option value="">Sin Álbum</option></select>
             <input type="text" id="upUrl" class="form-input" placeholder="Enlace MP3 (http://...)">
             <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
                  <button class="close-modal" onclick="closeModal('dom_modal_upload')" style="flex:1; border:1px solid #666; color:#ddd; padding:12px; border-radius:8px;">Cancelar</button>
@@ -224,10 +228,10 @@
     <div id="dom_modal_eq" class="modal-overlay"><div class="modal-content" style="max-width:320px; text-align:center"><button class="close-btn-x" onclick="closeModal('dom_modal_eq')">×</button><h3>Ecualizador 🎛️</h3><div style="display:flex; justify-content:space-around; height:150px; align-items:center; margin:20px 0"><div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Bajos</label></div><div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Medios</label></div><div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Agudos</label></div></div></div></div>
 
     <div id="customToast" class="customToast">Mensaje</div>
-    <script src="./script.js?v=68"></script>
+    
+    <script src="./script.js?v=69"></script>
 </body>
 </html>
-
 
 
 
