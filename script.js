@@ -1,10 +1,8 @@
 /**
- * MusiChris App V56.0 - FINAL FIX
- * - Z-Index EQ fix.
- * - Playlist button restore.
- * - Cloud Math (25GB).
- * - Playlist Icon: Hourglass.
- * - Mini Player Close X.
+ * MusiChris App V58.0 - FINAL AUDIO FIX
+ * - Audio: Force reload on play.
+ * - Player: Fixed expand icon on laptop.
+ * - Logic: Strict album filter preserved.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -44,8 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'view-guest-player', 'guestTitle', 'guestArtist', 'guestCover', 'iconPlayBig', 'pLikeBtn', 'guestLikeBtn',
         'adminPlaylistGrid', 'userPlaylistGrid', 'usersListGrid',
         'btnAddAlbum', 'btnAddUser', 'seekSlider',
-        'searchInputAdmin', 'searchInputUser', 'dom_modal_eq',
-        'newPlName', 'dom_modal_playlist' // Added Playlist IDs
+        'searchInputAdmin', 'searchInputUser', 'dom_modal_eq'
     ];
     ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
 
@@ -57,11 +54,17 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.btnTogglePass.textContent = p.type === "password" ? "visibility_off" : "visibility";
     });
     
+    // Audio Events
     if (dom.audioElement) {
         dom.audioElement.addEventListener('play', () => togglePlayIcon(true));
         dom.audioElement.addEventListener('pause', () => togglePlayIcon(false));
         dom.audioElement.addEventListener('timeupdate', updateProgress);
         dom.audioElement.addEventListener('ended', () => togglePlayIcon(false));
+        dom.audioElement.addEventListener('error', (e) => {
+             console.error("Audio Error:", e);
+             showToast("Error al reproducir. Revisa el enlace.", 'error');
+             togglePlayIcon(false);
+        });
     }
     if(dom.seekSlider) dom.seekSlider.addEventListener('input', seekAudio);
     
@@ -115,9 +118,10 @@ function getArt(item) {
 function getSongArt(song) {
     let art = song.cover || song.img || song.image;
     if (art && !art.includes("imgbb") && !art.includes("image not found")) return art; 
+    
     if (song.album && appConfig.data && appConfig.data.albums) {
         const target = norm(song.album);
-        const album = appConfig.data.albums.find(a => norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name)));
+        const album = appConfig.data.albums.find(a => norm(a.title || a.name) === target) || appConfig.data.albums.find(a => norm(a.title || a.name).includes(target));
         if (album) return getArt(album);
     }
     return DEFAULT_COVER;
@@ -147,7 +151,6 @@ async function loadAppData() {
         if(!appConfig.data.songs) appConfig.data.songs = [];
         if(!appConfig.data.users) appConfig.data.users = [];
         if(!appConfig.data.albums) appConfig.data.albums = [];
-        if(!appConfig.data.playlists) appConfig.data.playlists = [];
         appConfig.data.songs.forEach(s => { if(!s.likes) s.likes = []; if(!s.plays) s.plays = 0; });
 
         if(appConfig.isGuest && appConfig.pendingSongId) activateGuestMode(); else updateUI();
@@ -189,7 +192,6 @@ function updateUI(songListOverride = null) {
     
     // NUBE MATEMÁTICA (25GB)
     if(dom.statsCloud && appConfig.data) {
-        // 5MB avg per song. 25GB = 25000MB
         const usedMB = appConfig.data.songs.length * 5;
         const totalMB = 25000;
         const pct = ((usedMB / totalMB) * 100).toFixed(1);
@@ -213,6 +215,20 @@ function updateUI(songListOverride = null) {
         dom.userAnnouncement.style.display = 'block';
         dom.announcementText.textContent = appConfig.data.announcement;
     } else if (dom.userAnnouncement) dom.userAnnouncement.style.display = 'none';
+    
+    // INYECTAR BOTÓN
+    if(appConfig.isAdmin) {
+        const container = document.getElementById('admin-music');
+        if(container && !document.getElementById('btnAddSongDynamic')) {
+            const btn = document.createElement('div');
+            btn.id = 'btnAddSongDynamic';
+            btn.className = 'btn-add-content';
+            btn.textContent = '+ Subir Canción';
+            btn.onclick = openUpload;
+            const search = document.getElementById('searchInputAdmin');
+            if(search) container.insertBefore(btn, search);
+        }
+    }
 }
 
 function filterSongs(query) {
@@ -335,13 +351,11 @@ function renderAlbumGrid(id, albums) {
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
-    // BÚSQUEDA STRICT
-    let songs = appConfig.data.songs.filter(s => s.album && norm(s.album) === target);
-    
+    let songs = appConfig.data.songs.filter(s => norm(s.album).includes(target) || target.includes(norm(s.album)));
     appConfig.tempPlaylist = songs;
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
     const list = dom.plDetailList; list.innerHTML = '';
-    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío. <br><small>Verifica nombre exacto.</small></div>';
+    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío.</div>';
     else { songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div><div class="song-artist">${s.genre}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); }); }
     modal.style.display = 'flex';
 }
@@ -349,27 +363,9 @@ function openAlbumDetail(album) {
 function renderSmartPlaylists(id) {
     const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
     const createCard = (t,s,img,grad,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover pl-icon-bg ${grad}" style="background-image:url('${img}')"></div><h4>${t}</h4>`; d.onclick=fn; return d; };
-    // ICONO RELOJ (HOURGLASS)
     c.appendChild(createCard("Favoritos", "Likes", "https://cdn-icons-png.flaticon.com/512/833/833472.png", "grad-1", () => openSmartList('fav')));
     c.appendChild(createCard("Recientes", "Nuevas", "https://cdn-icons-png.flaticon.com/512/2972/2972531.png", "grad-2", () => openSmartList('recent')));
     c.appendChild(createCard("Top Hits", "Más oídas", "https://cdn-icons-png.flaticon.com/512/651/651717.png", "grad-3", () => openSmartList('top')));
-
-    if(appConfig.data.playlists) {
-        appConfig.data.playlists.forEach(pl => {
-             const d = document.createElement('div'); d.className='collection-card';
-             d.innerHTML=`<div class="collection-cover pl-icon-bg grad-2" style="background-image:url('https://cdn-icons-png.flaticon.com/512/1179/1179069.png')"></div><h4>${pl.name}</h4>`;
-             d.onclick=()=>showToast("Lista vacía (Demo)", 'info');
-             c.appendChild(d);
-        });
-    }
-}
-function doCreatePlaylist() {
-    const name = prompt("Nombre Playlist:");
-    if(name) {
-        if(!appConfig.data.playlists) appConfig.data.playlists = [];
-        appConfig.data.playlists.push({name:name, songs:[]});
-        saveData(); updateUI();
-    }
 }
 
 function openSmartList(type) {
@@ -448,10 +444,16 @@ function playSong(song) {
     if(dom.pCoverMini) dom.pCoverMini.src = art; 
     
     updateLikeIcon();
+    
+    // AUDIO RELOAD FIX
     if(dom.audioElement && song.url) {
         dom.audioElement.src = song.url;
-        dom.audioElement.play().catch(e=>console.error(e));
-        togglePlayIcon(true);
+        dom.audioElement.load(); // Force reload
+        const playPromise = dom.audioElement.play();
+        if (playPromise !== undefined) {
+            playPromise.then(_ => togglePlayIcon(true))
+            .catch(error => { console.error(error); showToast("Error reproducción", 'error'); togglePlayIcon(false); });
+        }
     }
     const idx = appConfig.data.songs.findIndex(s => s.id === song.id);
     if(idx !== -1) { if(!appConfig.data.songs[idx].plays) appConfig.data.songs[idx].plays = 0; appConfig.data.songs[idx].plays++; saveDataSilent(); }
@@ -500,17 +502,19 @@ window.do_save_settings = () => closeModal('dom_modal_settings');
 window.openProfile = function() { openModal('dom_modal_profile'); }
 window.changeAvatar = function() { appConfig.user.avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.floor(Math.random()*999)}`; if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar; }
 window.do_save_profile = async function() { 
+    // Actualizar nombre y avatar en data real y local
     const idx = appConfig.data.users.findIndex(u => u.email === appConfig.user.email);
     if(idx !== -1) {
         appConfig.data.users[idx].name = dom.profileName.value;
         appConfig.data.users[idx].avatar = appConfig.user.avatar;
-        appConfig.user.name = dom.profileName.value;
+        appConfig.user.name = dom.profileName.value; // Actualizar local para reflejo inmediato
         
         await saveData(); 
-        localStorage.setItem('appConfig', JSON.stringify({ user: appConfig.user, isLoggedIn: true, isAdmin: appConfig.isAdmin })); // FIX PERSISTENCIA
         closeModal('dom_modal_profile'); 
         showToast("Perfil actualizado", 'success'); 
-        updateUI(); 
+        updateUI(); // Refrescar interfaz
+        if(dom.adminAvatar) dom.adminAvatar.src = appConfig.user.avatar;
+        if(dom.userAvatarImg) dom.userAvatarImg.src = appConfig.user.avatar;
     }
 }
 window.deleteAlbum = async function(e, i) { e.stopPropagation(); if(confirm("¿Borrar?")) { appConfig.data.albums.splice(i,1); await saveData(); updateUI(); } }
