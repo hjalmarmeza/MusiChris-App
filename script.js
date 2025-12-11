@@ -1,9 +1,9 @@
 /**
- * MusiChris App V36.0 - FINAL POLISH
- * - Filtro de álbumes corregido (Muestra solo canciones del álbum).
- * - Herencia de imágenes corregida.
- * - Cierre de reproductor (X) corregido.
- * - Deep Linking: Login -> Click -> Play.
+ * MusiChris App V37.0 - GUEST BYPASS & UI FIXES
+ * - MODO INVITADO: Si hay ?s=ID, oculta el login y muestra la canción.
+ * - Share Text: "Esta canción ministró mi vida..."
+ * - Album Art: Forzado en carga.
+ * - UI: Iconos Admin, Botón Basurero Usuario restaurados.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -15,17 +15,21 @@ const ADMIN_AVATAR = "https://api.dicebear.com/9.x/avataaars/svg?seed=Chris";
 let appConfig = {
     BIN_ID: PERMANENT_BIN_ID, API_KEY: PERMANENT_API_KEY,
     data: null, user: null, isLoggedIn: false, isAdmin: false, currentSong: null,
-    tempPlaylist: [], editingAlbumIndex: null, pendingSongId: null
+    tempPlaylist: [], editingAlbumIndex: null, pendingSongId: null, isGuest: false
 };
 
 const dom = {};
 const norm = (str) => (str || '').toString().toLowerCase().trim().replace(/\s+/g, ' '); 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // CAPTURAR ID COMPARTIDO
+    // 1. DETECTAR SI ES ENLACE COMPARTIDO
     const urlParams = new URLSearchParams(window.location.search);
     const sharedId = urlParams.get('s');
-    if(sharedId) appConfig.pendingSongId = parseInt(sharedId);
+    
+    if(sharedId) {
+        appConfig.pendingSongId = parseInt(sharedId);
+        appConfig.isGuest = true; // Activar modo invitado
+    }
 
     const ids = [
         'view-login', 'view-admin', 'view-user', 'loginEmail', 'loginPass', 'btnLoginBtn', 
@@ -40,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'dom_modal_edit_album', 'editAlbName', 'editAlbArtist', 'editAlbCover',
         'dom_modal_date_filter', 'filterStart', 'filterEnd',
         'view-guest-player', 'guestTitle', 'guestArtist', 'guestCover', 'iconPlayBig', 'pLikeBtn', 'guestLikeBtn',
-        'adminPlaylistGrid', 'userPlaylistGrid', 'usersListGrid'
+        'adminPlaylistGrid', 'userPlaylistGrid'
     ];
     ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
 
@@ -59,7 +63,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     appConfig.BIN_ID = PERMANENT_BIN_ID;
     appConfig.API_KEY = PERMANENT_API_KEY;
-    loadConfig();
+    
+    // SI ES INVITADO, SALTARSE LA CARGA DE CONFIGURACIÓN DE USUARIO
+    if (appConfig.isGuest) {
+        loadAppData(); // Cargar datos directamente sin login
+    } else {
+        loadConfig(); // Flujo normal
+    }
 });
 
 function showToast(msg, type = 'info') {
@@ -75,7 +85,6 @@ function getArt(item) {
 function getSongArt(song) {
     let art = song.cover || song.img || song.image;
     if (art) return art;
-    // BÚSQUEDA ROBUSTA DE PORTADA DE ÁLBUM
     if (song.album && appConfig.data && appConfig.data.albums) {
         const target = norm(song.album);
         const album = appConfig.data.albums.find(a => norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name)));
@@ -102,43 +111,65 @@ async function loadAppData() {
         const json = await res.json();
         appConfig.data = json.record;
         
+        // Inicializar
         if(!appConfig.data.songs) appConfig.data.songs = [];
         if(!appConfig.data.users) appConfig.data.users = [];
         if(!appConfig.data.albums) appConfig.data.albums = [];
-        appConfig.data.songs.forEach(s => { if(!s.likes) s.likes = []; if(!s.plays) s.plays = 0; });
 
-        updateUI();
-
-        // ** PRESENTAR CANCIÓN COMPARTIDA DESPUÉS DE CARGAR DATOS **
-        if(appConfig.pendingSongId) {
-            checkPendingShare();
+        // *** LÓGICA CRÍTICA DE INVITADO ***
+        if (appConfig.isGuest && appConfig.pendingSongId) {
+            activateGuestMode();
+        } else {
+            updateUI();
         }
 
     } catch(e) { console.error(e); showToast("Conectando...", 'info'); }
 }
 
-function checkPendingShare() {
+function activateGuestMode() {
     const song = appConfig.data.songs.find(s => s.id === appConfig.pendingSongId);
-    if(song) {
-        // Modal Especial para iniciar reproducción (Bypass iOS)
-        const modal = dom.dom_modal_pl_detail; 
-        if(modal) {
-            if(dom.plDetailTitle) dom.plDetailTitle.textContent = "Canción Compartida 🎵";
-            const list = dom.plDetailList; 
-            list.innerHTML = `
-                <div style="text-align:center; padding:30px 10px;">
-                    <div style="width:120px; height:120px; background-image:url('${getSongArt(song)}'); background-size:cover; border-radius:15px; margin:0 auto 15px auto; box-shadow:0 5px 20px rgba(0,0,0,0.5);"></div>
-                    <h3 style="margin-bottom:5px">${song.title}</h3>
-                    <p style="color:#aaa; margin-top:0">${song.genre}</p>
-                    <button class="btn-submit" style="background:var(--accent); color:#151521; font-size:1.1rem; padding:15px;" onclick="playSharedAndClose(${song.id})">▶ REPRODUCIR AHORA</button>
-                </div>
-            `;
-            modal.style.display = 'flex';
-        }
-        appConfig.pendingSongId = null;
+    if (!song) {
+        showToast("Canción no encontrada", 'error');
+        appConfig.isGuest = false;
+        showView('view-login');
+        return;
     }
+
+    // OCULTAR LOGIN
+    const loginView = document.getElementById('view-login');
+    if (loginView) loginView.innerHTML = ''; // Limpiar login para mostrar player invitado
+
+    // CREAR VISTA DE BIENVENIDA INVITADO
+    loginView.innerHTML = `
+        <div class="login-card" style="padding:40px 20px;">
+            <div style="width:150px; height:150px; background-image:url('${getSongArt(song)}'); background-size:cover; border-radius:20px; margin:0 auto 20px auto; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></div>
+            <h2 style="margin-bottom:5px; color:white;">${song.title}</h2>
+            <p style="color:#aaa; margin-top:0;">${song.genre}</p>
+            <p style="color:#FF9F43; font-size:0.9rem; margin-bottom:20px;">Te han dedicado esta canción ❤️</p>
+            <button class="btn-login" onclick="playGuestSong(${song.id})">▶ ESCUCHAR AHORA</button>
+            <button style="background:transparent; border:none; color:#666; margin-top:15px; cursor:pointer;" onclick="location.href=location.pathname">Ir al Login</button>
+        </div>
+    `;
+    showView('view-login');
 }
-window.playSharedAndClose = (id) => { playSongId(id); closeModal('dom_modal_pl_detail'); }
+
+window.playGuestSong = function(id) {
+    // Simular un usuario invitado mínimo
+    appConfig.user = { name: "Invitado", email: "guest@musichris.com", role: "user" };
+    const song = appConfig.data.songs.find(s => s.id === id);
+    
+    // Entrar a la vista de usuario limitada
+    showView('view-user');
+    updateUI(); 
+    
+    // Ocultar tabs para invitado
+    const tabs = document.querySelector('.tabs');
+    if(tabs) tabs.style.display = 'none';
+    
+    // Reproducir
+    playSong(song);
+    openFullScreenPlayer();
+}
 
 function updateUI(songListOverride = null) {
     if(dom.statsTotalSongs && appConfig.data) dom.statsTotalSongs.textContent = appConfig.data.songs.length;
@@ -155,7 +186,7 @@ function updateUI(songListOverride = null) {
     if(dom.adminAvatar) dom.adminAvatar.src = avatar;
     if(dom.userAvatarImg) dom.userAvatarImg.src = avatar;
     if(dom.adminNameDisplay) dom.adminNameDisplay.textContent = appConfig.user?.name || 'Admin';
-    if(dom.userGreeting) dom.userGreeting.textContent = `Hola, ${appConfig.user?.name || 'Usuario'}`;
+    if(dom.userGreeting) dom.userGreeting.textContent = `Hola, ${appConfig.user?.name || 'Invitado'}`;
 
     if(dom.userAnnouncement && dom.announcementText && appConfig.data.announcement) {
         dom.userAnnouncement.style.display = 'block';
@@ -163,7 +194,6 @@ function updateUI(songListOverride = null) {
     } else if (dom.userAnnouncement) dom.userAnnouncement.style.display = 'none';
 }
 
-// ... (Render Functions con diseño limpio)
 function renderSongList(id, songs) {
     const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
     if(songs.length === 0) { c.innerHTML = '<div style="text-align:center;padding:20px;color:#666">No hay canciones</div>'; return; }
@@ -185,42 +215,33 @@ function renderAlbumGrid(id, albums) {
         const art = getArt(a);
         const name = a.title || a.name || 'Álbum';
         let adminBtns = '';
-        if(appConfig.isAdmin) adminBtns = `<div style="position:absolute; top:5px; right:5px; display:flex; gap:5px;"><button class="btn-header" style="width:25px;height:25px;background:rgba(0,0,0,0.6)" onclick="editAlbum(event, ${index})">✏️</button><button class="btn-header" style="width:25px;height:25px;background:rgba(255,71,87,0.8)" onclick="deleteAlbum(event, ${index})">🗑️</button></div>`;
+        if(appConfig.isAdmin) adminBtns = `<div class="album-admin-tools"><button class="btn-alb-tool" style="background:#333" onclick="editAlbum(event, ${index})">✏️</button><button class="btn-alb-tool" style="background:#ff4757" onclick="deleteAlbum(event, ${index})">🗑️</button></div>`;
         div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')"></div><h4>${name}</h4>${adminBtns}`;
         div.onclick = (e) => { if(e.target.tagName === 'BUTTON') return; openAlbumDetail(a); };
         c.appendChild(div);
     });
 }
 
-// *** FILTRO DE ÁLBUMES CORREGIDO ***
+// ... Resto de funciones (OpenAlbumDetail, Share, etc.)
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
-    // Filtro: Solo si el álbum de la canción contiene el nombre del álbum target
-    let songs = appConfig.data.songs.filter(s => s.album && norm(s.album).includes(target));
-    
+    let songs = appConfig.data.songs.filter(s => norm(s.album).includes(target) || target.includes(norm(s.album)));
     appConfig.tempPlaylist = songs;
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
     const list = dom.plDetailList; list.innerHTML = '';
-    
     if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío.</div>';
-    else {
-        songs.forEach(s => {
-            const item = document.createElement('div'); item.className = 'song-list-item';
-            item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div><div class="song-artist">${s.genre}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`;
-            item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); };
-            list.appendChild(item);
-        });
-    }
+    else { songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div><div class="song-artist">${s.genre}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); }); }
     modal.style.display = 'flex';
 }
 
-// ... Resto de funciones (Share, Play, etc.)
+// SHARE FIX: MENSAJE PERSONALIZADO
 window.shareCurrentSong = async function() {
     if(!appConfig.currentSong) return;
     const shareUrl = `${window.location.origin}${window.location.pathname}?s=${appConfig.currentSong.id}`;
-    const data = { title: 'MusiChris', text: `Escucha: ${appConfig.currentSong.title}`, url: shareUrl };
-    try { if(navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(shareUrl); showToast("Enlace copiado", 'success'); } } catch(e) {}
+    const textMsg = `Esta canción ministró mi vida y tienes que escucharla:\n\n🎵 ${appConfig.currentSong.title}\n— En MusiChris App\n\nEntra directo con este pase de invitado:\n${shareUrl}`;
+    const data = { title: 'MusiChris', text: textMsg, url: shareUrl };
+    try { if(navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(textMsg); showToast("Mensaje copiado", 'success'); } } catch(e) {}
 }
 
 window.openFullScreenPlayer = function() {
@@ -233,19 +254,8 @@ window.openFullScreenPlayer = function() {
     updateLikeIcon();
     showView('view-guest-player');
 }
-// *** FIX CIERRE REPRODUCTOR ***
-window.closePlayer = function() {
-    // Si estamos en fullscreen, salir de fullscreen
-    const fs = document.getElementById('view-guest-player');
-    if(fs && fs.style.display === 'flex') {
-        showView(appConfig.isAdmin ? 'view-admin' : 'view-user');
-    } else {
-        // Si es mini player, ocultar y pausar
-        if(dom.mainPlayer) dom.mainPlayer.style.display = 'none';
-        if(dom.audioElement) dom.audioElement.pause();
-    }
-}
-window.exitFullScreenPlayer = window.closePlayer; // Alias
+window.closePlayer = function() { const fs = document.getElementById('view-guest-player'); if(fs && fs.style.display === 'flex') showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); else { if(dom.mainPlayer) dom.mainPlayer.style.display = 'none'; if(dom.audioElement) dom.audioElement.pause(); }}
+window.exitFullScreenPlayer = window.closePlayer;
 
 function playSong(song) {
     appConfig.currentSong = song;
@@ -275,7 +285,6 @@ function renderSmartPlaylists(id) {
     c.appendChild(createCard("Favoritos", "Likes", "https://i.ibb.co/C9bMh2Q/heart-cover.png", () => openSmartList('fav')));
     c.appendChild(createCard("Recientes", "Nuevas", "https://i.ibb.co/hRj0k7w/new-cover.png", () => openSmartList('recent')));
 }
-
 function openSmartList(type) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     let songs = []; let title = "";
@@ -287,10 +296,9 @@ function openSmartList(type) {
     songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); });
     modal.style.display = 'flex';
 }
-
 function updateLikeIcon() {
     if(!appConfig.currentSong) return;
-    const userEmail = appConfig.user.email;
+    const userEmail = appConfig.user?.email || "guest";
     const likes = appConfig.currentSong.likes || [];
     const isLiked = likes.includes(userEmail);
     const iconName = isLiked ? 'favorite' : 'favorite_border';
@@ -299,7 +307,7 @@ function updateLikeIcon() {
     if(dom.guestLikeBtn) { dom.guestLikeBtn.querySelector('span').textContent = iconName; dom.guestLikeBtn.style.color = color; }
 }
 window.toggleLikeCurrent = async function() {
-    if(!appConfig.currentSong) return;
+    if(!appConfig.currentSong || appConfig.isGuest) return;
     const songId = appConfig.currentSong.id;
     const songIdx = appConfig.data.songs.findIndex(s => s.id === songId);
     if(songIdx === -1) return;
@@ -309,12 +317,10 @@ window.toggleLikeCurrent = async function() {
     appConfig.data.songs[songIdx].likes = likes; appConfig.currentSong.likes = likes;
     updateLikeIcon(); await saveData();
 }
-
 window.playSongId = (id) => { const s = appConfig.data.songs.find(x => x.id === id); if(s) playSong(s); };
 function togglePlayIcon(isPlaying) { const txt = isPlaying ? 'pause' : 'play_arrow'; if(dom.iconPlay) dom.iconPlay.textContent = txt; const iconBig = document.getElementById('iconPlay'); if(iconBig) iconBig.textContent = txt; }
 async function saveData() { try { await fetch(`${API_BASE_URL}${PERMANENT_BIN_ID}`, { method: 'PUT', headers: { 'X-Master-Key': PERMANENT_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig.data) }); } catch(e) { showToast("Error guardando", 'error'); } }
 async function saveDataSilent() { try { await fetch(`${API_BASE_URL}${PERMANENT_BIN_ID}`, { method: 'PUT', headers: { 'X-Master-Key': PERMANENT_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig.data) }); } catch(e) {} }
-
 window.deleteSong = async function(e, songId) { e.stopPropagation(); if(!confirm("¿Eliminar?")) return; appConfig.data.songs = appConfig.data.songs.filter(s => s.id !== songId); await saveData(); showToast("Eliminado", 'success'); updateUI(); }
 window.editAlbum = function(e, index) { e.stopPropagation(); const album = appConfig.data.albums[index]; appConfig.editingAlbumIndex = index; if(dom.editAlbName) dom.editAlbName.value = album.title || album.name || ''; if(dom.editAlbArtist) dom.editAlbArtist.value = album.artist || ''; if(dom.editAlbCover) dom.editAlbCover.value = album.cover || album.img || ''; openModal('dom_modal_edit_album'); }
 window.doSaveEditAlbum = async function() { const idx = appConfig.editingAlbumIndex; if(idx === null) return; appConfig.data.albums[idx] = { ...appConfig.data.albums[idx], title: dom.editAlbName.value, artist: dom.editAlbArtist.value, cover: dom.editAlbCover.value }; await saveData(); showToast("Álbum actualizado", 'success'); updateUI(); closeModal('dom_modal_edit_album'); }
@@ -323,8 +329,6 @@ window.do_upload = async function() { const title = dom.upTitle.value.trim(); if
 async function handleLoginAttempt() { const email = dom.loginEmail.value.trim().toLowerCase(); const pass = dom.loginPass.value.trim(); if (email === 'hjalmar' && pass === '258632') { doLogin({ name: 'Hjalmar', email: 'hjalmar@gmail.com', role: 'admin', avatar: ADMIN_AVATAR }); return; } if (!appConfig.data) await loadAppData(); const user = appConfig.data?.users?.find(u => u.email.toLowerCase() === email); if (user && pass === (user.password || '123')) doLogin(user); else showToast("Error", 'error'); }
 function doLogin(user) { appConfig.user = user; appConfig.isLoggedIn = true; appConfig.isAdmin = (user.role === 'admin'); localStorage.setItem('appConfig', JSON.stringify({ user, isLoggedIn: true, isAdmin: appConfig.isAdmin })); showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); loadAppData(); }
 window.app_logout = () => { if(dom.audioElement) dom.audioElement.pause(); if(dom.mainPlayer) dom.mainPlayer.style.display='none'; localStorage.removeItem('appConfig'); location.reload(); };
-
-// EXPORTS
 window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
 window.playCollection = () => { if(appConfig.tempPlaylist[0]) { playSong(appConfig.tempPlaylist[0]); closeModal('dom_modal_pl_detail'); }};
 window.do_save_announce = async function() { appConfig.data.announcement = document.getElementById('announcementInput').value; await saveData(); updateUI(); closeModal('dom_modal_announcement'); };
@@ -340,4 +344,5 @@ window.changeAvatar = function() { appConfig.user.avatar = `https://api.dicebear
 window.do_save_profile = async function() { appConfig.data.users.find(u => u.email === appConfig.user.email).avatar = appConfig.user.avatar; await saveData(); closeModal('dom_modal_profile'); }
 window.deleteAlbum = async function(e, i) { e.stopPropagation(); if(confirm("¿Borrar?")) { appConfig.data.albums.splice(i,1); await saveData(); updateUI(); } }
 window.deleteUser = async function(i) { if(confirm("¿Borrar?")) { appConfig.data.users.splice(i,1); await saveData(); updateUI(); } }
-function renderUserList(id, users) { const c = document.getElementById(id); if(!c) return; c.innerHTML = ''; users.forEach((u, index) => { const div = document.createElement('div'); div.className = 'user-list-item'; div.innerHTML = `<div class="user-info"><img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover"><span>${u.name}</span><span class="user-role role-${u.role}" style="font-size:0.7rem;margin-left:5px;padding:2px 6px;border-radius:4px;background:${u.role==='admin'?'var(--accent)':'#3498db'}">${u.role}</span></div><div style="display:flex;gap:5px"><button class="btn-list-action" style="background:rgba(255,71,87,0.1);color:#ff4757" onclick="deleteUser(${index})"><span class="material-icons-round">delete</span></button></div>`; c.appendChild(div); }); }
+function renderUserList(id, users) { const c = document.getElementById(id); if(!c) return; c.innerHTML = ''; users.forEach((u, index) => { const div = document.createElement('div'); div.className = 'user-list-item'; div.innerHTML = `<div class="user-info"><img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover"><span>${u.name}</span><span class="role-badge ${u.role==='admin'?'role-admin':''}">${u.role}</span></div><div style="display:flex;gap:5px"><button class="btn-delete-user" onclick="deleteUser(${index})"><span class="material-icons-round">delete</span></button></div>`; c.appendChild(div); }); }
+function loadConfig() { const saved = localStorage.getItem('appConfig'); if (saved) { const p = JSON.parse(saved); appConfig.user = p.user; appConfig.isLoggedIn = p.isLoggedIn; appConfig.isAdmin = p.isAdmin; } if (appConfig.isLoggedIn && appConfig.user) { showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); loadAppData(); } else { showView('view-login'); } }
