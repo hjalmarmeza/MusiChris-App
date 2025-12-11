@@ -10,8 +10,11 @@
 * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 body { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: var(--primary); color: var(--text); height: 100vh; width: 100vw; overflow: hidden; }
 
-/* SEGURIDAD ANTI-FANTASMA */
-input[type="file"] { display: none !important; pointer-events: none; opacity: 0; }
+input[type="file"] { display: none !important; }
+
+/* MODALES Z-INDEX ALTO */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6000 !important; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+.modal-content { background: #252535; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); max-height: 85vh; display: flex; flex-direction: column; position: relative; }
 
 /* LOGIN */
 #view-login { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2000; background: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -49,7 +52,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .list-tab-content { display: none; }
 .list-tab-content.active { display: block; animation: fadeIn 0.4s; }
 
-/* BOTONES ESTILO DASHED */
+/* BOTÓN DASHED */
 .btn-dashed-style { 
     display: block; width: 100%; padding: 18px; margin-bottom: 25px; margin-top: 5px;
     background: rgba(247, 159, 31, 0.05); color: var(--dashed-border); 
@@ -90,7 +93,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; }
 .btn-delete-user { background: var(--danger); width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* FULLSCREEN PLAYER (Z-INDEX MENOR QUE MODALES) */
+/* FULLSCREEN PLAYER */
 #view-guest-player {
     background: linear-gradient(180deg, #252535 0%, #151521 100%);
     display: none; flex-direction: column; padding: 20px; z-index: 5000; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -114,7 +117,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
 .eq-slider { writing-mode: bt-lr; -webkit-appearance: slider-vertical; width: 8px; height: 100px !important; flex: 1; }
 .eq-band label { font-size: 0.8rem; color: #aaa; margin-top: 10px; }
 
-/* MINI PLAYER (FIX LAPTOP ANCHO & ICONOS) */
+/* MINI PLAYER (FIX LAPTOP) */
 .bottom-player {
     position: fixed; bottom: 0; left: 0; width: 100%; height: 90px;
     background: rgba(30, 30, 44, 0.98); border-top: 1px solid rgba(255,255,255,0.05);
@@ -132,7 +135,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
 input[type="range"] { flex: 1; height: 4px; border-radius: 5px; -webkit-appearance: none; background: #444; cursor: pointer; width: 100%; }
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; }
 
-/* FIX CRÍTICO: Asegura que el icono de expandir se vea */
+/* FIX ICONOS DERECHOS LAPTOP */
 .player-right-group { 
     width: 30%; 
     display: flex; 
@@ -144,13 +147,11 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
     overflow: visible !important;
 }
 
-/* OCULTO EN LAPTOP, VISIBLE EN MÓVIL */
+/* OCULTO EN LAPTOP */
 .minimized-player-controls { display: none; }
 .small-icon { font-size: 1.2rem; color:#aaa; }
 
-/* MODALES */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6000 !important; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-.modal-content { background: #252535; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); max-height: 85vh; display: flex; flex-direction: column; position: relative; }
+/* COMMON */
 .close-btn-x { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #888; cursor: pointer; font-weight: bold; background: transparent; border: none; }
 #plDetailList, #adminSongList { overflow-y: auto; flex: 1; margin-top: 15px; }
 .form-input { width: 100%; padding: 12px; margin: 8px 0; background: #1a1a2e; border: 1px solid #333; color: white; border-radius: 8px; }
@@ -171,9 +172,15 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
     
     /* REPRODUCTOR MÓVIL */
     .player-center-group, .player-right-group { display: none !important; }
-    .minimized-player-controls { display: flex !important; align-items: center; gap: 20px; }
+    
+    .minimized-player-controls { 
+        display: flex !important; 
+        align-items: center; 
+        gap: 20px; 
+    }
     .minimized-player-controls span { font-size: 2.2rem !important; color: white; }
     #iconPlayMin { color: var(--accent); font-size: 2.8rem !important; }
+    
     .bottom-player { padding: 0 20px !important; height: 85px !important; }
     .player-info { width: 55%; }
 }
