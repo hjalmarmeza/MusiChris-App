@@ -10,7 +10,8 @@
 * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 body { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: var(--primary); color: var(--text); height: 100vh; width: 100vw; overflow: hidden; }
 
-input[type="file"] { display: none !important; }
+/* SEGURIDAD ANTI-FANTASMA */
+input[type="file"] { display: none !important; pointer-events: none; opacity: 0; }
 
 /* LOGIN */
 #view-login { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2000; background: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -48,7 +49,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .list-tab-content { display: none; }
 .list-tab-content.active { display: block; animation: fadeIn 0.4s; }
 
-/* BOTÓN DASHED */
+/* BOTONES ESTILO DASHED */
 .btn-dashed-style { 
     display: block; width: 100%; padding: 18px; margin-bottom: 25px; margin-top: 5px;
     background: rgba(247, 159, 31, 0.05); color: var(--dashed-border); 
@@ -89,7 +90,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; }
 .btn-delete-user { background: var(--danger); width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* FULLSCREEN PLAYER */
+/* FULLSCREEN PLAYER (Z-INDEX MENOR QUE MODALES) */
 #view-guest-player {
     background: linear-gradient(180deg, #252535 0%, #151521 100%);
     display: none; flex-direction: column; padding: 20px; z-index: 5000; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -113,7 +114,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
 .eq-slider { writing-mode: bt-lr; -webkit-appearance: slider-vertical; width: 8px; height: 100px !important; flex: 1; }
 .eq-band label { font-size: 0.8rem; color: #aaa; margin-top: 10px; }
 
-/* MINI PLAYER */
+/* MINI PLAYER (FIX LAPTOP ANCHO & ICONOS) */
 .bottom-player {
     position: fixed; bottom: 0; left: 0; width: 100%; height: 90px;
     background: rgba(30, 30, 44, 0.98); border-top: 1px solid rgba(255,255,255,0.05);
@@ -124,24 +125,26 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
 .player-info { width: 25%; display: flex; flex-direction: column; justify-content: center; overflow: hidden; margin-right: 15px; }
 .player-info h4 { margin: 0; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .player-info p { margin: 0; font-size: 0.8rem; color: #aaa; }
+
 .player-center-group { width: 45%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .controls-row { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 20px; width: 100%; margin-bottom: 5px; }
 .btn-play-circle { width: 45px; height: 45px; background: white; border-radius: 50%; color: black; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 input[type="range"] { flex: 1; height: 4px; border-radius: 5px; -webkit-appearance: none; background: #444; cursor: pointer; width: 100%; }
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; }
 
-/* GRUPO DERECHO AMPLIADO (PARA ICONO EXPANDIR) */
+/* FIX CRÍTICO: Asegura que el icono de expandir se vea */
 .player-right-group { 
-    width: 35%; /* Ancho aumentado */
+    width: 30%; 
     display: flex; 
     justify-content: flex-end; 
     gap: 15px; 
     color: #aaa; 
     align-items: center; 
-    overflow: visible !important; /* Muestra iconos salidos */
+    min-width: 150px; 
+    overflow: visible !important;
 }
 
-/* OCULTO EN LAPTOP */
+/* OCULTO EN LAPTOP, VISIBLE EN MÓVIL */
 .minimized-player-controls { display: none; }
 .small-icon { font-size: 1.2rem; color:#aaa; }
 
@@ -174,4 +177,3 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
     .bottom-player { padding: 0 20px !important; height: 85px !important; }
     .player-info { width: 55%; }
 }
-
