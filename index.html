@@ -65,11 +65,12 @@
             </div>
 
             <div id="admin-music" class="list-tab-content active">
-                <div id="btnAddSongDynamic"></div> <div style="background:#252535; padding:10px; border-radius:12px; margin-bottom:15px; display:flex; align-items:center;">
+                <div class="btn-dashed-style" onclick="openUpload()">+ Subir Canción</div>
+                
+                <div style="background:#252535; padding:10px; border-radius:12px; margin-bottom:15px; display:flex; align-items:center;">
                     <span class="material-icons-round" style="color:#aaa; margin-right:10px;">search</span>
                     <input type="text" id="searchInputAdmin" placeholder="Buscar canción..." style="background:transparent; border:none; color:white; width:100%; outline:none;">
                 </div>
-
                 <div id="adminSongList"></div>
             </div>
 
@@ -78,12 +79,12 @@
             </div>
 
             <div id="admin-albums" class="list-tab-content">
-                <div class="btn-add-content" id="btnAddAlbum">+ Nuevo Álbum</div>
+                <div class="btn-dashed-style" onclick="openModal('dom_modal_album')">+ Nuevo Álbum</div>
                 <div id="adminAlbumGrid" class="playlist-grid"></div>
             </div>
 
             <div id="admin-users" class="list-tab-content">
-                <div class="btn-add-content" id="btnAddUser">+ Nuevo Usuario</div>
+                <div class="btn-dashed-style" onclick="openModal('dom_modal_new_user')">+ Nuevo Usuario</div>
                 <div id="usersListGrid"></div>
             </div>
         </div>
@@ -102,9 +103,9 @@
                 </div>
             </header>
 
-            <div id="userAnnouncement" class="card" style="margin-bottom:20px; background:linear-gradient(45deg, #1e90ff, #70a1ff); display:none;">
-                <h3 style="color:white;">📢 Noticias</h3>
-                <p id="announcementText" style="font-size:0.9rem; margin:0;"></p>
+            <div id="userAnnouncement" class="btn-dashed-style announcement-box" style="display:none;">
+                <h3 style="color:var(--accent);">📢 Noticias</h3>
+                <p id="announcementText"></p>
             </div>
 
             <div class="tabs">
@@ -136,19 +137,25 @@
             <h4 id="pTitle">Título</h4>
             <p id="pArtist">Artista</p>
         </div>
+        
         <div class="player-center-group">
             <div class="controls-row">
+                <span class="material-icons-round ctrl-icon small-icon" onclick="event.stopPropagation(); toggleShuffle()">shuffle</span>
                 <span class="material-icons-round ctrl-icon" onclick="event.stopPropagation(); prev()">skip_previous</span>
                 <div class="btn-play-circle" onclick="event.stopPropagation(); toggle_play()">
                     <span id="iconPlay" class="material-icons-round">play_arrow</span>
                 </div>
                 <span class="material-icons-round ctrl-icon" onclick="event.stopPropagation(); next()">skip_next</span>
+                <span class="material-icons-round ctrl-icon small-icon" onclick="event.stopPropagation(); toggleRepeat()">repeat</span>
             </div>
             <input type="range" id="seekSlider" value="0" min="0" max="100" onclick="event.stopPropagation()">
         </div>
+        
         <div class="player-right-group">
             <span class="material-icons-round" id="pLikeBtn" onclick="event.stopPropagation(); toggleLikeCurrent()">favorite_border</span>
+            <span class="material-icons-round" onclick="event.stopPropagation(); openFullScreenPlayer()">open_in_full</span> 
         </div>
+
         <div class="minimized-player-controls">
             <span id="iconPlayMin" class="material-icons-round" onclick="event.stopPropagation(); toggle_play()">play_arrow</span>
             <span class="material-icons-round" onclick="event.stopPropagation(); closePlayer()">close</span>
@@ -187,15 +194,15 @@
         <div class="modal-content">
             <button class="close-btn-x" onclick="closeModal('dom_modal_upload')">×</button>
             <h3 id="modalUploadTitle" style="margin-top:0">Subir Canción</h3>
-            <input type="text" id="upTitle" class="form-input" placeholder="Título de la canción">
+            <input type="text" id="upTitle" class="form-input" placeholder="Título">
             <input type="text" id="upGenre" class="form-input" placeholder="Artista / Género">
             <select id="upAlbum" class="form-input" style="background:#1a1a2e;color:#aaa">
                 <option value="">Sin Álbum</option>
             </select>
             <input type="text" id="upUrl" class="form-input" placeholder="Enlace MP3 (http://...)">
             
-            <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
-                 <button class="close-modal" onclick="closeModal('dom_modal_upload')" style="flex:1; border:1px solid #666; color:#ddd; padding:12px; border-radius:8px;">Cancelar</button>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                 <button class="close-modal" onclick="closeModal('dom_modal_upload')" style="flex:1; padding:12px; border-radius:8px;">Cancelar</button>
                  <button id="btnUploadSubmit" class="btn-submit" style="flex:2; margin:0;" onclick="do_upload()">Subir</button>
             </div>
         </div>
@@ -219,9 +226,8 @@
             <input type="text" id="newUser_Name" class="form-input" placeholder="Nombre">
             <input type="email" id="newUser_Email" class="form-input" placeholder="Email">
             <input type="password" id="newUser_Pass" class="form-input" placeholder="Contraseña">
-            
             <div style="display:flex; gap:10px; margin-top:20px;">
-                 <button class="close-modal" onclick="closeModal('dom_modal_new_user')" style="flex:1; border:1px solid #666; color:#ddd;">Cancelar</button>
+                 <button class="close-modal" onclick="closeModal('dom_modal_new_user')" style="flex:1; padding:12px; border-radius:8px;">Cancelar</button>
                  <button class="btn-submit" style="flex:2; margin:0;" onclick="do_create_user_modal()">Registrar</button>
             </div>
         </div>
@@ -230,17 +236,13 @@
     <div id="dom_modal_pl_detail" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_pl_detail')">×</button><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;"><h3 id="plDetailTitle" style="margin:0">Lista</h3><button class="btn-icon" style="background:var(--accent);width:30px;height:30px;" onclick="playCollection()"><span class="material-icons-round" style="color:black;font-size:1.2rem;">play_arrow</span></button></div><div id="plDetailList"></div></div></div>
     <div id="dom_modal_profile" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_profile')">×</button><h3>Mi Perfil</h3><div style="text-align:center;margin-bottom:15px;"><img id="profilePreview" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);"><br><button style="background:transparent;border:1px solid #555;color:#ccc;padding:5px 10px;border-radius:15px;margin-top:10px;cursor:pointer;" onclick="changeAvatar()">Cambiar Avatar</button></div><input type="text" id="profileName" class="form-input"><input type="email" id="profileEmail" class="form-input" disabled style="opacity:0.5"><button class="btn-submit" onclick="do_save_profile()">Guardar Cambios</button></div></div>
     <div id="dom_modal_announcement" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_announcement')">×</button><h3>Publicar Noticia</h3><textarea id="announcementInput" class="form-input" rows="4" placeholder="Mensaje..."></textarea><button class="btn-submit" onclick="do_save_announce()">Publicar</button></div></div>
-    <div id="dom_modal_settings" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_settings')">×</button><h3>Configuración</h3><p style="color:#aaa;font-size:0.8rem;">Base de datos conectada</p><input type="text" id="cfgBinId" class="form-input" disabled><input type="password" id="cfgApiKey" class="form-input" disabled><button class="btn-submit" onclick="closeModal('dom_modal_settings')">Cerrar</button></div></div>
-    <div id="dom_modal_edit_album" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_edit_album')">×</button><h3>Editar Álbum</h3><input type="text" id="editAlbName" class="form-input" placeholder="Nombre"><input type="text" id="editAlbArtist" class="form-input" placeholder="Artista"><input type="text" id="editAlbCover" class="form-input" placeholder="URL Portada"><button class="btn-submit" onclick="doSaveEditAlbum()">Guardar</button></div></div>
+    <div id="dom_modal_settings" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_settings')">×</button><h3>Configuración</h3><input type="text" id="cfgBinId" class="form-input" disabled><input type="password" id="cfgApiKey" class="form-input" disabled><button class="btn-submit" onclick="closeModal('dom_modal_settings')">Cerrar</button></div></div>
+    <div id="dom_modal_edit_album" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_edit_album')">×</button><h3>Editar Álbum</h3><input type="text" id="editAlbName" class="form-input"><input type="text" id="editAlbArtist" class="form-input"><input type="text" id="editAlbCover" class="form-input"><button class="btn-submit" onclick="doSaveEditAlbum()">Guardar</button></div></div>
 
     <div id="customToast" class="customToast">Mensaje</div>
-    
-    <script src="./script.js?v=51"></script>
+    <script src="./script.js?v=52"></script>
 </body>
 </html>
-
-
-
 
 
 
