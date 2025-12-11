@@ -1,9 +1,9 @@
 /**
- * MusiChris App V39.0 - FINAL FIXES
- * - Profile Save Fix: Actualiza array global y guarda.
- * - Album Art Fallback Fix: onerror mejorado.
- * - Playlist Layout: 1 columna vertical.
- * - Guest Mode: Bypass login real.
+ * MusiChris App V40.0 - FINAL MOBILE OPTIMIZATION
+ * - Header Admin compacto (oculta nombre, reduce iconos).
+ * - Fullscreen Player centrado y botones subidos.
+ * - Share Text "Ministró mi vida".
+ * - Album Art Fallback.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -82,7 +82,7 @@ function getArt(item) {
 
 function getSongArt(song) {
     let art = song.cover || song.img || song.image;
-    // Si la imagen es un placeholder de error, intentar buscar álbum
+    // Si la imagen es un placeholder de error o viene vacía, intentar buscar álbum
     if (art && !art.includes("imgbb")) return art; 
     
     if (song.album && appConfig.data && appConfig.data.albums) {
@@ -174,8 +174,10 @@ function updateUI(songListOverride = null) {
     const avatar = appConfig.user?.avatar || ADMIN_AVATAR;
     if(dom.adminAvatar) dom.adminAvatar.src = avatar;
     if(dom.userAvatarImg) dom.userAvatarImg.src = avatar;
-    if(dom.adminNameDisplay) dom.adminNameDisplay.textContent = appConfig.user?.name || 'Admin';
-    if(dom.userGreeting) dom.userGreeting.textContent = `Hola, ${appConfig.user?.name || 'Usuario'}`;
+    
+    // HEADER ADMIN: USAR SPAN PARA OCULTAR EN CSS MÓVIL
+    if(dom.adminNameDisplay) dom.adminNameDisplay.innerHTML = `<span id="adminNameDisplay">${appConfig.user?.name || 'Admin'}</span>`;
+    if(dom.userGreeting) dom.userGreeting.innerHTML = `Hola <span id="userGreetingName">${appConfig.user?.name || 'Usuario'}</span>`;
 
     if(dom.userAnnouncement && dom.announcementText && appConfig.data.announcement) {
         dom.userAnnouncement.style.display = 'block';
@@ -211,39 +213,7 @@ function renderAlbumGrid(id, albums) {
     });
 }
 
-// PROFILE SAVE FIX
-window.openProfile = function() {
-    if(dom.profileName) dom.profileName.value = appConfig.user.name;
-    if(dom.profileEmail) dom.profileEmail.value = appConfig.user.email;
-    if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar || ADMIN_AVATAR;
-    openModal('dom_modal_profile');
-}
-window.changeAvatar = function() {
-    const randomId = Math.floor(Math.random() * 9999);
-    const newAv = `https://api.dicebear.com/9.x/avataaars/svg?seed=${randomId}`;
-    if(dom.profilePreview) dom.profilePreview.src = newAv;
-    appConfig.user.avatar = newAv; // Update local config user
-}
-window.do_save_profile = async function() {
-    if(dom.profileName) appConfig.user.name = dom.profileName.value;
-    
-    // Buscar índice real en la data
-    const idx = appConfig.data.users.findIndex(u => u.email === appConfig.user.email);
-    if(idx !== -1) {
-        // Actualizar master data
-        appConfig.data.users[idx].name = appConfig.user.name;
-        appConfig.data.users[idx].avatar = appConfig.user.avatar;
-        
-        await saveData(); // Guardar en nube
-        showToast("Perfil guardado correctamente", 'success');
-        updateUI(); 
-        closeModal('dom_modal_profile');
-    } else {
-        showToast("Error encontrando usuario", 'error');
-    }
-}
-
-// ... Resto de funciones standard (share, play, etc.)
+// ... Resto de funciones (OpenAlbumDetail, Share, etc.)
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
@@ -359,6 +329,9 @@ window.closeModal = (id) => document.getElementById(id).style.display='none';
 window.openUpload = () => window.openModal('dom_modal_upload');
 window.switchTab = (id, btn) => { document.querySelectorAll('.list-tab-content, .tab-btn').forEach(e => e.classList.remove('active')); document.getElementById(id).classList.add('active'); btn.classList.add('active'); if(id.includes('albums')) renderAlbumGrid(appConfig.isAdmin?'adminAlbumGrid':'userAlbumGrid', appConfig.data?.albums); if(id.includes('playlists')) renderSmartPlaylists(appConfig.isAdmin?'adminPlaylistGrid':'userPlaylistGrid'); if(id.includes('users')) renderUserList('usersListGrid', appConfig.data?.users);};
 window.do_save_settings = () => closeModal('dom_modal_settings');
+window.openProfile = function() { openModal('dom_modal_profile'); }
+window.changeAvatar = function() { appConfig.user.avatar = `https://api.dicebear.com/9.x/avataaars/svg?seed=${Math.floor(Math.random()*999)}`; if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar; }
+window.do_save_profile = async function() { appConfig.data.users.find(u => u.email === appConfig.user.email).avatar = appConfig.user.avatar; await saveData(); closeModal('dom_modal_profile'); }
 window.deleteAlbum = async function(e, i) { e.stopPropagation(); if(confirm("¿Borrar?")) { appConfig.data.albums.splice(i,1); await saveData(); updateUI(); } }
 window.deleteUser = async function(i) { if(confirm("¿Borrar?")) { appConfig.data.users.splice(i,1); await saveData(); updateUI(); } }
 function renderUserList(id, users) { const c = document.getElementById(id); if(!c) return; c.innerHTML = ''; users.forEach((u, index) => { const div = document.createElement('div'); div.className = 'user-list-item'; div.innerHTML = `<div class="user-info"><img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover"><span>${u.name}</span><span class="role-badge ${u.role==='admin'?'role-admin':''}">${u.role}</span></div><div style="display:flex;gap:5px"><button class="btn-delete-user" onclick="deleteUser(${index})"><span class="material-icons-round">delete</span></button></div>`; c.appendChild(div); }); }
