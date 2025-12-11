@@ -1,9 +1,8 @@
 /**
- * MusiChris App V40.0 - FINAL MOBILE OPTIMIZATION
- * - Header Admin compacto (oculta nombre, reduce iconos).
- * - Fullscreen Player centrado y botones subidos.
- * - Share Text "Ministró mi vida".
- * - Album Art Fallback.
+ * MusiChris App V41.0 - FINAL FIXES (Players & Images)
+ * - Player Conflict Fix: Oculta mini player al abrir fullscreen.
+ * - Song Image Fix: Prioriza y fuerza la imagen del álbum si no hay propia.
+ * - Admin UI Fix: Botón "Añadir" visible.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -30,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appConfig.isGuest = true;
     }
 
+    // IDs actualizados incluyendo los botones de añadir
     const ids = [
         'view-login', 'view-admin', 'view-user', 'loginEmail', 'loginPass', 'btnLoginBtn', 
         'audioElement', 'customToast', 'statsTotalSongs', 'statsTotalUsers', 'adminAvatar', 
@@ -43,11 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
         'dom_modal_edit_album', 'editAlbName', 'editAlbArtist', 'editAlbCover',
         'dom_modal_date_filter', 'filterStart', 'filterEnd',
         'view-guest-player', 'guestTitle', 'guestArtist', 'guestCover', 'iconPlayBig', 'pLikeBtn', 'guestLikeBtn',
-        'adminPlaylistGrid', 'userPlaylistGrid', 'usersListGrid'
+        'adminPlaylistGrid', 'userPlaylistGrid', 'usersListGrid',
+        'btnAddSong', 'btnAddAlbum', 'btnAddUser' // Nuevos IDs de botones
     ];
     ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
 
-    if (dom.mainPlayer) dom.mainPlayer.style.display = 'none';
+    if (dom.mainPlayer) dom.mainPlayer.style.display = 'none'; // Empieza oculto
 
     if (dom.btnLoginBtn) dom.btnLoginBtn.addEventListener('click', handleLoginAttempt);
     if (dom.btnTogglePass) dom.btnTogglePass.addEventListener('click', () => {
@@ -58,7 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dom.audioElement) {
         dom.audioElement.addEventListener('play', () => togglePlayIcon(true));
         dom.audioElement.addEventListener('pause', () => togglePlayIcon(false));
+        dom.audioElement.addEventListener('ended', () => togglePlayIcon(false));
     }
+
+    // Listeners para botones de añadir (Admin)
+    if(dom.btnAddSong) dom.btnAddSong.addEventListener('click', openUpload);
+    if(dom.btnAddAlbum) dom.btnAddAlbum.addEventListener('click', () => openModal('dom_modal_album'));
+    // if(dom.btnAddUser) dom.btnAddUser.addEventListener('click', ...); // Futuro uso
+
     
     appConfig.BIN_ID = PERMANENT_BIN_ID;
     appConfig.API_KEY = PERMANENT_API_KEY;
@@ -77,19 +85,28 @@ function showToast(msg, type = 'info') {
 
 function getArt(item) {
     if (!item) return DEFAULT_COVER;
-    return item.cover || item.img || item.image || item.coverUrl || DEFAULT_COVER;
+    const url = item.cover || item.img || item.image || item.coverUrl;
+    if (url && !url.includes("imgbb") && !url.includes("image not found")) return url;
+    return DEFAULT_COVER;
 }
 
+// *** FIX IMÁGENES CANCIONES ***
 function getSongArt(song) {
+    // 1. Intentar usar imagen propia válida
     let art = song.cover || song.img || song.image;
-    // Si la imagen es un placeholder de error o viene vacía, intentar buscar álbum
-    if (art && !art.includes("imgbb")) return art; 
+    if (art && !art.includes("imgbb") && !art.includes("image not found")) return art;
     
+    // 2. Si no tiene o es inválida, buscar imagen del álbum
     if (song.album && appConfig.data && appConfig.data.albums) {
         const target = norm(song.album);
-        const album = appConfig.data.albums.find(a => norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name)));
-        if (album) return getArt(album);
+        // Búsqueda exacta primero, luego parcial
+        const album = appConfig.data.albums.find(a => norm(a.title || a.name) === target) ||
+                      appConfig.data.albums.find(a => norm(a.title || a.name).includes(target));
+        
+        if (album) return getArt(album); // Usar la del álbum (que ya tiene fallback)
     }
+    
+    // 3. Si todo falla, usar default
     return DEFAULT_COVER;
 }
 
@@ -100,6 +117,10 @@ function showView(viewId) {
     const t = document.getElementById(viewId);
     if(t) { 
         t.style.display = (viewId === 'view-login' || viewId === 'view-guest-player') ? 'flex' : 'block'; 
+        // Si se muestra una vista principal, asegurar que el player mini sea visible si hay canción
+        if(viewId !== 'view-guest-player' && appConfig.currentSong && dom.mainPlayer) {
+             dom.mainPlayer.classList.remove('hidden');
+        }
         setTimeout(()=>t.classList.add('active'),10); 
     }
 }
@@ -151,7 +172,6 @@ function activateGuestMode() {
 window.playGuestSong = function(id) {
     appConfig.user = { name: "Invitado", email: "guest", role: "user" };
     appConfig.isLoggedIn = true;
-    
     const song = appConfig.data.songs.find(s => s.id === id);
     showView('view-user');
     updateUI();
@@ -175,7 +195,6 @@ function updateUI(songListOverride = null) {
     if(dom.adminAvatar) dom.adminAvatar.src = avatar;
     if(dom.userAvatarImg) dom.userAvatarImg.src = avatar;
     
-    // HEADER ADMIN: USAR SPAN PARA OCULTAR EN CSS MÓVIL
     if(dom.adminNameDisplay) dom.adminNameDisplay.innerHTML = `<span id="adminNameDisplay">${appConfig.user?.name || 'Admin'}</span>`;
     if(dom.userGreeting) dom.userGreeting.innerHTML = `Hola <span id="userGreetingName">${appConfig.user?.name || 'Usuario'}</span>`;
 
@@ -190,9 +209,11 @@ function renderSongList(id, songs) {
     if(songs.length === 0) { c.innerHTML = '<div style="text-align:center;padding:20px;color:#666">No hay canciones</div>'; return; }
     songs.forEach((s) => { 
         const div = document.createElement('div'); div.className = 'song-list-item';
+        // Usar la nueva lógica de imágenes
         const art = getSongArt(s);
         let deleteBtn = '';
         if(appConfig.isAdmin) deleteBtn = `<button class="btn-list-action" style="background:rgba(255,71,87,0.1);color:#ff4757" onclick="deleteSong(event, ${s.id})"><span class="material-icons-round">delete</span></button>`;
+        // Añadido onerror al estilo para doble seguridad
         div.innerHTML = `<div class="song-cover" style="background-image: url('${art}')" onerror="this.style.backgroundImage='url(${DEFAULT_COVER})'"></div><div class="song-info"><div class="song-title">${s.title || 'Sin Título'}</div><div class="song-artist">${s.genre || s.album || 'General'}</div></div><div class="song-actions"><button class="btn-list-action" onclick="playSongId(${s.id})"><span class="material-icons-round">play_arrow</span></button>${deleteBtn}</div>`;
         div.onclick = (e) => { if(e.target.tagName === 'BUTTON' || e.target.closest('button')) return; playSong(s); };
         c.appendChild(div);
@@ -234,6 +255,7 @@ window.shareCurrentSong = async function() {
     try { if(navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(textMsg); showToast("Mensaje copiado", 'success'); } } catch(e) {}
 }
 
+// *** FIX REPRODUCTORES ***
 window.openFullScreenPlayer = function() {
     if(!appConfig.currentSong) return;
     const song = appConfig.currentSong;
@@ -242,14 +264,37 @@ window.openFullScreenPlayer = function() {
     if(dom.guestArtist) dom.guestArtist.textContent = song.genre;
     if(dom.guestCover) dom.guestCover.style.backgroundImage = `url('${art}')`;
     updateLikeIcon();
+    
+    // Ocultar mini player
+    if(dom.mainPlayer) dom.mainPlayer.classList.add('hidden');
     showView('view-guest-player');
 }
-window.closePlayer = function() { const fs = document.getElementById('view-guest-player'); if(fs && fs.style.display === 'flex') showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); else { if(dom.mainPlayer) dom.mainPlayer.style.display = 'none'; if(dom.audioElement) dom.audioElement.pause(); }}
+
+window.closePlayer = function() {
+    const fs = document.getElementById('view-guest-player');
+    if(fs && fs.style.display === 'flex') {
+        // Volver a la vista anterior
+        showView(appConfig.isAdmin ? 'view-admin' : 'view-user');
+        // Mostrar mini player de nuevo
+        if(dom.mainPlayer) dom.mainPlayer.classList.remove('hidden');
+    } else {
+        // Cerrar mini player (stop)
+        if(dom.mainPlayer) {
+             dom.mainPlayer.style.display = 'none';
+             dom.mainPlayer.classList.remove('hidden'); // Reset estado
+        }
+        if(dom.audioElement) dom.audioElement.pause();
+        appConfig.currentSong = null;
+    }
+}
 window.exitFullScreenPlayer = window.closePlayer;
 
 function playSong(song) {
     appConfig.currentSong = song;
-    if(dom.mainPlayer) dom.mainPlayer.style.display = 'flex';
+    if(dom.mainPlayer) {
+        dom.mainPlayer.style.display = 'flex';
+        dom.mainPlayer.classList.remove('hidden'); // Asegurar visible
+    }
     const art = getSongArt(song);
     if(dom.pTitle) dom.pTitle.textContent = song.title;
     if(dom.pArtist) dom.pArtist.textContent = song.genre;
