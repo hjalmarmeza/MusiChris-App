@@ -132,14 +132,13 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
 
 /* GRUPO DERECHO AMPLIADO (PARA ICONO EXPANDIR) */
 .player-right-group { 
-    width: 30%; 
+    width: 35%; /* Ancho aumentado */
     display: flex; 
     justify-content: flex-end; 
     gap: 15px; 
     color: #aaa; 
     align-items: center; 
-    min-width: 150px; 
-    overflow: visible !important;
+    overflow: visible !important; /* Muestra iconos salidos */
 }
 
 /* OCULTO EN LAPTOP */
@@ -175,3 +174,4 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
     .bottom-player { padding: 0 20px !important; height: 85px !important; }
     .player-info { width: 55%; }
 }
+
