@@ -113,7 +113,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
 .eq-slider { writing-mode: bt-lr; -webkit-appearance: slider-vertical; width: 8px; height: 100px !important; flex: 1; }
 .eq-band label { font-size: 0.8rem; color: #aaa; margin-top: 10px; }
 
-/* MINI PLAYER (FIX LAPTOP ANCHO) */
+/* MINI PLAYER */
 .bottom-player {
     position: fixed; bottom: 0; left: 0; width: 100%; height: 90px;
     background: rgba(30, 30, 44, 0.98); border-top: 1px solid rgba(255,255,255,0.05);
@@ -124,14 +124,13 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
 .player-info { width: 25%; display: flex; flex-direction: column; justify-content: center; overflow: hidden; margin-right: 15px; }
 .player-info h4 { margin: 0; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .player-info p { margin: 0; font-size: 0.8rem; color: #aaa; }
-
 .player-center-group { width: 45%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .controls-row { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 20px; width: 100%; margin-bottom: 5px; }
 .btn-play-circle { width: 45px; height: 45px; background: white; border-radius: 50%; color: black; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 input[type="range"] { flex: 1; height: 4px; border-radius: 5px; -webkit-appearance: none; background: #444; cursor: pointer; width: 100%; }
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; }
 
-/* FIX DERECHO: Asegurar visibilidad expandir */
+/* GRUPO DERECHO AMPLIADO (PARA ICONO EXPANDIR) */
 .player-right-group { 
     width: 30%; 
     display: flex; 
@@ -140,7 +139,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
     color: #aaa; 
     align-items: center; 
     min-width: 150px; 
-    overflow: visible !important; /* IMPORTANTE: Muestra iconos */
+    overflow: visible !important;
 }
 
 /* OCULTO EN LAPTOP */
