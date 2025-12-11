@@ -19,12 +19,13 @@ body { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: va
 .pass-toggle { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #888; cursor: pointer; z-index: 10; font-size: 1.2rem; }
 .btn-login { width: 100%; padding: 15px; margin-top: 20px; border-radius: 12px; border: none; background: linear-gradient(90deg, #FF9F43, #FFC75F); color: #1a1a2e; font-weight: 800; font-size: 1.1rem; cursor: pointer; }
 
-/* --- HEADER --- */
-.view-section { display: none; height: 100%; width: 100%; overflow-y: auto; padding-bottom: 110px; opacity: 0; transition: opacity 0.3s; }
+/* --- LAYOUT --- */
+.view-section { display: none; height: 100%; width: 100%; overflow-y: auto; padding-bottom: 120px; opacity: 0; transition: opacity 0.3s; }
 .view-section.active { opacity: 1; }
-.container { padding: 20px; max-width: 800px; margin: 0 auto; } /* Ancho aumentado para laptop */
+.container { padding: 20px; max-width: 800px; margin: 0 auto; }
 
-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-top: 15px; }
+/* --- HEADER --- */
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-top: 15px; }
 .brand { font-size: 1.6rem; font-weight: 800; letter-spacing: -1px; }
 .header-right { display: flex; align-items: center; gap: 10px; }
 .btn-icon { background: rgba(255,255,255,0.08); border: none; width: 40px; height: 40px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
@@ -32,114 +33,60 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); }
 
 /* --- STATS GRID --- */
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-.card { background: var(--secondary); padding: 10px; border-radius: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.03); height: 110px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-.card h3 { font-size: 0.7rem; color: #aaa; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
-.card .value { font-size: 1.4rem; font-weight: bold; color: var(--accent); margin: 0; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.card { background: var(--secondary); padding: 10px; border-radius: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.03); height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.card h3 { font-size: 0.65rem; color: #aaa; margin: 0 0 5px 0; text-transform: uppercase; }
+.card .value { font-size: 1.3rem; font-weight: bold; color: var(--accent); margin: 0; }
 
-/* --- TABS (FIX ANCHO COMPLETO) --- */
-.tabs { display: flex; width: 100%; gap: 10px; margin-bottom: 20px; }
-.tab-btn { flex: 1; /* Esto hace que ocupen todo el ancho */ text-align: center; background: var(--secondary); border: 1px solid rgba(255,255,255,0.05); color: #888; padding: 12px 0; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+/* --- TABS --- */
+.tabs { display: flex; width: 100%; gap: 10px; margin-bottom: 10px; /* Reducido para quitar espacio vacío */ }
+.tab-btn { flex: 1; text-align: center; background: var(--secondary); border: 1px solid rgba(255,255,255,0.05); color: #888; padding: 12px 0; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.3s; }
 .tab-btn.active { background: var(--accent); color: #1a1a2e; border-color: var(--accent); }
 .list-tab-content { display: none; }
 .list-tab-content.active { display: block; animation: fadeIn 0.4s; }
 
-/* --- LISTAS CANCIONES --- */
+/* --- LISTAS --- */
 .song-list-item { display: flex; align-items: center; padding: 10px; background: var(--secondary); margin-bottom: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.02); }
 .song-cover { width: 50px; height: 50px; border-radius: 10px; background-size: cover; background-position: center; margin-right: 15px; flex-shrink: 0; background-color: #333; }
 .song-info { flex: 1; min-width: 0; }
 .song-title { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
 .song-artist { font-size: 0.8rem; color: #888; }
-.song-actions { display: flex; gap: 10px; }
+.song-actions { display: flex; gap: 10px; align-items: center; }
 .btn-list-action { background: rgba(255,255,255,0.1); border: none; width: 35px; height: 35px; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-/* --- GRID ÁLBUMES (FILA ÚNICA VERTICAL) --- */
-.playlist-grid { 
-    display: grid; 
-    grid-template-columns: 1fr; /* UNA SOLA COLUMNA SIEMPRE */
-    gap: 20px; 
-}
-.collection-card { 
-    background: var(--secondary); 
-    border-radius: 18px; 
-    padding: 20px; 
-    text-align: center; 
-    border: 1px solid rgba(255,255,255,0.03); 
-    position: relative; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-/* IMAGEN ÁLBUM GRANDE Y CLARA */
-.collection-cover { 
-    width: 200px; 
-    height: 200px; 
-    background-size: cover; 
-    background-position: center; 
-    border-radius: 15px; 
-    margin-bottom: 15px; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-}
-.collection-card h4 { 
-    margin: 0 0 10px 0; 
-    font-size: 1.2rem; 
-    color: white; 
-    white-space: normal; /* Permitir saltos de línea */
-}
-/* BOTONES ADMIN DEBAJO */
-.album-admin-tools { 
-    display: flex; 
-    gap: 15px; 
-    margin-top: 10px;
-}
+/* --- ÁLBUMES --- */
+.playlist-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+.collection-card { background: var(--secondary); border-radius: 18px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.03); position: relative; display: flex; flex-direction: column; align-items: center; }
+.collection-cover { width: 100%; aspect-ratio: 1; background-size: cover; background-position: center; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.collection-card h4 { margin: 0 0 10px 0; font-size: 1.1rem; color: white; white-space: normal; }
+.album-admin-tools { display: flex; gap: 15px; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); width: 100%; justify-content: center; }
 .btn-alb-tool { width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; }
 
 /* --- USUARIOS --- */
 .user-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--secondary); padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; }
 .user-info { display: flex; align-items: center; gap: 15px; }
-.user-info img { width: 40px; height: 40px; }
 .btn-delete-user { background: var(--danger); width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* --- MINI PLAYER (LAPTOP FIX) --- */
-.bottom-player { 
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 90px; 
-    background: rgba(30, 30, 44, 0.98); border-top: 1px solid rgba(255,255,255,0.05); 
-    display: flex; align-items: center; justify-content: space-between; 
-    padding: 0 30px; z-index: 1000; 
-}
-.player-info { width: 30%; display: flex; align-items: center; }
-.player-info h4 { margin: 0; font-size: 1rem; }
+/* --- FULLSCREEN PLAYER (CORREGIDO) --- */
+#view-guest-player { background: linear-gradient(180deg, #252535 0%, #151521 100%); display: none; flex-direction: column; padding: 20px; z-index: 5000; justify-content: center; }
+.guest-container { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: space-evenly; /* Distribuye espacio para subir controles */ }
+#guestCover { width: 75vw; height: 75vw; max-width: 320px; max-height: 320px; border-radius: 20px; background-size: cover; background-position: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+.guest-info-area { text-align: center; width: 100%; margin-top: 10px; }
+.guest-info-area h2 { margin: 0 0 5px 0; font-size: 1.4rem; }
+.guest-info-area p { margin: 0; color: #aaa; }
+.guest-controls-extra { display: flex; justify-content: space-around; width: 100%; max-width: 350px; }
+.btn-guest-action { background: transparent; border: none; color: white; cursor: pointer; font-size: 1.4rem; } 
+.guest-controls-main { display: flex; justify-content: center; align-items: center; gap: 40px; }
 
-.player-center-group { 
-    width: 40%; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center;
-}
-.controls-row { 
-    display: flex; 
-    gap: 25px; 
-    margin-bottom: 8px; 
-    align-items: center; 
-}
-.btn-play-circle { 
-    width: 45px; height: 45px; background: white; border-radius: 50%; color: black; 
-    display: flex; align-items: center; justify-content: center; cursor: pointer; 
-}
-/* SLIDER DEBAJO DE BOTONES */
-#seekSlider { width: 100%; max-width: 400px; height: 4px; }
-
+/* --- MINI PLAYER --- */
+.bottom-player { position: fixed; bottom: 0; left: 0; width: 100%; height: 90px; background: rgba(30, 30, 44, 0.98); border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 1000; }
+.player-info { width: 30%; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.player-info h4 { margin: 0; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-info p { margin: 0; font-size: 0.8rem; color: #aaa; }
+.player-center-group { width: 40%; display: flex; flex-direction: column; align-items: center; }
+.btn-play-circle { width: 45px; height: 45px; background: white; border-radius: 50%; color: black; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .player-right-group { width: 30%; display: flex; justify-content: flex-end; gap: 15px; color: #aaa; }
 .minimized-player-controls { display: none; }
-
-/* --- FULLSCREEN --- */
-#view-guest-player { background: linear-gradient(180deg, #252535 0%, #151521 100%); display: none; flex-direction: column; justify-content: space-between; padding: 40px 20px; z-index: 5000; }
-.guest-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
-#guestCover { width: 70vw; height: 70vw; max-width: 300px; max-height: 300px; border-radius: 20px; background-size: cover; background-position: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); margin-bottom: 20px; }
-.guest-controls-extra { display: flex; justify-content: space-around; width: 100%; margin-bottom: 20px; }
-.btn-guest-action { background: transparent; border: none; color: white; cursor: pointer; font-size: 1.2rem; } 
-.guest-controls-main { display: flex; justify-content: center; align-items: center; gap: 40px; }
 
 /* --- MODALES --- */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
@@ -149,21 +96,33 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .btn-submit { width: 100%; padding: 12px; background: var(--accent); color: #1a1a2e; border: none; border-radius: 8px; font-weight: 800; margin-top: 15px; cursor: pointer; flex-shrink: 0; }
 .close-modal { background: transparent; border: none; color: #777; width: 100%; margin-top: 10px; cursor: pointer; flex-shrink: 0; }
 
-/* --- MEDIA QUERIES (CELULAR) --- */
+/* --- MEDIA QUERIES (MÓVIL FIX V40) --- */
 @media (max-width: 768px) {
     .container { width: 100%; padding: 15px; }
     
-    /* PLAYER MÓVIL: OCULTAR CONTROLES PC */
-    .player-center-group, .player-right-group { display: none !important; }
+    /* HEADER: BOTONES PEQUEÑOS Y SIN NOMBRE */
+    .brand { font-size: 1.2rem; }
+    #adminNameDisplay, #userGreetingName { display: none; } /* Ocultar nombre */
+    .user-profile { background: transparent; border: none; padding: 0; }
+    .header-right { gap: 5px; } /* Menos gap */
+    .btn-icon { width: 30px; height: 30px; font-size: 1rem; } /* Botones más pequeños */
+    .btn-logout { margin-left: 5px; } 
+
+    /* STATS: MISMO TAMAÑO */
+    .card { height: 90px; }
+    .card h3 { font-size: 0.6rem; }
+    .card .value { font-size: 1.1rem; }
+
+    /* ÁLBUMES: 1 COLUMNA */
+    .playlist-grid { grid-template-columns: 1fr !important; }
+    .collection-card { padding-bottom: 15px; }
     
-    .minimized-player-controls {
-        display: flex !important;
-        align-items: center;
-        gap: 20px;
-    }
+    /* PLAYER MÓVIL */
+    .player-center-group, .player-right-group { display: none !important; }
+    .minimized-player-controls { display: flex !important; align-items: center; gap: 20px; }
     .minimized-player-controls span { font-size: 2rem !important; color: white; }
     #iconPlayMin { color: var(--accent); font-size: 2.5rem !important; }
-    
     .bottom-player { padding: 0 15px !important; height: 80px !important; }
     .player-info { width: 55%; }
 }
+
