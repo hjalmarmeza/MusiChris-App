@@ -66,7 +66,6 @@
 
             <div id="admin-music" class="list-tab-content active">
                 <div class="btn-dashed-style" onclick="openUpload()">+ Subir Canción</div>
-                
                 <div style="background:#252535; padding:10px; border-radius:12px; margin-bottom:15px; display:flex; align-items:center;">
                     <span class="material-icons-round" style="color:#aaa; margin-right:10px;">search</span>
                     <input type="text" id="searchInputAdmin" placeholder="Buscar canción..." style="background:transparent; border:none; color:white; width:100%; outline:none;">
@@ -133,9 +132,12 @@
     </div>
 
     <div id="mainPlayer" class="bottom-player" onclick="openFullScreenPlayer()">
-        <div class="player-info">
-            <h4 id="pTitle">Título</h4>
-            <p id="pArtist">Artista</p>
+        <div class="player-info" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <img id="pCoverMini" src="" style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover; background: #333;">
+            <div style="overflow: hidden;">
+                <h4 id="pTitle" style="margin:0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Título</h4>
+                <p id="pArtist" style="margin:0; color:#aaa; font-size:0.8rem;">Artista</p>
+            </div>
         </div>
         
         <div class="player-center-group">
@@ -153,6 +155,7 @@
         
         <div class="player-right-group">
             <span class="material-icons-round" id="pLikeBtn" onclick="event.stopPropagation(); toggleLikeCurrent()">favorite_border</span>
+            <span class="material-icons-round" onclick="event.stopPropagation(); openModal('dom_modal_eq')">graphic_eq</span>
             <span class="material-icons-round" onclick="event.stopPropagation(); openFullScreenPlayer()">open_in_full</span> 
         </div>
 
@@ -166,8 +169,7 @@
         <div style="display:flex; justify-content:space-between; width:100%; padding:10px;">
             <span class="material-icons-round btn-guest-action" onclick="closePlayer()">keyboard_arrow_down</span>
             <span style="color:#aaa; font-size:0.9rem; letter-spacing:1px;">REPRODUCIENDO</span>
-            <span class="material-icons-round btn-guest-action">more_vert</span>
-        </div>
+            <span class="material-icons-round btn-guest-action" onclick="openModal('dom_modal_eq')">graphic_eq</span> </div>
 
         <div class="guest-container">
             <div id="guestCover"></div>
@@ -208,44 +210,43 @@
         </div>
     </div>
 
-    <div id="dom_modal_album" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-btn-x" onclick="closeModal('dom_modal_album')">×</button>
-            <h3>Nuevo Álbum</h3>
-            <input type="text" id="newAlbName" class="form-input" placeholder="Nombre del Álbum">
-            <input type="text" id="newAlbArtist" class="form-input" placeholder="Artista Principal">
-            <input type="text" id="newAlbCoverUrl" class="form-input" placeholder="URL Portada">
-            <button class="btn-submit" onclick="do_create_album()">Crear</button>
+    <div id="dom_modal_pl_detail" class="modal-overlay">
+        <div class="modal-content" style="padding-top: 40px;"> <button class="close-btn-x" onclick="closeModal('dom_modal_pl_detail')">×</button>
+            
+            <h3 id="plDetailTitle" style="margin:0 0 15px 0; font-size: 1.4rem;">Lista</h3>
+            
+            <button class="btn-submit" onclick="playCollection()" style="margin: 0 0 15px 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <span class="material-icons-round">play_arrow</span> Reproducir Todo
+            </button>
+            
+            <div id="plDetailList"></div>
         </div>
     </div>
 
-    <div id="dom_modal_new_user" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-btn-x" onclick="closeModal('dom_modal_new_user')">×</button>
-            <h3 style="margin-top:0">Registrar Usuario</h3>
-            <input type="text" id="newUser_Name" class="form-input" placeholder="Nombre">
-            <input type="email" id="newUser_Email" class="form-input" placeholder="Email">
-            <input type="password" id="newUser_Pass" class="form-input" placeholder="Contraseña">
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                 <button class="close-modal" onclick="closeModal('dom_modal_new_user')" style="flex:1; padding:12px; border-radius:8px;">Cancelar</button>
-                 <button class="btn-submit" style="flex:2; margin:0;" onclick="do_create_user_modal()">Registrar</button>
-            </div>
+    <div id="dom_modal_eq" class="modal-overlay">
+        <div class="modal-content" style="max-width:320px; text-align:center">
+             <button class="close-btn-x" onclick="closeModal('dom_modal_eq')">×</button>
+             <h3>Ecualizador 🎛️</h3>
+             <div style="display:flex; justify-content:space-around; height:150px; align-items:center; margin:20px 0">
+                 <div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Bajos</label></div>
+                 <div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Medios</label></div>
+                 <div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Agudos</label></div>
+             </div>
         </div>
     </div>
 
-    <div id="dom_modal_pl_detail" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_pl_detail')">×</button><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;"><h3 id="plDetailTitle" style="margin:0">Lista</h3><button class="btn-icon" style="background:var(--accent);width:30px;height:30px;" onclick="playCollection()"><span class="material-icons-round" style="color:black;font-size:1.2rem;">play_arrow</span></button></div><div id="plDetailList"></div></div></div>
+    <div id="dom_modal_new_user" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_new_user')">×</button><h3>Registrar Usuario</h3><input type="text" id="newUser_Name" class="form-input" placeholder="Nombre"><input type="email" id="newUser_Email" class="form-input" placeholder="Email"><input type="password" id="newUser_Pass" class="form-input" placeholder="Contraseña"><div style="display:flex;gap:10px;margin-top:20px;"><button class="close-modal" onclick="closeModal('dom_modal_new_user')" style="flex:1;padding:12px;border-radius:8px;">Cancelar</button><button class="btn-submit" style="flex:2;margin:0;" onclick="do_create_user_modal()">Registrar</button></div></div></div>
+    <div id="dom_modal_album" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_album')">×</button><h3>Nuevo Álbum</h3><input type="text" id="newAlbName" class="form-input" placeholder="Nombre"><input type="text" id="newAlbArtist" class="form-input" placeholder="Artista"><input type="text" id="newAlbCoverUrl" class="form-input" placeholder="URL Portada"><button class="btn-submit" onclick="do_create_album()">Crear</button></div></div>
     <div id="dom_modal_profile" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_profile')">×</button><h3>Mi Perfil</h3><div style="text-align:center;margin-bottom:15px;"><img id="profilePreview" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);"><br><button style="background:transparent;border:1px solid #555;color:#ccc;padding:5px 10px;border-radius:15px;margin-top:10px;cursor:pointer;" onclick="changeAvatar()">Cambiar Avatar</button></div><input type="text" id="profileName" class="form-input"><input type="email" id="profileEmail" class="form-input" disabled style="opacity:0.5"><button class="btn-submit" onclick="do_save_profile()">Guardar Cambios</button></div></div>
     <div id="dom_modal_announcement" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_announcement')">×</button><h3>Publicar Noticia</h3><textarea id="announcementInput" class="form-input" rows="4" placeholder="Mensaje..."></textarea><button class="btn-submit" onclick="do_save_announce()">Publicar</button></div></div>
     <div id="dom_modal_settings" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_settings')">×</button><h3>Configuración</h3><input type="text" id="cfgBinId" class="form-input" disabled><input type="password" id="cfgApiKey" class="form-input" disabled><button class="btn-submit" onclick="closeModal('dom_modal_settings')">Cerrar</button></div></div>
     <div id="dom_modal_edit_album" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_edit_album')">×</button><h3>Editar Álbum</h3><input type="text" id="editAlbName" class="form-input"><input type="text" id="editAlbArtist" class="form-input"><input type="text" id="editAlbCover" class="form-input"><button class="btn-submit" onclick="doSaveEditAlbum()">Guardar</button></div></div>
 
     <div id="customToast" class="customToast">Mensaje</div>
-    <script src="./script.js?v=52"></script>
+    
+    <script src="./script.js?v=53"></script>
 </body>
 </html>
-
-
-
 
 
 
