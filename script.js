@@ -1,5 +1,5 @@
 /**
- * MusiChris App V70.0 - LOGIN & AUDIO FIX
+ * MusiChris App V71.0 - LOGIN & AUDIO REPAIR
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -20,11 +20,12 @@ const norm = (str) => (str || '').toString().toLowerCase().trim().replace(/\s+/g
 
 // --- FUNCIÓN DE LOGIN GLOBAL (SEGURO) ---
 window.handleLoginAttempt = async function() {
+    // Buscar elementos directamente para evitar errores de referencia
     const emailEl = document.getElementById('loginEmail');
     const passEl = document.getElementById('loginPass');
     
     if(!emailEl || !passEl) {
-        alert("Error crítico: No se encuentran los campos de texto.");
+        alert("Error crítico: No se encuentran los campos.");
         return;
     }
     
@@ -37,7 +38,7 @@ window.handleLoginAttempt = async function() {
     }
     
     if (!appConfig.data) {
-        showToast("Conectando con base de datos...", 'info');
+        showToast("Conectando...", 'info');
         await loadAppData();
     }
     
@@ -83,13 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dom.mainPlayer) dom.mainPlayer.style.display = 'none';
 
     // PASSWORD TOGGLE
-    if (dom.btnTogglePass) {
-        dom.btnTogglePass.onclick = function() {
-            const p = document.getElementById('loginPass');
-            p.type = p.type === "password" ? "text" : "password";
-            this.textContent = p.type === "password" ? "visibility_off" : "visibility";
-        }
-    }
+    if (dom.btnTogglePass) dom.btnTogglePass.addEventListener('click', () => {
+        const p = document.getElementById('loginPass');
+        p.type = p.type === "password" ? "text" : "password";
+        dom.btnTogglePass.textContent = p.type === "password" ? "visibility_off" : "visibility";
+    });
     
     // AUDIO EVENTS
     if (dom.audioElement) {
@@ -235,7 +234,7 @@ function renderSongList(id, songs) {
         if(appConfig.isAdmin) {
              adminBtns = `<button class="btn-list-action" style="margin-right:5px;background:rgba(255,255,255,0.1)" onclick="editSong(event, ${s.id})"><span class="material-icons-round" style="font-size:1rem">edit</span></button><button class="btn-list-action" style="background:var(--danger)" onclick="deleteSong(event, ${s.id})"><span class="material-icons-round">delete</span></button>`;
         }
-        div.innerHTML = `<div class="song-cover" style="background-image: url('${art}')" onerror="this.style.backgroundImage='url(${DEFAULT_COVER})'"></div><div class="song-info"><div class="song-title">${s.title}</div><div class="song-artist">${s.genre}</div></div><div class="song-actions"><button class="btn-list-action" onclick="playSongId(${s.id})"><span class="material-icons-round">play_arrow</span></button>${adminBtns}</div>`;
+        div.innerHTML = `<div class="song-cover" style="background-image: url('${art}')"></div><div class="song-info"><div class="song-title">${s.title}</div><div class="song-artist">${s.genre}</div></div><div class="song-actions"><button class="btn-list-action" onclick="playSongId(${s.id})"><span class="material-icons-round">play_arrow</span></button>${adminBtns}</div>`;
         div.onclick = (e) => { if(e.target.tagName === 'BUTTON' || e.target.closest('button')) return; playSong(s); };
         c.appendChild(div);
     });
@@ -344,7 +343,7 @@ function renderAlbumGrid(id, albums) {
         const name = a.title || a.name || 'Álbum';
         let adminBtns = '';
         if(appConfig.isAdmin) adminBtns = `<div class="album-admin-tools"><button class="btn-alb-tool" style="background:#333" onclick="editAlbum(event, ${index})">✏️</button><button class="btn-alb-tool" style="background:var(--danger)" onclick="deleteAlbum(event, ${index})">🗑️</button></div>`;
-        div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')" onerror="this.style.backgroundImage='url(${DEFAULT_COVER})'"></div><h4>${name}</h4>${adminBtns}`;
+        div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')"></div><h4>${name}</h4>${adminBtns}`;
         div.onclick = (e) => { if(e.target.tagName === 'BUTTON') return; openAlbumDetail(a); };
         c.appendChild(div);
     });
@@ -363,9 +362,9 @@ function openAlbumDetail(album) {
 function renderSmartPlaylists(id) {
     const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
     const createCard = (t,s,img,grad,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover pl-icon-bg ${grad}" style="background-image:url('${img}')"></div><h4>${t}</h4>`; d.onclick=fn; return d; };
-    c.appendChild(createCard("Favoritos", "Likes", "https://cdn-icons-png.flaticon.com/512/833/833472.png", "grad-1", () => openSmartList('fav')));
-    c.appendChild(createCard("Recientes", "Nuevas", "https://cdn-icons-png.flaticon.com/512/2972/2972531.png", "grad-2", () => openSmartList('recent')));
-    c.appendChild(createCard("Top Hits", "Más oídas", "https://cdn-icons-png.flaticon.com/512/651/651717.png", "grad-3", () => openSmartList('top')));
+    c.appendChild(createCard("Favoritos", "https://cdn-icons-png.flaticon.com/512/833/833472.png", "grad-1", () => openSmartList('fav')));
+    c.appendChild(createCard("Recientes", "https://cdn-icons-png.flaticon.com/512/2972/2972531.png", "grad-2", () => openSmartList('recent')));
+    c.appendChild(createCard("Top Hits", "https://cdn-icons-png.flaticon.com/512/651/651717.png", "grad-3", () => openSmartList('top')));
     
     if(appConfig.data.playlists) {
         appConfig.data.playlists.forEach(pl => {
@@ -420,25 +419,9 @@ window.prev = () => showToast("Anterior", 'info');
 window.next = () => showToast("Siguiente", 'info');
 window.closePlayer = function() { const fs = document.getElementById('view-guest-player'); if(fs && fs.style.display === 'flex') { showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); if(dom.mainPlayer) dom.mainPlayer.classList.remove('hidden'); } else { if(dom.mainPlayer) { dom.mainPlayer.style.display = 'none'; dom.mainPlayer.classList.remove('hidden'); } if(dom.audioElement) dom.audioElement.pause(); appConfig.currentSong = null; } }
 window.exitFullScreenPlayer = window.closePlayer;
-
-function togglePlayIcon(isPlaying) {
-    const txt = isPlaying ? 'pause' : 'play_arrow';
-    if(dom.iconPlay) dom.iconPlay.textContent = txt;
-    const iconBig = document.getElementById('iconPlayBig'); if(iconBig) iconBig.textContent = txt;
-    const iconMin = document.getElementById('iconPlayMin'); if(iconMin) iconMin.textContent = txt;
-}
-function updateProgress() {
-    const au = dom.audioElement;
-    if(!au || isNaN(au.duration)) return;
-    const pct = (au.currentTime / au.duration) * 100;
-    if(dom.seekSlider) dom.seekSlider.value = pct;
-    const expSlider = document.getElementById('expandedSeekSlider');
-    const curTime = document.getElementById('expCurTime');
-    const totTime = document.getElementById('expTotTime');
-    if(expSlider) expSlider.value = pct;
-    if(curTime) curTime.textContent = formatTime(au.currentTime);
-    if(totTime) totTime.textContent = formatTime(au.duration);
-}
+function togglePlayIcon(isPlaying) { const txt = isPlaying ? 'pause' : 'play_arrow'; if(dom.iconPlay) dom.iconPlay.textContent = txt; const iconBig = document.getElementById('iconPlayBig'); if(iconBig) iconBig.textContent = txt; const iconMin = document.getElementById('iconPlayMin'); if(iconMin) iconMin.textContent = txt; }
+window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
+function updateProgress() { const au = dom.audioElement; if(!au || isNaN(au.duration)) return; const pct = (au.currentTime / au.duration) * 100; if(dom.seekSlider) dom.seekSlider.value = pct; const expSlider = document.getElementById('expandedSeekSlider'); const curTime = document.getElementById('expCurTime'); const totTime = document.getElementById('expTotTime'); if(expSlider) expSlider.value = pct; if(curTime) curTime.textContent = formatTime(au.currentTime); if(totTime) totTime.textContent = formatTime(au.duration); }
 function seekAudio(e) { dom.audioElement.currentTime = dom.audioElement.duration * (e.target.value/100); }
 window.app_logout = () => { if(dom.audioElement) dom.audioElement.pause(); if(dom.mainPlayer) dom.mainPlayer.style.display='none'; localStorage.removeItem('appConfig'); location.reload(); };
 window.playCollection = () => { if(appConfig.tempPlaylist[0]) { playSong(appConfig.tempPlaylist[0]); closeModal('dom_modal_pl_detail'); }};
@@ -458,6 +441,6 @@ function renderUserList(id, users) { const c = document.getElementById(id); if(!
 function filterSongs(query) { const target = norm(query); const filtered = appConfig.data.songs.filter(s => norm(s.title).includes(target) || norm(s.genre).includes(target) || norm(s.album).includes(target)); renderSongList(appConfig.isAdmin ? 'adminSongList' : 'userSongList', filtered); }
 async function saveData() { try { await fetch(`${API_BASE_URL}${PERMANENT_BIN_ID}`, { method: 'PUT', headers: { 'X-Master-Key': PERMANENT_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig.data) }); } catch(e) { showToast("Error guardando", 'error'); } }
 async function saveDataSilent() { try { await fetch(`${API_BASE_URL}${PERMANENT_BIN_ID}`, { method: 'PUT', headers: { 'X-Master-Key': PERMANENT_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig.data) }); } catch(e) {} }
-window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
 window.do_create_album = async function() { const name = dom.newAlbName.value.trim(); if(!name) return; const cover = dom.newAlbCoverUrl.value || DEFAULT_COVER; appConfig.data.albums.push({ title: name, artist: dom.newAlbArtist.value, cover: cover }); await saveData(); showToast("Álbum creado", 'success'); updateUI(); closeModal('dom_modal_album'); }
 window.doSaveEditAlbum = async function() { const idx = appConfig.editingAlbumIndex; if(idx === null) return; const cover = dom.editAlbCover.value || appConfig.data.albums[idx].cover; appConfig.data.albums[idx] = { ...appConfig.data.albums[idx], title: dom.editAlbName.value, artist: dom.editAlbArtist.value, cover: cover }; await saveData(); showToast("Actualizado", 'success'); updateUI(); closeModal('dom_modal_edit_album'); }
+function activateGuestMode() { const song = appConfig.data.songs.find(s => s.id === appConfig.pendingSongId); if (!song) { showToast("Link expirado", 'error'); appConfig.isGuest = false; showView('view-login'); return; } const loginView = document.getElementById('view-login'); loginView.innerHTML = `<div class="login-card"><div style="width:120px; height:120px; background-image:url('${getSongArt(song)}'); background-size:cover; border-radius:15px; margin:0 auto 15px auto; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></div><h3 style="margin:0 0 5px 0">${song.title}</h3><p style="color:#aaa; margin:0 0 20px 0">${song.genre}</p><button class="btn-login" onclick="playGuestSong(${song.id})">▶ ESCUCHAR AHORA</button></div>`; showView('view-login'); }
