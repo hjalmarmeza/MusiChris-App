@@ -1,9 +1,9 @@
 /**
- * MusiChris App V44.0 - FINAL POLISH
- * - Fixed: Laptop Player Layout (Row).
- * - Fixed: Add Song Button Visibility.
- * - Fixed: Mobile Expanded Player Controls.
- * - Fixed: Album Filtering & Icons.
+ * MusiChris App V45.0 - GOLD MASTER
+ * - Progress Bar: Works in expanded & mini player.
+ * - Album Filter: STRICT match (fixes showing all songs).
+ * - UI Fixes: No phantom button, correct colors, centered icons.
+ * - Images: Fallback to album art reinforced.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'dom_modal_date_filter', 'filterStart', 'filterEnd',
         'view-guest-player', 'guestTitle', 'guestArtist', 'guestCover', 'iconPlayBig', 'pLikeBtn', 'guestLikeBtn',
         'adminPlaylistGrid', 'userPlaylistGrid', 'usersListGrid',
-        'btnAddSong', 'btnAddAlbum'
+        'btnAddSong', 'btnAddAlbum', 'seekSlider' // Slider Mini
     ];
     ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
 
@@ -53,11 +53,18 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.btnTogglePass.textContent = p.type === "password" ? "visibility_off" : "visibility";
     });
     
+    // AUDIO EVENTS & PROGRESS BAR
     if (dom.audioElement) {
         dom.audioElement.addEventListener('play', () => togglePlayIcon(true));
         dom.audioElement.addEventListener('pause', () => togglePlayIcon(false));
+        dom.audioElement.addEventListener('timeupdate', updateProgress);
+        dom.audioElement.addEventListener('ended', () => { togglePlayIcon(false); });
     }
     
+    // Sliders Listener
+    if(dom.seekSlider) dom.seekSlider.addEventListener('input', seekAudio);
+
+    // BOTONES ADMIN
     if(dom.btnAddSong) dom.btnAddSong.addEventListener('click', openUpload);
     if(dom.btnAddAlbum) dom.btnAddAlbum.addEventListener('click', () => openModal('dom_modal_album'));
 
@@ -66,6 +73,36 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if(appConfig.isGuest) { loadAppData(); } else { loadConfig(); }
 });
+
+// *** PROGRESS BAR LOGIC ***
+function updateProgress() {
+    const au = dom.audioElement;
+    if(!au || isNaN(au.duration)) return;
+    
+    const pct = (au.currentTime / au.duration) * 100;
+    
+    // Actualizar Mini Slider
+    if(dom.seekSlider) dom.seekSlider.value = pct;
+    
+    // Actualizar Expanded Slider (creado dinámicamente)
+    const expSlider = document.getElementById('expandedSeekSlider');
+    const expTime = document.getElementById('expandedTime');
+    if(expSlider) expSlider.value = pct;
+    if(expTime) expTime.textContent = formatTime(au.currentTime) + " / " + formatTime(au.duration);
+}
+
+function seekAudio(e) {
+    const au = dom.audioElement;
+    if(!au || isNaN(au.duration)) return;
+    const seekTo = au.duration * (e.target.value / 100);
+    au.currentTime = seekTo;
+}
+
+function formatTime(s) {
+    const min = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${min}:${sec < 10 ? '0'+sec : sec}`;
+}
 
 function showToast(msg, type = 'info') {
     const t = document.getElementById('customToast');
@@ -81,10 +118,12 @@ function getArt(item) {
 
 function getSongArt(song) {
     let art = song.cover || song.img || song.image;
-    if (art && !art.includes("imgbb") && !art.includes("image not found")) return art;
+    // Si la imagen es un placeholder de error, intentar buscar álbum
+    if (art && !art.includes("imgbb") && !art.includes("image not found")) return art; 
+    
     if (song.album && appConfig.data && appConfig.data.albums) {
         const target = norm(song.album);
-        const album = appConfig.data.albums.find(a => norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name)));
+        const album = appConfig.data.albums.find(a => norm(a.title || a.name) === target); // SOLO EXACTO PARA EVITAR ERRORES
         if (album) return getArt(album);
     }
     return DEFAULT_COVER;
@@ -180,6 +219,8 @@ function updateUI(songListOverride = null) {
             btn.className = 'btn-add-content';
             btn.textContent = '+ Subir Canción';
             btn.onclick = openUpload;
+            // Asegurar que no hay botón invisible
+            container.style.position = "relative"; 
             const search = document.getElementById('searchInputAdmin');
             if(search) container.insertBefore(btn, search);
         }
@@ -214,10 +255,13 @@ function renderAlbumGrid(id, albums) {
     });
 }
 
+// *** FILTRO DE ÁLBUMES ESTRICTO ***
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
-    let songs = appConfig.data.songs.filter(s => norm(s.album).includes(target) || target.includes(norm(s.album)));
+    // SOLO COINCIDENCIA EXACTA: Si tu canción dice "Adoración " y el álbum es "Adoración", el norm() lo arregla
+    let songs = appConfig.data.songs.filter(s => s.album && norm(s.album) === target);
+    
     appConfig.tempPlaylist = songs;
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
     const list = dom.plDetailList; list.innerHTML = '';
@@ -229,11 +273,10 @@ function openAlbumDetail(album) {
 function renderSmartPlaylists(id) {
     const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
     const createCard = (t,s,img,grad,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover pl-icon-bg ${grad}" style="background-image:url('${img}')"></div><h4>${t}</h4>`; d.onclick=fn; return d; };
-    
-    // ICONOS ACTUALIZADOS (Corazón, Reloj, Nota)
     c.appendChild(createCard("Favoritos", "Likes", "https://cdn-icons-png.flaticon.com/512/833/833472.png", "grad-1", () => openSmartList('fav')));
     c.appendChild(createCard("Recientes", "Nuevas", "https://cdn-icons-png.flaticon.com/512/3239/3239945.png", "grad-2", () => openSmartList('recent')));
-    c.appendChild(createCard("Top Hits", "Más oídas", "https://cdn-icons-png.flaticon.com/512/3209/3209995.png", "grad-3", () => openSmartList('top')));
+    // NOTA MUSICAL
+    c.appendChild(createCard("Top Hits", "Más oídas", "https://cdn-icons-png.flaticon.com/512/651/651717.png", "grad-note", () => openSmartList('top')));
 }
 
 function openSmartList(type) {
@@ -245,7 +288,10 @@ function openSmartList(type) {
     appConfig.tempPlaylist = songs;
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = title;
     const list = dom.plDetailList; list.innerHTML = '';
-    songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); });
+    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Lista vacía.</div>';
+    else {
+        songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); });
+    }
     modal.style.display = 'flex';
 }
 
@@ -259,7 +305,7 @@ window.openFullScreenPlayer = function() {
     updateLikeIcon();
     if(dom.mainPlayer) dom.mainPlayer.classList.add('hidden');
     
-    // *** INYECTAR CONTROLES MÓVILES (SHUFFLE/REPEAT) ***
+    // *** INYECTAR CONTROLES Y BARRA DE PROGRESO ***
     const controlsContainer = document.querySelector('.guest-controls-main');
     if(controlsContainer) {
         controlsContainer.innerHTML = `
@@ -270,6 +316,15 @@ window.openFullScreenPlayer = function() {
             <span class="material-icons-round btn-guest-action" style="color:${appConfig.isRepeat?'var(--accent)':'white'}" onclick="toggleRepeat()">repeat</span>
         `;
     }
+    // Inyectar Slider si no existe
+    const infoArea = document.querySelector('.guest-info-area');
+    if(infoArea && !document.getElementById('expandedSeekSlider')) {
+        const sliderDiv = document.createElement('div');
+        sliderDiv.className = 'progress-container';
+        sliderDiv.innerHTML = `<span id="expandedTime" class="time-display">0:00</span><input type="range" id="expandedSeekSlider" value="0" min="0" max="100" oninput="seekAudio(event)">`;
+        infoArea.appendChild(sliderDiv);
+    }
+    
     showView('view-guest-player');
 }
 
@@ -361,7 +416,7 @@ window.switchTab = (id, btn) => { document.querySelectorAll('.list-tab-content, 
 window.do_save_settings = () => closeModal('dom_modal_settings');
 window.openProfile = function() { openModal('dom_modal_profile'); }
 window.changeAvatar = function() { appConfig.user.avatar = `https://api.dicebear.com/9.x/avataaars/svg?seed=${Math.floor(Math.random()*999)}`; if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar; }
-window.do_save_profile = async function() { appConfig.data.users.find(u => u.email === appConfig.user.email).avatar = appConfig.user.avatar; await saveData(); closeModal('dom_modal_profile'); }
+window.do_save_profile = async function() { appConfig.data.users.find(u => u.email === appConfig.user.email).name = dom.profileName.value; appConfig.data.users.find(u => u.email === appConfig.user.email).avatar = appConfig.user.avatar; await saveData(); closeModal('dom_modal_profile'); showToast("Perfil guardado", 'success'); updateUI(); }
 window.deleteAlbum = async function(e, i) { e.stopPropagation(); if(confirm("¿Borrar?")) { appConfig.data.albums.splice(i,1); await saveData(); updateUI(); } }
 window.deleteUser = async function(i) { if(confirm("¿Borrar?")) { appConfig.data.users.splice(i,1); await saveData(); updateUI(); } }
 function renderUserList(id, users) { const c = document.getElementById(id); if(!c) return; c.innerHTML = ''; users.forEach((u, index) => { const div = document.createElement('div'); div.className = 'user-list-item'; div.innerHTML = `<div class="user-info"><img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover"><span>${u.name}</span><span class="role-badge ${u.role==='admin'?'role-admin':''}">${u.role}</span></div><div style="display:flex;gap:5px"><button class="btn-delete-user" onclick="deleteUser(${index})"><span class="material-icons-round">delete</span></button></div>`; c.appendChild(div); }); }
