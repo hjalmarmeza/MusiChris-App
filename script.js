@@ -1,9 +1,8 @@
 /**
- * MusiChris App V37.0 - GUEST BYPASS & UI FIXES
- * - MODO INVITADO: Si hay ?s=ID, oculta el login y muestra la canción.
- * - Share Text: "Esta canción ministró mi vida..."
- * - Album Art: Forzado en carga.
- * - UI: Iconos Admin, Botón Basurero Usuario restaurados.
+ * MusiChris App V38.0 - FINAL STABLE
+ * - Invitado: Bypass Login automático si hay enlace.
+ * - Share Text: Corregido según imagen.
+ * - Album Matching: Búsqueda flexible + Fallback imagen.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -22,13 +21,13 @@ const dom = {};
 const norm = (str) => (str || '').toString().toLowerCase().trim().replace(/\s+/g, ' '); 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. DETECTAR SI ES ENLACE COMPARTIDO
+    // 1. DETECTAR ENLACE
     const urlParams = new URLSearchParams(window.location.search);
     const sharedId = urlParams.get('s');
     
     if(sharedId) {
         appConfig.pendingSongId = parseInt(sharedId);
-        appConfig.isGuest = true; // Activar modo invitado
+        appConfig.isGuest = true;
     }
 
     const ids = [
@@ -64,11 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
     appConfig.BIN_ID = PERMANENT_BIN_ID;
     appConfig.API_KEY = PERMANENT_API_KEY;
     
-    // SI ES INVITADO, SALTARSE LA CARGA DE CONFIGURACIÓN DE USUARIO
-    if (appConfig.isGuest) {
-        loadAppData(); // Cargar datos directamente sin login
+    // Si hay enlace compartido, CARGAR DATOS DIRECTO (SALTAR LOGIN)
+    if(appConfig.isGuest) {
+        loadAppData();
     } else {
-        loadConfig(); // Flujo normal
+        loadConfig();
     }
 });
 
@@ -111,13 +110,12 @@ async function loadAppData() {
         const json = await res.json();
         appConfig.data = json.record;
         
-        // Inicializar
         if(!appConfig.data.songs) appConfig.data.songs = [];
         if(!appConfig.data.users) appConfig.data.users = [];
         if(!appConfig.data.albums) appConfig.data.albums = [];
-
-        // *** LÓGICA CRÍTICA DE INVITADO ***
-        if (appConfig.isGuest && appConfig.pendingSongId) {
+        
+        // *** SI ES INVITADO, ACTIVAR MODO DIRECTO ***
+        if(appConfig.isGuest && appConfig.pendingSongId) {
             activateGuestMode();
         } else {
             updateUI();
@@ -129,44 +127,38 @@ async function loadAppData() {
 function activateGuestMode() {
     const song = appConfig.data.songs.find(s => s.id === appConfig.pendingSongId);
     if (!song) {
-        showToast("Canción no encontrada", 'error');
+        showToast("Link expirado", 'error');
         appConfig.isGuest = false;
         showView('view-login');
         return;
     }
-
-    // OCULTAR LOGIN
+    
+    // REEMPLAZAR PANTALLA LOGIN CON INVITACIÓN
     const loginView = document.getElementById('view-login');
-    if (loginView) loginView.innerHTML = ''; // Limpiar login para mostrar player invitado
-
-    // CREAR VISTA DE BIENVENIDA INVITADO
     loginView.innerHTML = `
-        <div class="login-card" style="padding:40px 20px;">
-            <div style="width:150px; height:150px; background-image:url('${getSongArt(song)}'); background-size:cover; border-radius:20px; margin:0 auto 20px auto; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></div>
-            <h2 style="margin-bottom:5px; color:white;">${song.title}</h2>
-            <p style="color:#aaa; margin-top:0;">${song.genre}</p>
+        <div class="login-card">
+            <div style="width:120px; height:120px; background-image:url('${getSongArt(song)}'); background-size:cover; border-radius:15px; margin:0 auto 15px auto; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></div>
+            <h3 style="margin:0 0 5px 0">${song.title}</h3>
+            <p style="color:#aaa; margin:0 0 20px 0">${song.genre}</p>
             <p style="color:#FF9F43; font-size:0.9rem; margin-bottom:20px;">Te han dedicado esta canción ❤️</p>
             <button class="btn-login" onclick="playGuestSong(${song.id})">▶ ESCUCHAR AHORA</button>
-            <button style="background:transparent; border:none; color:#666; margin-top:15px; cursor:pointer;" onclick="location.href=location.pathname">Ir al Login</button>
+            <button style="background:transparent; border:none; color:#666; margin-top:20px; cursor:pointer;" onclick="location.href=location.pathname">Volver al Inicio</button>
         </div>
     `;
-    showView('view-login');
+    showView('view-login'); // Mostrar esta vista modificada
 }
 
 window.playGuestSong = function(id) {
-    // Simular un usuario invitado mínimo
-    appConfig.user = { name: "Invitado", email: "guest@musichris.com", role: "user" };
+    appConfig.user = { name: "Invitado", email: "guest", role: "user" };
+    appConfig.isLoggedIn = true;
+    
     const song = appConfig.data.songs.find(s => s.id === id);
-    
-    // Entrar a la vista de usuario limitada
     showView('view-user');
-    updateUI(); 
+    updateUI();
     
-    // Ocultar tabs para invitado
-    const tabs = document.querySelector('.tabs');
-    if(tabs) tabs.style.display = 'none';
+    // Ocultar tabs innecesarias
+    document.querySelector('.tabs').style.display = 'none';
     
-    // Reproducir
     playSong(song);
     openFullScreenPlayer();
 }
@@ -186,7 +178,7 @@ function updateUI(songListOverride = null) {
     if(dom.adminAvatar) dom.adminAvatar.src = avatar;
     if(dom.userAvatarImg) dom.userAvatarImg.src = avatar;
     if(dom.adminNameDisplay) dom.adminNameDisplay.textContent = appConfig.user?.name || 'Admin';
-    if(dom.userGreeting) dom.userGreeting.textContent = `Hola, ${appConfig.user?.name || 'Invitado'}`;
+    if(dom.userGreeting) dom.userGreeting.innerHTML = `Hola <span id="userGreetingName">${appConfig.user?.name || ''}</span>`; // Estructura para ocultar nombre en movil
 
     if(dom.userAnnouncement && dom.announcementText && appConfig.data.announcement) {
         dom.userAnnouncement.style.display = 'block';
@@ -202,7 +194,7 @@ function renderSongList(id, songs) {
         const art = getSongArt(s);
         let deleteBtn = '';
         if(appConfig.isAdmin) deleteBtn = `<button class="btn-list-action" style="background:rgba(255,71,87,0.1);color:#ff4757" onclick="deleteSong(event, ${s.id})"><span class="material-icons-round">delete</span></button>`;
-        div.innerHTML = `<div class="song-cover" style="background-image: url('${art}')"></div><div class="song-info"><div class="song-title">${s.title || 'Sin Título'}</div><div class="song-artist">${s.genre || s.album || 'General'}</div></div><div class="song-actions"><button class="btn-list-action" onclick="playSongId(${s.id})"><span class="material-icons-round">play_arrow</span></button>${deleteBtn}</div>`;
+        div.innerHTML = `<div class="song-cover" style="background-image: url('${art}')" onerror="this.style.backgroundImage='url(${DEFAULT_COVER})'"></div><div class="song-info"><div class="song-title">${s.title || 'Sin Título'}</div><div class="song-artist">${s.genre || s.album || 'General'}</div></div><div class="song-actions"><button class="btn-list-action" onclick="playSongId(${s.id})"><span class="material-icons-round">play_arrow</span></button>${deleteBtn}</div>`;
         div.onclick = (e) => { if(e.target.tagName === 'BUTTON' || e.target.closest('button')) return; playSong(s); };
         c.appendChild(div);
     });
@@ -216,13 +208,13 @@ function renderAlbumGrid(id, albums) {
         const name = a.title || a.name || 'Álbum';
         let adminBtns = '';
         if(appConfig.isAdmin) adminBtns = `<div class="album-admin-tools"><button class="btn-alb-tool" style="background:#333" onclick="editAlbum(event, ${index})">✏️</button><button class="btn-alb-tool" style="background:#ff4757" onclick="deleteAlbum(event, ${index})">🗑️</button></div>`;
-        div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')"></div><h4>${name}</h4>${adminBtns}`;
+        div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')" onerror="this.style.backgroundImage='url(${DEFAULT_COVER})'"></div><h4>${name}</h4>${adminBtns}`;
         div.onclick = (e) => { if(e.target.tagName === 'BUTTON') return; openAlbumDetail(a); };
         c.appendChild(div);
     });
 }
 
-// ... Resto de funciones (OpenAlbumDetail, Share, etc.)
+// ... Resto de funciones
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
@@ -235,7 +227,7 @@ function openAlbumDetail(album) {
     modal.style.display = 'flex';
 }
 
-// SHARE FIX: MENSAJE PERSONALIZADO
+// SHARE TEXT FIX
 window.shareCurrentSong = async function() {
     if(!appConfig.currentSong) return;
     const shareUrl = `${window.location.origin}${window.location.pathname}?s=${appConfig.currentSong.id}`;
