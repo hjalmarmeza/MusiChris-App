@@ -52,7 +52,7 @@
                     <span class="value" id="statsTotalUsers">0</span>
                 </div>
                 <div class="card">
-                    <h3>Nube</h3>
+                    <h3>Nube (25GB)</h3>
                     <div class="value" id="statsCloud">0%</div>
                 </div>
             </div>
@@ -75,6 +75,7 @@
             </div>
 
             <div id="admin-playlists" class="list-tab-content">
+                <div class="btn-dashed-style" onclick="doCreatePlaylist()">+ Nueva Playlist</div>
                 <div id="adminPlaylistGrid" class="playlist-grid"></div>
             </div>
 
@@ -157,14 +158,12 @@
         <div class="player-right-group">
             <span class="material-icons-round" id="pLikeBtn" onclick="event.stopPropagation(); toggleLikeCurrent()">favorite_border</span>
             <span class="material-icons-round" onclick="event.stopPropagation(); openModal('dom_modal_eq')">graphic_eq</span>
-            <span class="material-icons-round" onclick="event.stopPropagation(); openFullScreenPlayer()">open_in_full</span> 
-        </div>
+            <span class="material-icons-round" onclick="event.stopPropagation(); closePlayer()">close</span> </div>
 
         <div class="minimized-player-controls">
             <span class="material-icons-round" onclick="openFullScreenPlayer()" style="font-size:2rem; margin-right:10px;">expand_less</span>
             <span id="iconPlayMin" class="material-icons-round" onclick="event.stopPropagation(); toggle_play()">play_arrow</span>
-            <span class="material-icons-round" onclick="event.stopPropagation(); closePlayer()">close</span>
-        </div>
+            <span class="material-icons-round" onclick="event.stopPropagation(); closePlayer()" style="color:var(--danger)">close</span> </div>
     </div>
 
     <div id="view-guest-player">
@@ -224,25 +223,8 @@
                 <input type="file" id="newAlbCoverFile" accept="image/*" style="display:none;" onchange="previewFile(this, 'newAlbCoverUrl')">
             </div>
             
-            <input type="text" id="newAlbCoverUrl" class="form-input" placeholder="O pegar enlace de imagen...">
+            <input type="text" id="newAlbCoverUrl" class="form-input" placeholder="O pegar enlace...">
             <button class="btn-submit" onclick="do_create_album()">Crear</button>
-        </div>
-    </div>
-
-    <div id="dom_modal_edit_album" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-btn-x" onclick="closeModal('dom_modal_edit_album')">×</button>
-            <h3>Editar Álbum</h3>
-            <input type="text" id="editAlbName" class="form-input" placeholder="Nombre">
-            <input type="text" id="editAlbArtist" class="form-input" placeholder="Artista">
-            
-             <div style="margin:10px 0; border:1px dashed #555; padding:10px; border-radius:10px;">
-                <label for="editAlbCoverFile" style="color:var(--accent); cursor:pointer;">📂 Cambiar Portada</label>
-                <input type="file" id="editAlbCoverFile" accept="image/*" style="display:none;" onchange="previewFile(this, 'editAlbCover')">
-            </div>
-
-            <input type="text" id="editAlbCover" class="form-input" placeholder="URL Portada">
-            <button class="btn-submit" onclick="doSaveEditAlbum()">Guardar</button>
         </div>
     </div>
 
@@ -260,14 +242,26 @@
         </div>
     </div>
 
+    <div id="dom_modal_eq" class="modal-overlay">
+        <div class="modal-content" style="max-width:320px; text-align:center">
+             <button class="close-btn-x" onclick="closeModal('dom_modal_eq')">×</button>
+             <h3>Ecualizador 🎛️</h3>
+             <div style="display:flex; justify-content:space-around; height:150px; align-items:center; margin:20px 0">
+                 <div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Bajos</label></div>
+                 <div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Medios</label></div>
+                 <div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Agudos</label></div>
+             </div>
+        </div>
+    </div>
+
     <div id="dom_modal_pl_detail" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_pl_detail')">×</button><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;"><h3 id="plDetailTitle" style="margin:0">Lista</h3><button class="btn-submit" style="margin:0; width:auto; padding:8px 15px;" onclick="playCollection()">Reproducir Todo</button></div><div id="plDetailList"></div></div></div>
     <div id="dom_modal_profile" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_profile')">×</button><h3>Mi Perfil</h3><div style="text-align:center;margin-bottom:15px;"><img id="profilePreview" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);"><br><button style="background:transparent;border:1px solid #555;color:#ccc;padding:5px 10px;border-radius:15px;margin-top:10px;cursor:pointer;" onclick="changeAvatar()">Cambiar Avatar</button></div><input type="text" id="profileName" class="form-input"><input type="email" id="profileEmail" class="form-input" disabled style="opacity:0.5"><button class="btn-submit" onclick="do_save_profile()">Guardar Cambios</button></div></div>
     <div id="dom_modal_announcement" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_announcement')">×</button><h3>Publicar Noticia</h3><textarea id="announcementInput" class="form-input" rows="4" placeholder="Mensaje..."></textarea><button class="btn-submit" onclick="do_save_announce()">Publicar</button></div></div>
     <div id="dom_modal_settings" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_settings')">×</button><h3>Configuración</h3><input type="text" id="cfgBinId" class="form-input" disabled><input type="password" id="cfgApiKey" class="form-input" disabled><button class="btn-submit" onclick="closeModal('dom_modal_settings')">Cerrar</button></div></div>
-    <div id="dom_modal_eq" class="modal-overlay"><div class="modal-content" style="max-width:320px; text-align:center"><button class="close-btn-x" onclick="closeModal('dom_modal_eq')">×</button><h3>Ecualizador 🎛️</h3><div style="display:flex; justify-content:space-around; height:150px; align-items:center; margin:20px 0"><div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Bajos</label></div><div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Medios</label></div><div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Agudos</label></div></div></div></div>
+    <div id="dom_modal_edit_album" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_edit_album')">×</button><h3>Editar Álbum</h3><input type="text" id="editAlbName" class="form-input"><input type="text" id="editAlbArtist" class="form-input"><div style="margin:10px 0; border:1px dashed #555; padding:10px; border-radius:10px;"><label for="editAlbCoverFile" style="color:var(--accent); cursor:pointer;">📂 Cambiar Portada</label><input type="file" id="editAlbCoverFile" accept="image/*" style="display:none;" onchange="previewFile(this, 'editAlbCover')"></div><input type="text" id="editAlbCover" class="form-input"><button class="btn-submit" onclick="doSaveEditAlbum()">Guardar</button></div></div>
 
     <div id="customToast" class="customToast">Mensaje</div>
-    <script src="./script.js?v=55"></script>
+    <script src="./script.js?v=56"></script>
 </body>
 </html>
 
