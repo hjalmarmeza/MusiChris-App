@@ -1,9 +1,7 @@
 /**
  * MusiChris App V46.0 - GOLDEN MASTER
- * - Cleaned up ghost buttons.
- * - Single Progress Bar in Expanded Player.
- * - Strict Album Filtering.
- * - Custom Playlist Icons.
+ * - Fixes: Ghost button, Double Progress Bar, Playlist Icons.
+ * - Logic: Album match flexible, Profile save persistent.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -62,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if(dom.seekSlider) dom.seekSlider.addEventListener('input', seekAudio);
     
-    // BOTONES ADMIN
+    // BOTONES ADMIN (Directos)
     if(dom.btnAddSong) dom.btnAddSong.addEventListener('click', openUpload);
     if(dom.btnAddAlbum) dom.btnAddAlbum.addEventListener('click', () => openModal('dom_modal_album'));
 
@@ -78,7 +76,7 @@ function updateProgress() {
     const pct = (au.currentTime / au.duration) * 100;
     if(dom.seekSlider) dom.seekSlider.value = pct;
     
-    // Expanded Player
+    // Expanded Player - Actualizar si existe
     const expSlider = document.getElementById('expandedSeekSlider');
     const curTime = document.getElementById('expCurTime');
     const totTime = document.getElementById('expTotTime');
@@ -112,9 +110,11 @@ function getArt(item) {
 function getSongArt(song) {
     let art = song.cover || song.img || song.image;
     if (art && !art.includes("imgbb") && !art.includes("image not found")) return art; 
+    
     if (song.album && appConfig.data && appConfig.data.albums) {
         const target = norm(song.album);
-        const album = appConfig.data.albums.find(a => norm(a.title || a.name) === target); // Strict match
+        // Búsqueda flexible (contiene)
+        const album = appConfig.data.albums.find(a => norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name)));
         if (album) return getArt(album);
     }
     return DEFAULT_COVER;
@@ -201,7 +201,7 @@ function updateUI(songListOverride = null) {
         dom.announcementText.textContent = appConfig.data.announcement;
     } else if (dom.userAnnouncement) dom.userAnnouncement.style.display = 'none';
     
-    // INYECTAR BOTÓN DE AÑADIR CANCIÓN SI NO EXISTE
+    // INYECTAR BOTÓN DE AÑADIR (Solo si es admin y no existe)
     if(appConfig.isAdmin) {
         const container = document.getElementById('admin-music');
         if(container && !document.getElementById('btnAddSongDynamic')) {
@@ -247,24 +247,29 @@ function renderAlbumGrid(id, albums) {
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
-    // STRICT MATCHING
-    let songs = appConfig.data.songs.filter(s => norm(s.album) === target);
+    // BÚSQUEDA FLEXIBLE
+    let songs = appConfig.data.songs.filter(s => norm(s.album).includes(target) || target.includes(norm(s.album)));
     appConfig.tempPlaylist = songs;
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
     const list = dom.plDetailList; list.innerHTML = '';
-    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío. <br><small>Verifica el nombre exacto.</small></div>';
+    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío. <br><small>Verifica el nombre en "Editar Canción"</small></div>';
     else { songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div><div class="song-artist">${s.genre}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); }); }
     modal.style.display = 'flex';
 }
 
 function renderSmartPlaylists(id) {
     const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
-    const createCard = (t,s,img,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover pl-icon-bg" style="background-image:url('${img}');background-color:#222"></div><h4>${t}</h4>`; d.onclick=fn; return d; };
+    // FUNCIÓN PARA CREAR CAJA CON FONDO Y ICONO
+    const createCard = (t,s,img,grad,fn) => { 
+        const d=document.createElement('div'); d.className='collection-card'; 
+        d.innerHTML=`<div class="collection-cover pl-icon-bg ${grad}" style="background-image:url('${img}')"></div><h4>${t}</h4>`; 
+        d.onclick=fn; return d; 
+    };
     
-    // ICONOS ACTUALIZADOS: CORAZON, HUEVO/POLLITO, NOTA
-    c.appendChild(createCard("Favoritos", "Likes", "https://cdn-icons-png.flaticon.com/512/833/833472.png", () => openSmartList('fav')));
-    c.appendChild(createCard("Recientes", "Nuevas", "https://cdn-icons-png.flaticon.com/512/3094/3094863.png", () => openSmartList('recent')));
-    c.appendChild(createCard("Top Hits", "Más oídas", "https://cdn-icons-png.flaticon.com/512/651/651717.png", () => openSmartList('top')));
+    // ICONOS ACTUALIZADOS Y FONDOS DEGRADADOS
+    c.appendChild(createCard("Favoritos", "Likes", "https://cdn-icons-png.flaticon.com/512/833/833472.png", "grad-1", () => openSmartList('fav')));
+    c.appendChild(createCard("Recientes", "Nuevas", "https://cdn-icons-png.flaticon.com/512/2916/2916115.png", "grad-2", () => openSmartList('recent'))); // Pollito/Huevo
+    c.appendChild(createCard("Top Hits", "Más oídas", "https://cdn-icons-png.flaticon.com/512/651/651717.png", "grad-3", () => openSmartList('top')));
 }
 
 function openSmartList(type) {
@@ -288,9 +293,11 @@ window.openFullScreenPlayer = function() {
     if(dom.guestArtist) dom.guestArtist.textContent = song.genre;
     if(dom.guestCover) dom.guestCover.style.backgroundImage = `url('${art}')`;
     updateLikeIcon();
+    
+    // OCULTAR MINI PLAYER
     if(dom.mainPlayer) dom.mainPlayer.classList.add('hidden');
     
-    // *** 5 CONTROLES Y BARRA DE PROGRESO ÚNICA ***
+    // INYECTAR CONTROLES Y BARRA DE PROGRESO ÚNICA
     const controlsContainer = document.querySelector('.guest-controls-main');
     if(controlsContainer) {
         controlsContainer.innerHTML = `
@@ -301,12 +308,12 @@ window.openFullScreenPlayer = function() {
             <span class="material-icons-round btn-guest-action" style="color:${appConfig.isRepeat?'var(--accent)':'white'}" onclick="toggleRepeat()">repeat</span>
         `;
     }
-    // Borrar barra anterior si existe
+    
+    // LIMPIAR E INYECTAR BARRA
     const infoArea = document.querySelector('.guest-info-area');
     const existingBar = infoArea.querySelector('.progress-container');
     if(existingBar) existingBar.remove();
 
-    // Crear barra nueva
     const sliderDiv = document.createElement('div');
     sliderDiv.className = 'progress-container';
     sliderDiv.innerHTML = `<span id="expCurTime" class="time-display">0:00</span><input type="range" id="expandedSeekSlider" value="0" min="0" max="100" oninput="seekAudio(event)"><span id="expTotTime" class="time-display">0:00</span>`;
@@ -403,8 +410,24 @@ window.switchTab = (id, btn) => { document.querySelectorAll('.list-tab-content, 
 window.do_save_settings = () => closeModal('dom_modal_settings');
 window.openProfile = function() { openModal('dom_modal_profile'); }
 window.changeAvatar = function() { appConfig.user.avatar = `https://api.dicebear.com/9.x/avataaars/svg?seed=${Math.floor(Math.random()*999)}`; if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar; }
-window.do_save_profile = async function() { appConfig.data.users.find(u => u.email === appConfig.user.email).avatar = appConfig.user.avatar; await saveData(); closeModal('dom_modal_profile'); }
-window.deleteAlbum = async function(e, i) { e.stopPropagation(); if(confirm("¿Borrar?")) { appConfig.data.albums.splice(i,1); await saveData(); updateUI(); } }
-window.deleteUser = async function(i) { if(confirm("¿Borrar?")) { appConfig.data.users.splice(i,1); await saveData(); updateUI(); } }
+window.do_save_profile = async function() { 
+    // Actualizar nombre y avatar
+    const idx = appConfig.data.users.findIndex(u => u.email === appConfig.user.email);
+    if(idx !== -1) {
+        appConfig.data.users[idx].name = dom.profileName.value;
+        appConfig.data.users[idx].avatar = appConfig.user.avatar;
+        // Guardar persistente
+        await saveData(); 
+        // Actualizar sesión local
+        appConfig.user.name = dom.profileName.value;
+        localStorage.setItem('appConfig', JSON.stringify({ user: appConfig.user, isLoggedIn: true, isAdmin: appConfig.isAdmin }));
+        
+        closeModal('dom_modal_profile'); 
+        showToast("Perfil guardado", 'success'); 
+        updateUI(); 
+        // Forzar recarga del header
+        document.getElementById('adminAvatar').src = appConfig.user.avatar;
+    }
+}
 function renderUserList(id, users) { const c = document.getElementById(id); if(!c) return; c.innerHTML = ''; users.forEach((u, index) => { const div = document.createElement('div'); div.className = 'user-list-item'; div.innerHTML = `<div class="user-info"><img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover"><span>${u.name}</span><span class="role-badge ${u.role==='admin'?'role-admin':''}">${u.role}</span></div><div style="display:flex;gap:5px"><button class="btn-delete-user" onclick="deleteUser(${index})"><span class="material-icons-round">delete</span></button></div>`; c.appendChild(div); }); }
 function loadConfig() { const saved = localStorage.getItem('appConfig'); if (saved) { const p = JSON.parse(saved); appConfig.user = p.user; appConfig.isLoggedIn = p.isLoggedIn; appConfig.isAdmin = p.isAdmin; } if (appConfig.isLoggedIn && appConfig.user) { showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); loadAppData(); } else { showView('view-login'); } }
