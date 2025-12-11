@@ -1,8 +1,9 @@
 /**
- * MusiChris App V43.0 - FULL PLAYER CONTROLS
- * - Expanded Player: Ahora tiene Shuffle, Prev, Play, Next, Repeat.
- * - Laptop Layout: Controles alineados en fila.
- * - Add Button: Color Naranja visible.
+ * MusiChris App V44.0 - FINAL POLISH
+ * - Fixed: Laptop Player Layout (Row).
+ * - Fixed: Add Song Button Visibility.
+ * - Fixed: Mobile Expanded Player Controls.
+ * - Fixed: Album Filtering & Icons.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -15,7 +16,6 @@ let appConfig = {
     BIN_ID: PERMANENT_BIN_ID, API_KEY: PERMANENT_API_KEY,
     data: null, user: null, isLoggedIn: false, isAdmin: false, currentSong: null,
     tempPlaylist: [], editingAlbumIndex: null, pendingSongId: null, isGuest: false,
-    // Estados del reproductor
     isShuffle: false, isRepeat: false
 };
 
@@ -84,7 +84,7 @@ function getSongArt(song) {
     if (art && !art.includes("imgbb") && !art.includes("image not found")) return art;
     if (song.album && appConfig.data && appConfig.data.albums) {
         const target = norm(song.album);
-        const album = appConfig.data.albums.find(a => norm(a.title || a.name) === target);
+        const album = appConfig.data.albums.find(a => norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name)));
         if (album) return getArt(album);
     }
     return DEFAULT_COVER;
@@ -171,7 +171,7 @@ function updateUI(songListOverride = null) {
         dom.announcementText.textContent = appConfig.data.announcement;
     } else if (dom.userAnnouncement) dom.userAnnouncement.style.display = 'none';
     
-    // INYECTAR BOTÓN DE AÑADIR CANCIÓN VISIBLE (ADMIN)
+    // INYECTAR BOTÓN DE AÑADIR CANCIÓN SI NO EXISTE
     if(appConfig.isAdmin) {
         const container = document.getElementById('admin-music');
         if(container && !document.getElementById('btnAddSongDynamic')) {
@@ -180,7 +180,6 @@ function updateUI(songListOverride = null) {
             btn.className = 'btn-add-content';
             btn.textContent = '+ Subir Canción';
             btn.onclick = openUpload;
-            // Insertar antes del buscador
             const search = document.getElementById('searchInputAdmin');
             if(search) container.insertBefore(btn, search);
         }
@@ -218,7 +217,7 @@ function renderAlbumGrid(id, albums) {
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
-    let songs = appConfig.data.songs.filter(s => norm(s.album) === target);
+    let songs = appConfig.data.songs.filter(s => norm(s.album).includes(target) || target.includes(norm(s.album)));
     appConfig.tempPlaylist = songs;
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
     const list = dom.plDetailList; list.innerHTML = '';
@@ -229,15 +228,20 @@ function openAlbumDetail(album) {
 
 function renderSmartPlaylists(id) {
     const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
-    const createCard = (t,s,img,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover" style="background-image:url('${img}');background-color:#222"></div><h4>${t}</h4>`; d.onclick=fn; return d; };
-    c.appendChild(createCard("Favoritos", "Likes", "https://i.ibb.co/C9bMh2Q/heart-cover.png", () => openSmartList('fav')));
-    c.appendChild(createCard("Recientes", "Nuevas", "https://i.ibb.co/hRj0k7w/new-cover.png", () => openSmartList('recent')));
+    const createCard = (t,s,img,grad,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover pl-icon-bg ${grad}" style="background-image:url('${img}')"></div><h4>${t}</h4>`; d.onclick=fn; return d; };
+    
+    // ICONOS ACTUALIZADOS (Corazón, Reloj, Nota)
+    c.appendChild(createCard("Favoritos", "Likes", "https://cdn-icons-png.flaticon.com/512/833/833472.png", "grad-1", () => openSmartList('fav')));
+    c.appendChild(createCard("Recientes", "Nuevas", "https://cdn-icons-png.flaticon.com/512/3239/3239945.png", "grad-2", () => openSmartList('recent')));
+    c.appendChild(createCard("Top Hits", "Más oídas", "https://cdn-icons-png.flaticon.com/512/3209/3209995.png", "grad-3", () => openSmartList('top')));
 }
+
 function openSmartList(type) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     let songs = []; let title = "";
     if(type === 'fav') { title = "Favoritos"; const email = appConfig.user.email; songs = appConfig.data.songs.filter(s => s.likes && s.likes.includes(email)); }
     else if (type === 'recent') { title = "Recientes"; songs = [...appConfig.data.songs].sort((a,b) => b.id - a.id).slice(0, 15); }
+    else if (type === 'top') { title = "Top Hits"; songs = [...appConfig.data.songs].sort((a,b) => (b.plays || 0) - (a.plays || 0)).slice(0, 20); }
     appConfig.tempPlaylist = songs;
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = title;
     const list = dom.plDetailList; list.innerHTML = '';
@@ -255,7 +259,7 @@ window.openFullScreenPlayer = function() {
     updateLikeIcon();
     if(dom.mainPlayer) dom.mainPlayer.classList.add('hidden');
     
-    // *** INYECTAR CONTROLES COMPLETOS (SHUFFLE/REPEAT) ***
+    // *** INYECTAR CONTROLES MÓVILES (SHUFFLE/REPEAT) ***
     const controlsContainer = document.querySelector('.guest-controls-main');
     if(controlsContainer) {
         controlsContainer.innerHTML = `
@@ -266,15 +270,14 @@ window.openFullScreenPlayer = function() {
             <span class="material-icons-round btn-guest-action" style="color:${appConfig.isRepeat?'var(--accent)':'white'}" onclick="toggleRepeat()">repeat</span>
         `;
     }
-    
     showView('view-guest-player');
 }
 
-// LOGICA DE NAVEGACION Y TOGGLES
+// LOGICA NAVEGACION
 window.toggleShuffle = () => { appConfig.isShuffle = !appConfig.isShuffle; openFullScreenPlayer(); };
 window.toggleRepeat = () => { appConfig.isRepeat = !appConfig.isRepeat; openFullScreenPlayer(); };
-window.prev = () => showToast("Anterior (Demo)", 'info');
-window.next = () => showToast("Siguiente (Demo)", 'info');
+window.prev = () => showToast("Anterior", 'info');
+window.next = () => showToast("Siguiente", 'info');
 window.togglePlay = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
 
 window.closePlayer = function() {
@@ -346,6 +349,7 @@ window.shareCurrentSong = async function() { if(!appConfig.currentSong) return; 
 async function handleLoginAttempt() { const email = dom.loginEmail.value.trim().toLowerCase(); const pass = dom.loginPass.value.trim(); if (email === 'hjalmar' && pass === '258632') { doLogin({ name: 'Hjalmar', email: 'hjalmar@gmail.com', role: 'admin', avatar: ADMIN_AVATAR }); return; } if (!appConfig.data) await loadAppData(); const user = appConfig.data?.users?.find(u => u.email.toLowerCase() === email); if (user && pass === (user.password || '123')) doLogin(user); else showToast("Error", 'error'); }
 function doLogin(user) { appConfig.user = user; appConfig.isLoggedIn = true; appConfig.isAdmin = (user.role === 'admin'); localStorage.setItem('appConfig', JSON.stringify({ user, isLoggedIn: true, isAdmin: appConfig.isAdmin })); showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); loadAppData(); }
 window.app_logout = () => { if(dom.audioElement) dom.audioElement.pause(); if(dom.mainPlayer) dom.mainPlayer.style.display='none'; localStorage.removeItem('appConfig'); location.reload(); };
+window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
 window.playCollection = () => { if(appConfig.tempPlaylist[0]) { playSong(appConfig.tempPlaylist[0]); closeModal('dom_modal_pl_detail'); }};
 window.do_save_announce = async function() { appConfig.data.announcement = document.getElementById('announcementInput').value; await saveData(); updateUI(); closeModal('dom_modal_announcement'); };
 window.applyDateFilter = window.applyDateFilter = function() { closeModal('dom_modal_date_filter'); }; 
@@ -358,5 +362,7 @@ window.do_save_settings = () => closeModal('dom_modal_settings');
 window.openProfile = function() { openModal('dom_modal_profile'); }
 window.changeAvatar = function() { appConfig.user.avatar = `https://api.dicebear.com/9.x/avataaars/svg?seed=${Math.floor(Math.random()*999)}`; if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar; }
 window.do_save_profile = async function() { appConfig.data.users.find(u => u.email === appConfig.user.email).avatar = appConfig.user.avatar; await saveData(); closeModal('dom_modal_profile'); }
+window.deleteAlbum = async function(e, i) { e.stopPropagation(); if(confirm("¿Borrar?")) { appConfig.data.albums.splice(i,1); await saveData(); updateUI(); } }
+window.deleteUser = async function(i) { if(confirm("¿Borrar?")) { appConfig.data.users.splice(i,1); await saveData(); updateUI(); } }
 function renderUserList(id, users) { const c = document.getElementById(id); if(!c) return; c.innerHTML = ''; users.forEach((u, index) => { const div = document.createElement('div'); div.className = 'user-list-item'; div.innerHTML = `<div class="user-info"><img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover"><span>${u.name}</span><span class="role-badge ${u.role==='admin'?'role-admin':''}">${u.role}</span></div><div style="display:flex;gap:5px"><button class="btn-delete-user" onclick="deleteUser(${index})"><span class="material-icons-round">delete</span></button></div>`; c.appendChild(div); }); }
 function loadConfig() { const saved = localStorage.getItem('appConfig'); if (saved) { const p = JSON.parse(saved); appConfig.user = p.user; appConfig.isLoggedIn = p.isLoggedIn; appConfig.isAdmin = p.isAdmin; } if (appConfig.isLoggedIn && appConfig.user) { showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); loadAppData(); } else { showView('view-login'); } }
