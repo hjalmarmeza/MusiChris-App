@@ -1,9 +1,9 @@
 /**
- * MusiChris App V47.0 - FINAL GOLDEN MASTER
- * - Removes Ghost Buttons.
- * - Single Progress Bar logic.
- * - Strict Album Filtering (Partial match fallback).
- * - Create User logic enabled.
+ * MusiChris App V48.0 - FINAL GOLDEN MASTER
+ * - Removes double progress bars.
+ * - Adds Edit Song (Pencil) & Close X on Upload.
+ * - Strict Album Filter + New Icons.
+ * - Create User active.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -16,7 +16,7 @@ let appConfig = {
     BIN_ID: PERMANENT_BIN_ID, API_KEY: PERMANENT_API_KEY,
     data: null, user: null, isLoggedIn: false, isAdmin: false, currentSong: null,
     tempPlaylist: [], editingAlbumIndex: null, pendingSongId: null, isGuest: false,
-    isShuffle: false, isRepeat: false
+    editingSongId: null // Para editar canciones
 };
 
 const dom = {};
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'adminAvatar', 'adminNameDisplay', 'userAvatarImg', 'userGreeting', 'mainPlayer', 'pTitle', 
         'pArtist', 'pCover', 'iconPlay', 'btnTogglePass', 'dom_modal_pl_detail', 
         'plDetailTitle', 'plDetailList', 'dom_modal_profile', 'profileName', 'profileEmail', 'profilePreview',
-        'dom_modal_upload', 'upTitle', 'upGenre', 'upAlbum', 'upUrl', 
+        'dom_modal_upload', 'upTitle', 'upGenre', 'upAlbum', 'upUrl', 'btnUploadSubmit', 'modalUploadTitle',
         'dom_modal_album', 'newAlbName', 'newAlbArtist', 'newAlbCoverUrl',
         'dom_modal_settings', 'cfgBinId', 'cfgApiKey',
         'dom_modal_announcement', 'announcementInput', 'userAnnouncement', 'announcementText',
@@ -61,8 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if(dom.seekSlider) dom.seekSlider.addEventListener('input', seekAudio);
     
-    // LISTENERS BOTONES ADMIN
-    if(dom.btnAddSong) dom.btnAddSong.addEventListener('click', openUpload);
+    // BOTONES ADMIN
+    if(dom.btnAddSong) dom.btnAddSong.addEventListener('click', () => openUpload());
     if(dom.btnAddAlbum) dom.btnAddAlbum.addEventListener('click', () => openModal('dom_modal_album'));
     if(dom.btnAddUser) dom.btnAddUser.addEventListener('click', doCreateUserPrompt);
 
@@ -72,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if(appConfig.isGuest) { loadAppData(); } else { loadConfig(); }
 });
 
-// *** PLAYER PROGRESS ***
 function updateProgress() {
     const au = dom.audioElement;
     if(!au || isNaN(au.duration)) return;
@@ -112,10 +111,9 @@ function getArt(item) {
 function getSongArt(song) {
     let art = song.cover || song.img || song.image;
     if (art && !art.includes("imgbb") && !art.includes("image not found")) return art; 
-    
     if (song.album && appConfig.data && appConfig.data.albums) {
         const target = norm(song.album);
-        const album = appConfig.data.albums.find(a => norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name)));
+        const album = appConfig.data.albums.find(a => norm(a.title || a.name) === target); 
         if (album) return getArt(album);
     }
     return DEFAULT_COVER;
@@ -181,7 +179,6 @@ window.playGuestSong = function(id) {
 }
 
 function updateUI(songListOverride = null) {
-    // STATS UPDATE
     if(dom.statsTotalSongs && appConfig.data) dom.statsTotalSongs.textContent = appConfig.data.songs.length;
     if(dom.statsTotalUsers && appConfig.data) dom.statsTotalUsers.textContent = appConfig.data.users.length;
     if(dom.statsCloud && appConfig.data) dom.statsCloud.textContent = Math.min(appConfig.data.songs.length * 2, 100) + "%";
@@ -212,7 +209,7 @@ function updateUI(songListOverride = null) {
             btn.id = 'btnAddSongDynamic';
             btn.className = 'btn-add-content';
             btn.textContent = '+ Subir Canción';
-            btn.onclick = openUpload;
+            btn.onclick = () => openUpload(); // Abrir modo crear
             const search = document.getElementById('searchInputAdmin');
             if(search) container.insertBefore(btn, search);
         }
@@ -225,12 +222,47 @@ function renderSongList(id, songs) {
     songs.forEach((s) => { 
         const div = document.createElement('div'); div.className = 'song-list-item';
         const art = getSongArt(s);
-        let deleteBtn = '';
-        if(appConfig.isAdmin) deleteBtn = `<button class="btn-list-action" style="background:rgba(255,71,87,0.1);color:#ff4757" onclick="deleteSong(event, ${s.id})"><span class="material-icons-round">delete</span></button>`;
-        div.innerHTML = `<div class="song-cover" style="background-image: url('${art}')" onerror="this.style.backgroundImage='url(${DEFAULT_COVER})'"></div><div class="song-info"><div class="song-title">${s.title || 'Sin Título'}</div><div class="song-artist">${s.genre || s.album || 'General'}</div></div><div class="song-actions"><button class="btn-list-action" onclick="playSongId(${s.id})"><span class="material-icons-round">play_arrow</span></button>${deleteBtn}</div>`;
+        let adminBtns = '';
+        if(appConfig.isAdmin) {
+            // LAPIZ Y BASURERO
+            adminBtns = `
+                <button class="btn-list-action" style="background:rgba(255,255,255,0.1); margin-right:5px" onclick="editSong(event, ${s.id})"><span class="material-icons-round" style="font-size:1.1rem">edit</span></button>
+                <button class="btn-list-action" style="background:rgba(255,71,87,0.1);color:#ff4757" onclick="deleteSong(event, ${s.id})"><span class="material-icons-round">delete</span></button>
+            `;
+        }
+        div.innerHTML = `<div class="song-cover" style="background-image: url('${art}')" onerror="this.style.backgroundImage='url(${DEFAULT_COVER})'"></div><div class="song-info"><div class="song-title">${s.title || 'Sin Título'}</div><div class="song-artist">${s.genre || s.album || 'General'}</div></div><div class="song-actions"><button class="btn-list-action" onclick="playSongId(${s.id})"><span class="material-icons-round">play_arrow</span></button>${adminBtns}</div>`;
         div.onclick = (e) => { if(e.target.tagName === 'BUTTON' || e.target.closest('button')) return; playSong(s); };
         c.appendChild(div);
     });
+}
+
+// *** EDITAR CANCIÓN ***
+window.editSong = function(e, id) {
+    e.stopPropagation();
+    const song = appConfig.data.songs.find(s => s.id === id);
+    if(!song) return;
+    
+    appConfig.editingSongId = id; // Marcar modo edición
+    
+    // Llenar modal upload con datos
+    if(dom.modalUploadTitle) dom.modalUploadTitle.textContent = "Editar Canción";
+    if(dom.btnUploadSubmit) dom.btnUploadSubmit.textContent = "Guardar Cambios";
+    
+    dom.upTitle.value = song.title;
+    dom.upGenre.value = song.genre;
+    dom.upAlbum.value = song.album;
+    dom.upUrl.value = song.url;
+    
+    openModal('dom_modal_upload');
+}
+
+window.openUpload = function() {
+    appConfig.editingSongId = null; // Marcar modo crear
+    if(dom.modalUploadTitle) dom.modalUploadTitle.textContent = "Subir Canción";
+    if(dom.btnUploadSubmit) dom.btnUploadSubmit.textContent = "Subir";
+    
+    dom.upTitle.value = ''; dom.upUrl.value = ''; // Limpiar
+    openModal('dom_modal_upload');
 }
 
 function renderAlbumGrid(id, albums) {
@@ -250,12 +282,12 @@ function renderAlbumGrid(id, albums) {
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
-    // BÚSQUEDA LAXA PARA QUE APAREZCAN
+    // BÚSQUEDA AMPLIA: Si el nombre del álbum está contenido en la canción
     let songs = appConfig.data.songs.filter(s => norm(s.album).includes(target) || target.includes(norm(s.album)));
     appConfig.tempPlaylist = songs;
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
     const list = dom.plDetailList; list.innerHTML = '';
-    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío. <br><small>Revisa el nombre.</small></div>';
+    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío.<br><small>Sube canciones asignando este álbum.</small></div>';
     else { songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div><div class="song-artist">${s.genre}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); }); }
     modal.style.display = 'flex';
 }
@@ -263,10 +295,13 @@ function openAlbumDetail(album) {
 function renderSmartPlaylists(id) {
     const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
     const createCard = (t,s,img,grad,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover pl-icon-bg ${grad}" style="background-image:url('${img}')"></div><h4>${t}</h4>`; d.onclick=fn; return d; };
+    
+    // ICONOS NUEVOS
     c.appendChild(createCard("Favoritos", "Likes", "https://cdn-icons-png.flaticon.com/512/833/833472.png", "grad-1", () => openSmartList('fav')));
-    c.appendChild(createCard("Recientes", "Nuevas", "https://cdn-icons-png.flaticon.com/512/2972/2972531.png", "grad-2", () => openSmartList('recent')));
+    c.appendChild(createCard("Recientes", "Nuevas", "https://cdn-icons-png.flaticon.com/512/826/826963.png", "grad-2", () => openSmartList('recent'))); // Pollito
     c.appendChild(createCard("Top Hits", "Más oídas", "https://cdn-icons-png.flaticon.com/512/651/651717.png", "grad-3", () => openSmartList('top')));
 }
+
 function openSmartList(type) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     let songs = []; let title = "";
@@ -280,7 +315,6 @@ function openSmartList(type) {
     modal.style.display = 'flex';
 }
 
-// *** FULL PLAYER CORREGIDO (SOLO 1 BARRA) ***
 window.openFullScreenPlayer = function() {
     if(!appConfig.currentSong) return;
     const song = appConfig.currentSong;
@@ -289,23 +323,12 @@ window.openFullScreenPlayer = function() {
     if(dom.guestArtist) dom.guestArtist.textContent = song.genre;
     if(dom.guestCover) dom.guestCover.style.backgroundImage = `url('${art}')`;
     updateLikeIcon();
+    
     if(dom.mainPlayer) dom.mainPlayer.classList.add('hidden');
     
-    // Inyectar Controles
-    const controlsContainer = document.querySelector('.guest-controls-main');
-    if(controlsContainer) {
-        controlsContainer.innerHTML = `
-            <span class="material-icons-round btn-guest-action" style="color:${appConfig.isShuffle?'var(--accent)':'white'}" onclick="toggleShuffle()">shuffle</span>
-            <span class="material-icons-round btn-guest-action" style="font-size:3rem" onclick="prev()">skip_previous</span>
-            <span class="material-icons-round btn-guest-action" id="iconPlayBig" style="font-size:4.5rem" onclick="togglePlay()">pause</span>
-            <span class="material-icons-round btn-guest-action" style="font-size:3rem" onclick="next()">skip_next</span>
-            <span class="material-icons-round btn-guest-action" style="color:${appConfig.isRepeat?'var(--accent)':'white'}" onclick="toggleRepeat()">repeat</span>
-        `;
-    }
-    
-    // LIMPIAR Y CREAR BARRA
+    // LIMPIEZA TOTAL DE BARRAS PREVIAS
     const infoArea = document.querySelector('.guest-info-area');
-    infoArea.querySelectorAll('.progress-container').forEach(e => e.remove()); // Borrar duplicados
+    infoArea.querySelectorAll('.progress-container').forEach(e => e.remove()); 
 
     const sliderDiv = document.createElement('div');
     sliderDiv.className = 'progress-container';
@@ -315,21 +338,7 @@ window.openFullScreenPlayer = function() {
     showView('view-guest-player');
 }
 
-// AGREGAR USUARIO
-window.doCreateUserPrompt = async function() {
-    const name = prompt("Nombre del usuario:");
-    if(!name) return;
-    const email = prompt("Email del usuario:");
-    if(!email) return;
-    const pass = prompt("Contraseña:");
-    if(!pass) return;
-    
-    appConfig.data.users.push({ id: Date.now(), name, email, password: pass, role: 'user', avatar: DEFAULT_COVER });
-    await saveData();
-    showToast("Usuario creado con éxito", 'success');
-    updateUI();
-}
-
+// LOGICA NAVEGACION
 window.toggleShuffle = () => { appConfig.isShuffle = !appConfig.isShuffle; openFullScreenPlayer(); };
 window.toggleRepeat = () => { appConfig.isRepeat = !appConfig.isRepeat; openFullScreenPlayer(); };
 window.prev = () => showToast("Anterior", 'info');
@@ -400,7 +409,45 @@ window.deleteSong = async function(e, songId) { e.stopPropagation(); if(!confirm
 window.editAlbum = function(e, index) { e.stopPropagation(); const album = appConfig.data.albums[index]; appConfig.editingAlbumIndex = index; if(dom.editAlbName) dom.editAlbName.value = album.title || album.name || ''; if(dom.editAlbArtist) dom.editAlbArtist.value = album.artist || ''; if(dom.editAlbCover) dom.editAlbCover.value = album.cover || album.img || ''; openModal('dom_modal_edit_album'); }
 window.doSaveEditAlbum = async function() { const idx = appConfig.editingAlbumIndex; if(idx === null) return; appConfig.data.albums[idx] = { ...appConfig.data.albums[idx], title: dom.editAlbName.value, artist: dom.editAlbArtist.value, cover: dom.editAlbCover.value }; await saveData(); showToast("Álbum actualizado", 'success'); updateUI(); closeModal('dom_modal_edit_album'); }
 window.do_create_album = async function() { const name = dom.newAlbName.value.trim(); if(!name) return; appConfig.data.albums.push({ title: name, artist: dom.newAlbArtist.value, cover: dom.newAlbCoverUrl.value || DEFAULT_COVER }); await saveData(); showToast("Creado", 'success'); updateUI(); closeModal('dom_modal_album'); }
-window.do_upload = async function() { const title = dom.upTitle.value.trim(); if(!title) return; appConfig.data.songs.push({ id: Date.now(), title, genre: dom.upGenre.value, album: dom.upAlbum.value, url: dom.upUrl.value, cover: '', plays: 0, likes: [] }); await saveData(); showToast("Subida", 'success'); updateUI(); closeModal('dom_modal_upload'); }
+
+// *** LÓGICA DE SUBIDA Y EDICIÓN ***
+window.do_upload = async function() { 
+    const title = dom.upTitle.value.trim(); 
+    if(!title) return showToast("Falta título", 'error');
+    
+    if(appConfig.editingSongId) {
+        // EDICIÓN
+        const idx = appConfig.data.songs.findIndex(s => s.id === appConfig.editingSongId);
+        if(idx !== -1) {
+            appConfig.data.songs[idx].title = title;
+            appConfig.data.songs[idx].genre = dom.upGenre.value;
+            appConfig.data.songs[idx].album = dom.upAlbum.value;
+            appConfig.data.songs[idx].url = dom.upUrl.value;
+            showToast("Canción actualizada", 'success');
+        }
+    } else {
+        // CREACIÓN
+        appConfig.data.songs.push({ id: Date.now(), title, genre: dom.upGenre.value, album: dom.upAlbum.value, url: dom.upUrl.value, cover: '', plays: 0, likes: [] });
+        showToast("Canción subida", 'success');
+    }
+    
+    await saveData(); 
+    updateUI(); 
+    closeModal('dom_modal_upload'); 
+}
+
+// CREAR USUARIO ACTIVADO
+window.doCreateUserPrompt = async function() {
+    const name = prompt("Nombre:"); if(!name) return;
+    const email = prompt("Email:"); if(!email) return;
+    const pass = prompt("Contraseña:"); if(!pass) return;
+    
+    appConfig.data.users.push({ id: Date.now(), name, email, password: pass, role: 'user', avatar: DEFAULT_COVER });
+    await saveData();
+    showToast("Usuario registrado", 'success');
+    updateUI();
+}
+
 window.shareCurrentSong = async function() { if(!appConfig.currentSong) return; const shareUrl = `${window.location.origin}${window.location.pathname}?s=${appConfig.currentSong.id}`; const textMsg = `Esta canción ministró mi vida y tienes que escucharla:\n\n🎵 ${appConfig.currentSong.title}\n— En MusiChris App\n\nEntra directo con este pase de invitado:\n${shareUrl}`; const data = { title: 'MusiChris', text: textMsg, url: shareUrl }; try { if(navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(textMsg); showToast("Mensaje copiado", 'success'); } } catch(e) {} }
 async function handleLoginAttempt() { const email = dom.loginEmail.value.trim().toLowerCase(); const pass = dom.loginPass.value.trim(); if (email === 'hjalmar' && pass === '258632') { doLogin({ name: 'Hjalmar', email: 'hjalmar@gmail.com', role: 'admin', avatar: ADMIN_AVATAR }); return; } if (!appConfig.data) await loadAppData(); const user = appConfig.data?.users?.find(u => u.email.toLowerCase() === email); if (user && pass === (user.password || '123')) doLogin(user); else showToast("Error", 'error'); }
 function doLogin(user) { appConfig.user = user; appConfig.isLoggedIn = true; appConfig.isAdmin = (user.role === 'admin'); localStorage.setItem('appConfig', JSON.stringify({ user, isLoggedIn: true, isAdmin: appConfig.isAdmin })); showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); loadAppData(); }
