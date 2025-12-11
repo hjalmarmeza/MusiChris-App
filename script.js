@@ -1,9 +1,9 @@
 /**
- * MusiChris App V34.0 - VISUAL RESTORE & FUNCTIONAL FIXES
- * - Restaurado diseño original (Azul/Naranja).
- * - Fix Pantalla Completa Móvil (Layout flexible).
- * - Fix Botón Compartir (Native Share).
- * - Fix Álbumes Vacíos (Búsqueda laxa).
+ * MusiChris App V35.0 - SHARE FIX & IPHONE BYPASS
+ * - Fix Login Eye CSS (estaba en style.css).
+ * - Fix Modal Scroll (estaba en style.css).
+ * - Deep Linking: ?s=ID abre la canción.
+ * - iPhone Bypass: Botón "Reproducir Compartida" tras login.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -15,14 +15,18 @@ const ADMIN_AVATAR = "https://api.dicebear.com/9.x/avataaars/svg?seed=Chris";
 let appConfig = {
     BIN_ID: PERMANENT_BIN_ID, API_KEY: PERMANENT_API_KEY,
     data: null, user: null, isLoggedIn: false, isAdmin: false, currentSong: null,
-    tempPlaylist: [], editingAlbumIndex: null
+    tempPlaylist: [], editingAlbumIndex: null, pendingSongId: null
 };
 
 const dom = {};
 const norm = (str) => (str || '').toString().toLowerCase().trim().replace(/\s+/g, ' '); 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Todos los IDs
+    // CAPTURAR CANCIÓN COMPARTIDA DE LA URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedId = urlParams.get('s');
+    if(sharedId) appConfig.pendingSongId = parseInt(sharedId);
+
     const ids = [
         'view-login', 'view-admin', 'view-user', 'loginEmail', 'loginPass', 'btnLoginBtn', 
         'audioElement', 'customToast', 'statsTotalSongs', 'statsTotalUsers', 'adminAvatar', 
@@ -46,6 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dom.btnTogglePass) dom.btnTogglePass.addEventListener('click', () => {
         const p = dom.loginPass; p.type = p.type === "password" ? "text" : "password";
         dom.btnTogglePass.textContent = p.type === "password" ? "visibility_off" : "visibility";
+        // Cambio de color para feedback visual
+        dom.btnTogglePass.style.color = p.type === "text" ? "var(--accent)" : "#888"; 
     });
     
     if (dom.audioElement) {
@@ -103,7 +109,42 @@ async function loadAppData() {
         appConfig.data.songs.forEach(s => { if(!s.likes) s.likes = []; if(!s.plays) s.plays = 0; });
 
         updateUI();
+
+        // ** CHEQUEO DE CANCIÓN COMPARTIDA AL CARGAR DATOS **
+        if(appConfig.pendingSongId) {
+            checkPendingShare();
+        }
+
     } catch(e) { console.error(e); showToast("Conectando...", 'info'); }
+}
+
+function checkPendingShare() {
+    const song = appConfig.data.songs.find(s => s.id === appConfig.pendingSongId);
+    if(song) {
+        // En lugar de autoplay (que falla en iPhone), mostramos un Modal de confirmación
+        // Reutilizamos el modal de detalles para mostrar "Canción Compartida"
+        const modal = dom.dom_modal_pl_detail; 
+        if(modal) {
+            if(dom.plDetailTitle) dom.plDetailTitle.textContent = "Canción Compartida 🎵";
+            const list = dom.plDetailList; 
+            list.innerHTML = `
+                <div style="text-align:center; padding:20px;">
+                    <div style="width:100px; height:100px; background-image:url('${getSongArt(song)}'); background-size:cover; border-radius:15px; margin:0 auto 15px auto;"></div>
+                    <h3>${song.title}</h3>
+                    <p style="color:#aaa">${song.genre}</p>
+                    <button class="btn-submit" onclick="playSharedAndClose(${song.id})">REPRODUCIR AHORA</button>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        }
+        appConfig.pendingSongId = null; // Limpiar
+    }
+}
+
+// Helper para el botón del modal compartido
+window.playSharedAndClose = (id) => {
+    playSongId(id);
+    closeModal('dom_modal_pl_detail');
 }
 
 function updateUI(songListOverride = null) {
@@ -160,7 +201,7 @@ function renderAlbumGrid(id, albums) {
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
-    // BÚSQUEDA LAXA (Partial Match)
+    // BÚSQUEDA LAXA
     let songs = appConfig.data.songs.filter(s => norm(s.album).includes(target) || target.includes(norm(s.album)));
     
     appConfig.tempPlaylist = songs;
@@ -179,15 +220,19 @@ function openAlbumDetail(album) {
     modal.style.display = 'flex';
 }
 
-// FUNCIONES: SHARE, FULLSCREEN, ETC
+// === COMPARTIR CON DEEP LINKING ===
 window.shareCurrentSong = async function() {
     if(!appConfig.currentSong) return;
-    const data = { title: 'MusiChris', text: `Escucha: ${appConfig.currentSong.title}`, url: window.location.href };
+    
+    // Construir URL con ID
+    const shareUrl = `${window.location.origin}${window.location.pathname}?s=${appConfig.currentSong.id}`;
+    const data = { title: 'MusiChris', text: `Escucha: ${appConfig.currentSong.title}`, url: shareUrl };
+    
     try {
         if(navigator.share) await navigator.share(data);
         else {
-            await navigator.clipboard.writeText(`Escucha ${appConfig.currentSong.title} en MusiChris!`);
-            showToast("Nombre copiado", 'success');
+            await navigator.clipboard.writeText(shareUrl);
+            showToast("Enlace copiado", 'success');
         }
     } catch(e) { console.log("Share cancelado"); }
 }
@@ -226,7 +271,6 @@ function playSong(song) {
     if(idx !== -1) { if(!appConfig.data.songs[idx].plays) appConfig.data.songs[idx].plays = 0; appConfig.data.songs[idx].plays++; saveDataSilent(); }
 }
 
-// ... Resto de funciones auxiliares (renderSmartPlaylists, toggleLike, etc. MANTENIDAS)
 function renderSmartPlaylists(id) {
     const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
     const createCard = (t,s,img,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover" style="background-image:url('${img}');background-color:#222"></div><h4>${t}</h4><p>${s}</p>`; d.onclick=fn; return d; };
