@@ -1,9 +1,9 @@
 /**
- * MusiChris App V52.0 - GOLDEN MASTER
- * - Controls restored.
- * - Profile updates immediately.
- * - Cloud stats real logic.
- * - Playlist icons correct.
+ * MusiChris App V53.0 - CRITICAL FIXES
+ * - Fixed duplicated songs on edit (CRITICAL).
+ * - Mini Player shows song art.
+ * - EQ button and modal restored (visual).
+ * - Album modal UI fixed (Reproducir Todo button).
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ids = [
         'view-login', 'view-admin', 'view-user', 'loginEmail', 'loginPass', 'btnLoginBtn', 
         'audioElement', 'customToast', 'statsTotalSongs', 'statsTotalUsers', 'statsCloud',
-        'adminAvatar', 'adminNameDisplay', 'userAvatarImg', 'userGreeting', 'mainPlayer', 'pTitle', 
+        'adminAvatar', 'adminNameDisplay', 'userAvatarImg', 'userGreeting', 'mainPlayer', 'pTitle', 'pCoverMini', // Added pCoverMini
         'pArtist', 'pCover', 'iconPlay', 'btnTogglePass', 'dom_modal_pl_detail', 
         'plDetailTitle', 'plDetailList', 'dom_modal_profile', 'profileName', 'profileEmail', 'profilePreview',
         'dom_modal_upload', 'upTitle', 'upGenre', 'upAlbum', 'upUrl', 'btnUploadSubmit', 'modalUploadTitle', 
@@ -42,9 +42,16 @@ document.addEventListener('DOMContentLoaded', () => {
         'dom_modal_date_filter', 'filterStart', 'filterEnd',
         'view-guest-player', 'guestTitle', 'guestArtist', 'guestCover', 'iconPlayBig', 'pLikeBtn', 'guestLikeBtn',
         'adminPlaylistGrid', 'userPlaylistGrid', 'usersListGrid',
-        'seekSlider', 'searchInputAdmin', 'searchInputUser'
+        'seekSlider', 'searchInputAdmin', 'searchInputUser', 'dom_modal_eq' // Added EQ modal
     ];
     ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
+
+    // Crear elemento de audio si no existe en HTML (aunque ahora sí está, es preventivo)
+    if (!dom.audioElement) {
+        dom.audioElement = document.createElement('audio');
+        dom.audioElement.id = 'audioElement';
+        document.body.appendChild(dom.audioElement);
+    }
 
     if (dom.mainPlayer) dom.mainPlayer.style.display = 'none';
 
@@ -186,12 +193,11 @@ window.playGuestSong = function(id) {
 }
 
 function updateUI(songListOverride = null) {
-    // STATS UPDATE (CLOUD LOGIC)
     if(dom.statsTotalSongs && appConfig.data) dom.statsTotalSongs.textContent = appConfig.data.songs.length;
     if(dom.statsTotalUsers && appConfig.data) dom.statsTotalUsers.textContent = appConfig.data.users.length;
     if(dom.statsCloud && appConfig.data) {
-        // Cálculo relativo (ej: 100 canciones = 100%)
-        const cloudPct = Math.min((appConfig.data.songs.length), 100).toFixed(0);
+        // Cálculo relativo simple para la nube (ej: 50 canciones = 50%)
+        const cloudPct = Math.min(appConfig.data.songs.length, 100).toFixed(0);
         dom.statsCloud.textContent = cloudPct + "%";
     }
     
@@ -233,7 +239,7 @@ function renderSongList(id, songs) {
     });
 }
 
-// UPLOAD & EDIT
+// --- CRITICAL FIX: DO_UPLOAD ---
 window.do_upload = async function() { 
     const title = dom.upTitle.value.trim(); 
     const url = dom.upUrl.value.trim();
@@ -243,15 +249,17 @@ window.do_upload = async function() {
     showToast("Guardando...", "info");
 
     if(appConfig.editingSongId) {
+        // MODO EDICIÓN: Actualizar existente
         const idx = appConfig.data.songs.findIndex(s => s.id === appConfig.editingSongId);
         if(idx !== -1) {
             appConfig.data.songs[idx].title = title;
             appConfig.data.songs[idx].genre = dom.upGenre.value;
             appConfig.data.songs[idx].album = dom.upAlbum.value;
-            if(url) appConfig.data.songs[idx].url = url; 
+            if(url) appConfig.data.songs[idx].url = url; // Solo actualizar URL si se provee una nueva
             showToast("Canción actualizada", 'success');
         }
     } else {
+        // MODO CREACIÓN: Añadir nueva
         appConfig.data.songs.push({ id: Date.now(), title, genre: dom.upGenre.value, album: dom.upAlbum.value, url: url, cover: '', plays: 0, likes: [] });
         showToast("Canción subida", 'success');
     }
@@ -262,7 +270,7 @@ window.do_upload = async function() {
 }
 
 window.openUpload = function() {
-    appConfig.editingSongId = null;
+    appConfig.editingSongId = null; // Resetear ID para modo creación
     if(dom.modalUploadTitle) dom.modalUploadTitle.textContent = "Subir Canción";
     if(dom.btnUploadSubmit) dom.btnUploadSubmit.textContent = "Subir";
     dom.upTitle.value = ''; dom.upGenre.value = ''; dom.upUrl.value = '';
@@ -278,13 +286,13 @@ window.editSong = function(e, id) {
     e.stopPropagation();
     const song = appConfig.data.songs.find(s => s.id === id);
     if(!song) return;
-    appConfig.editingSongId = id;
+    appConfig.editingSongId = id; // Establecer ID para modo edición
     if(dom.modalUploadTitle) dom.modalUploadTitle.textContent = "Editar Canción";
     if(dom.btnUploadSubmit) dom.btnUploadSubmit.textContent = "Guardar Cambios";
     dom.upTitle.value = song.title;
     dom.upGenre.value = song.genre;
     dom.upAlbum.value = song.album;
-    dom.upUrl.value = song.url || '';
+    dom.upUrl.value = song.url || ''; // Mostrar URL actual
     
     const sel = document.getElementById('upAlbum');
     sel.innerHTML = '<option value="">Sin Álbum</option>';
@@ -423,17 +431,14 @@ function playSong(song) {
     const art = getSongArt(song);
     if(dom.pTitle) dom.pTitle.textContent = song.title;
     if(dom.pArtist) dom.pArtist.textContent = song.genre;
-    if(dom.pCover) dom.pCover.style.backgroundImage = `url('${art}')`;
+    // Actualizar imagen mini
+    if(dom.pCoverMini) dom.pCoverMini.src = art; 
+    
     updateLikeIcon();
     if(dom.audioElement && song.url) {
         dom.audioElement.src = song.url;
         dom.audioElement.play().catch(e=>console.error(e));
         togglePlayIcon(true);
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({ title: song.title, artist: song.genre, album: song.album || "MusiChris", artwork: [{ src: art, sizes: '512x512', type: 'image/png' }] });
-            navigator.mediaSession.setActionHandler('play', () => { dom.audioElement.play(); });
-            navigator.mediaSession.setActionHandler('pause', () => { dom.audioElement.pause(); });
-        }
     }
     const idx = appConfig.data.songs.findIndex(s => s.id === song.id);
     if(idx !== -1) { if(!appConfig.data.songs[idx].plays) appConfig.data.songs[idx].plays = 0; appConfig.data.songs[idx].plays++; saveDataSilent(); }
@@ -468,7 +473,6 @@ window.deleteSong = async function(e, songId) { e.stopPropagation(); if(!confirm
 window.editAlbum = function(e, index) { e.stopPropagation(); const album = appConfig.data.albums[index]; appConfig.editingAlbumIndex = index; if(dom.editAlbName) dom.editAlbName.value = album.title || album.name || ''; if(dom.editAlbArtist) dom.editAlbArtist.value = album.artist || ''; if(dom.editAlbCover) dom.editAlbCover.value = album.cover || album.img || ''; openModal('dom_modal_edit_album'); }
 window.doSaveEditAlbum = async function() { const idx = appConfig.editingAlbumIndex; if(idx === null) return; appConfig.data.albums[idx] = { ...appConfig.data.albums[idx], title: dom.editAlbName.value, artist: dom.editAlbArtist.value, cover: dom.editAlbCover.value }; await saveData(); showToast("Álbum actualizado", 'success'); updateUI(); closeModal('dom_modal_edit_album'); }
 window.do_create_album = async function() { const name = dom.newAlbName.value.trim(); if(!name) return; appConfig.data.albums.push({ title: name, artist: dom.newAlbArtist.value, cover: dom.newAlbCoverUrl.value || DEFAULT_COVER }); await saveData(); showToast("Creado", 'success'); updateUI(); closeModal('dom_modal_album'); }
-window.do_upload = async function() { const title = dom.upTitle.value.trim(); if(!title) return; appConfig.data.songs.push({ id: Date.now(), title, genre: dom.upGenre.value, album: dom.upAlbum.value, url: dom.upUrl.value, cover: '', plays: 0, likes: [] }); await saveData(); showToast("Subida", 'success'); updateUI(); closeModal('dom_modal_upload'); }
 window.shareCurrentSong = async function() { if(!appConfig.currentSong) return; const shareUrl = `${window.location.origin}${window.location.pathname}?s=${appConfig.currentSong.id}`; const textMsg = `Esta canción ministró mi vida y tienes que escucharla:\n\n🎵 ${appConfig.currentSong.title}\n— En MusiChris App\n\nEntra directo con este pase de invitado:\n${shareUrl}`; const data = { title: 'MusiChris', text: textMsg, url: shareUrl }; try { if(navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(textMsg); showToast("Mensaje copiado", 'success'); } } catch(e) {} }
 async function handleLoginAttempt() { const email = dom.loginEmail.value.trim().toLowerCase(); const pass = dom.loginPass.value.trim(); if (email === 'hjalmar' && pass === '258632') { doLogin({ name: 'Hjalmar', email: 'hjalmar@gmail.com', role: 'admin', avatar: ADMIN_AVATAR }); return; } if (!appConfig.data) await loadAppData(); const user = appConfig.data?.users?.find(u => u.email.toLowerCase() === email); if (user && pass === (user.password || '123')) doLogin(user); else showToast("Error", 'error'); }
 function doLogin(user) { appConfig.user = user; appConfig.isLoggedIn = true; appConfig.isAdmin = (user.role === 'admin'); localStorage.setItem('appConfig', JSON.stringify({ user, isLoggedIn: true, isAdmin: appConfig.isAdmin })); showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); loadAppData(); }
@@ -476,8 +480,6 @@ window.app_logout = () => { if(dom.audioElement) dom.audioElement.pause(); if(do
 window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
 window.playCollection = () => { if(appConfig.tempPlaylist[0]) { playSong(appConfig.tempPlaylist[0]); closeModal('dom_modal_pl_detail'); }};
 window.do_save_announce = async function() { appConfig.data.announcement = document.getElementById('announcementInput').value; await saveData(); updateUI(); closeModal('dom_modal_announcement'); };
-window.applyDateFilter = window.applyDateFilter = function() { closeModal('dom_modal_date_filter'); }; 
-window.clearDateFilter = function() { closeModal('dom_modal_date_filter'); };
 window.openModal = (id) => { const e = document.getElementById(id); if(e) e.style.display='flex'; if(id === 'dom_modal_upload') { const sel = document.getElementById('upAlbum'); if(sel) { sel.innerHTML = '<option value="">Sin Álbum</option>'; appConfig.data.albums.forEach(a => { const opt = document.createElement('option'); opt.value = a.title || a.name; opt.textContent = a.title || a.name; sel.appendChild(opt); }); }}};
 window.closeModal = (id) => document.getElementById(id).style.display='none';
 window.openUpload = () => window.openModal('dom_modal_upload');
@@ -486,17 +488,17 @@ window.do_save_settings = () => closeModal('dom_modal_settings');
 window.openProfile = function() { openModal('dom_modal_profile'); }
 window.changeAvatar = function() { appConfig.user.avatar = `https://api.dicebear.com/9.x/avataaars/svg?seed=${Math.floor(Math.random()*999)}`; if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar; }
 window.do_save_profile = async function() { 
-    // Actualizar nombre y avatar en data real
+    // Actualizar nombre y avatar en data real y local
     const idx = appConfig.data.users.findIndex(u => u.email === appConfig.user.email);
     if(idx !== -1) {
         appConfig.data.users[idx].name = dom.profileName.value;
         appConfig.data.users[idx].avatar = appConfig.user.avatar;
-        appConfig.user.name = dom.profileName.value; // Local
+        appConfig.user.name = dom.profileName.value; // Actualizar local para reflejo inmediato
         
         await saveData(); 
         closeModal('dom_modal_profile'); 
         showToast("Perfil actualizado", 'success'); 
-        updateUI(); 
+        updateUI(); // Refrescar interfaz
     }
 }
 window.deleteAlbum = async function(e, i) { e.stopPropagation(); if(confirm("¿Borrar?")) { appConfig.data.albums.splice(i,1); await saveData(); updateUI(); } }
