@@ -1,8 +1,7 @@
 /**
- * MusiChris App V67.0 - FINAL FIX
- * - Login: Direct element access (Robust against init fails).
- * - Audio: Forced .load() for streams.
- * - Files: Preview handlers added.
+ * MusiChris App V68.0 - EMERGENCY ACCESS FIX
+ * - Global Login Function.
+ * - Audio Playback Force Load.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -21,6 +20,36 @@ let appConfig = {
 const dom = {};
 const norm = (str) => (str || '').toString().toLowerCase().trim().replace(/\s+/g, ' '); 
 
+// --- FUNCIÓN LOGIN GLOBAL (PARA QUE EL HTML LA ENCUENTRE) ---
+window.handleLoginAttempt = async function() {
+    console.log("Intento de login...");
+    const emailEl = document.getElementById('loginEmail');
+    const passEl = document.getElementById('loginPass');
+    
+    if(!emailEl || !passEl) return;
+    
+    const email = emailEl.value.trim().toLowerCase();
+    const pass = passEl.value.trim();
+
+    if (email === 'hjalmar' && pass === '258632') { 
+        doLogin({ name: 'Hjalmar', email: 'admin@musichris.com', role: 'admin', avatar: ADMIN_AVATAR }); 
+        return; 
+    }
+    
+    if (!appConfig.data) {
+        showToast("Cargando base de datos...", 'info');
+        await loadAppData();
+    }
+    
+    const user = appConfig.data?.users?.find(u => u.email.toLowerCase() === email);
+    if (user && pass === (user.password || '123')) {
+        doLogin(user);
+    } else {
+        showToast("Credenciales incorrectas", 'error');
+    }
+}
+
+// INICIO
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const sharedId = urlParams.get('s');
@@ -54,14 +83,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (dom.mainPlayer) dom.mainPlayer.style.display = 'none';
 
-    // PASSWORD TOGGLE
-    if (dom.btnTogglePass) dom.btnTogglePass.addEventListener('click', () => {
+    // Password Toggle
+    window.togglePassLogin = function() {
         const p = document.getElementById('loginPass');
+        const icon = document.getElementById('btnTogglePass');
         p.type = p.type === "password" ? "text" : "password";
-        dom.btnTogglePass.textContent = p.type === "password" ? "visibility_off" : "visibility";
-    });
+        icon.textContent = p.type === "password" ? "visibility_off" : "visibility";
+    }
     
-    // AUDIO
+    // Audio Events
     if (dom.audioElement) {
         dom.audioElement.addEventListener('play', () => togglePlayIcon(true));
         dom.audioElement.addEventListener('pause', () => togglePlayIcon(false));
@@ -83,44 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if(appConfig.isGuest) { loadAppData(); } else { loadConfig(); }
 });
-
-// --- HELPER PARA SUBIR ARCHIVOS (COVER) ---
-window.previewFile = function(input, targetId) {
-    const file = input.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) { document.getElementById(targetId).value = e.target.result; showToast("Imagen lista", "success"); };
-    reader.readAsDataURL(file);
-}
-
-// --- FUNCIÓN LOGIN BLINDADA ---
-window.handleLoginAttempt = async function() {
-    // Usamos getElementById directo para no depender de la inicialización de 'dom'
-    const emailEl = document.getElementById('loginEmail');
-    const passEl = document.getElementById('loginPass');
-    
-    if(!emailEl || !passEl) return;
-    
-    const email = emailEl.value.trim().toLowerCase();
-    const pass = passEl.value.trim();
-
-    if (email === 'hjalmar' && pass === '258632') { 
-        doLogin({ name: 'Hjalmar', email: 'admin@musichris.com', role: 'admin', avatar: ADMIN_AVATAR }); 
-        return; 
-    }
-    
-    if (!appConfig.data) {
-        showToast("Conectando base de datos...", 'info');
-        await loadAppData();
-    }
-    
-    const user = appConfig.data?.users?.find(u => u.email.toLowerCase() === email);
-    if (user && pass === (user.password || '123')) {
-        doLogin(user);
-    } else {
-        showToast("Credenciales incorrectas", 'error');
-    }
-}
 
 function doLogin(user) { 
     appConfig.user = user; 
@@ -156,7 +148,6 @@ function playSong(song) {
     if(dom.pTitle) dom.pTitle.textContent = song.title;
     if(dom.pArtist) dom.pArtist.textContent = song.genre;
     
-    // Mini cover fix
     const mini = document.getElementById('pCoverMini');
     if(mini) mini.src = art;
 
@@ -184,7 +175,7 @@ function playSong(song) {
     }
 }
 
-// ... FUNCIONES RESTANTES MANTENIDAS ...
+// ... FUNCIONES RESTANTES ...
 async function loadAppData() {
     try {
         const res = await fetch(`${API_BASE_URL}${PERMANENT_BIN_ID}`, { headers: {'X-Master-Key': PERMANENT_API_KEY} });
@@ -199,6 +190,7 @@ async function loadAppData() {
         if(appConfig.isGuest && appConfig.pendingSongId) activateGuestMode(); else updateUI();
     } catch(e) { console.error(e); showToast("Revisa conexión", 'info'); }
 }
+
 function updateUI(songListOverride = null) {
     if(dom.statsTotalSongs && appConfig.data) dom.statsTotalSongs.textContent = appConfig.data.songs.length;
     if(dom.statsTotalUsers && appConfig.data) dom.statsTotalUsers.textContent = appConfig.data.users.length;
@@ -260,7 +252,6 @@ window.do_upload = async function() {
     if(!url && !appConfig.editingSongId) return showToast("Falta URL", 'error');
     
     showToast("Guardando...", "info");
-
     if(appConfig.editingSongId) {
         const idx = appConfig.data.songs.findIndex(s => s.id === appConfig.editingSongId);
         if(idx !== -1) {
@@ -323,136 +314,44 @@ window.do_create_user_modal = async function() {
     const name = document.getElementById('newUser_Name').value.trim();
     const email = document.getElementById('newUser_Email').value.trim();
     const pass = document.getElementById('newUser_Pass').value;
-    
     if(!name || !email || !pass) return showToast("Faltan datos", 'error');
     if(appConfig.data.users.find(u => u.email === email || u.name === name)) return showToast("Usuario ya existe", 'error');
-    
     const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
     appConfig.data.users.push({ id: Date.now(), name, email, password: pass, role: 'user', avatar: avatarUrl });
-    
     await saveData();
     showToast("Usuario registrado", 'success');
     closeModal('dom_modal_new_user');
     updateUI();
 }
 
-function renderAlbumGrid(id, albums) {
-    const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
-    albums.forEach((a, index) => {
-        const div = document.createElement('div'); div.className = 'collection-card';
-        const art = getArt(a);
-        const name = a.title || a.name || 'Álbum';
-        let adminBtns = '';
-        if(appConfig.isAdmin) adminBtns = `<div class="album-admin-tools"><button class="btn-alb-tool" style="background:#333" onclick="editAlbum(event, ${index})">✏️</button><button class="btn-alb-tool" style="background:var(--danger)" onclick="deleteAlbum(event, ${index})">🗑️</button></div>`;
-        div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')"></div><h4>${name}</h4>${adminBtns}`;
-        div.onclick = (e) => { if(e.target.tagName === 'BUTTON') return; openAlbumDetail(a); };
-        c.appendChild(div);
-    });
+// Helpers
+window.previewFile = function(input, targetId) {
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) { document.getElementById(targetId).value = e.target.result; showToast("Imagen lista", "success"); };
+    reader.readAsDataURL(file);
 }
-function openAlbumDetail(album) {
-    const modal = dom.dom_modal_pl_detail; if(!modal) return;
-    const target = norm(album.title || album.name);
-    let songs = appConfig.data.songs.filter(s => s.album && norm(s.album) === target); // STRICT
-    appConfig.tempPlaylist = songs;
-    if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
-    const list = dom.plDetailList; list.innerHTML = '';
-    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío.</div>';
-    else { songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div><div class="song-artist">${s.genre}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); }); }
-    modal.style.display = 'flex';
-}
-function renderSmartPlaylists(id) {
-    const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
-    const createCard = (t,s,img,grad,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover pl-icon-bg ${grad}" style="background-image:url('${img}')"></div><h4>${t}</h4>`; d.onclick=fn; return d; };
-    c.appendChild(createCard("Favoritos", "https://cdn-icons-png.flaticon.com/512/833/833472.png", "grad-1", () => openSmartList('fav')));
-    c.appendChild(createCard("Recientes", "https://cdn-icons-png.flaticon.com/512/2972/2972531.png", "grad-2", () => openSmartList('recent')));
-    c.appendChild(createCard("Top Hits", "https://cdn-icons-png.flaticon.com/512/651/651717.png", "grad-3", () => openSmartList('top')));
-    
-    if(appConfig.data.playlists) {
-        appConfig.data.playlists.forEach(pl => {
-             const d = document.createElement('div'); d.className='collection-card';
-             d.innerHTML=`<div class="collection-cover pl-icon-bg grad-2" style="background-image:url('https://cdn-icons-png.flaticon.com/512/1179/1179069.png')"></div><h4>${pl.name}</h4>`;
-             d.onclick=()=>showToast("Lista vacía (Demo)", 'info');
-             c.appendChild(d);
-        });
-    }
-}
-function openSmartList(type) {
-    const modal = dom.dom_modal_pl_detail; if(!modal) return;
-    let songs = []; let title = "";
-    if(type === 'fav') { title = "Favoritos"; const email = appConfig.user.email; songs = appConfig.data.songs.filter(s => s.likes && s.likes.includes(email)); }
-    else if (type === 'recent') { title = "Recientes"; songs = [...appConfig.data.songs].sort((a,b) => b.id - a.id).slice(0, 15); }
-    else if (type === 'top') { title = "Top Hits"; songs = [...appConfig.data.songs].sort((a,b) => (b.plays || 0) - (a.plays || 0)).slice(0, 20); }
-    appConfig.tempPlaylist = songs;
-    if(dom.plDetailTitle) dom.plDetailTitle.textContent = title;
-    const list = dom.plDetailList; list.innerHTML = '';
-    songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); });
-    modal.style.display = 'flex';
-}
-
-window.openFullScreenPlayer = function() {
-    if(!appConfig.currentSong) return;
-    document.getElementById('view-guest-player').style.display='flex';
-    if(dom.mainPlayer) dom.mainPlayer.classList.add('hidden');
-    
-    document.getElementById('guestTitle').textContent = appConfig.currentSong.title;
-    document.getElementById('guestArtist').textContent = appConfig.currentSong.genre;
-    document.getElementById('guestCover').style.backgroundImage = `url('${getSongArt(appConfig.currentSong)}')`;
-    
-    // Inyectar Barra
-    const area = document.querySelector('.guest-info-area');
-    area.querySelectorAll('.progress-container').forEach(e=>e.remove());
-    const d = document.createElement('div'); d.className='progress-container';
-    d.innerHTML = `<span id="expCurTime" class="time-display">0:00</span><input type="range" id="expandedSeekSlider" value="0" max="100"><span id="expTotTime" class="time-display">0:00</span>`;
-    area.appendChild(d);
-    document.getElementById('expandedSeekSlider').addEventListener('input', seekAudio);
-
-    // Inyectar Controles
-    const ctrls = document.querySelector('.guest-controls-main');
-    ctrls.innerHTML = `
-        <span class="material-icons-round btn-guest-action" onclick="toggleShuffle()">shuffle</span>
-        <span class="material-icons-round btn-guest-action" style="font-size:3rem" onclick="prev()">skip_previous</span>
-        <span class="material-icons-round btn-guest-action" id="iconPlayBig" style="font-size:4.5rem" onclick="toggle_play()">pause</span>
-        <span class="material-icons-round btn-guest-action" style="font-size:3rem" onclick="next()">skip_next</span>
-        <span class="material-icons-round btn-guest-action" onclick="toggleRepeat()">repeat</span>
-    `;
-}
-
+function renderAlbumGrid(id, albums) { const c = document.getElementById(id); if(!c) return; c.innerHTML = ''; albums.forEach((a, index) => { const div = document.createElement('div'); div.className = 'collection-card'; const art = getArt(a); let adminBtns = ''; if(appConfig.isAdmin) adminBtns = `<div class="album-admin-tools"><button class="btn-alb-tool" style="background:#333" onclick="editAlbum(event, ${index})">✏️</button><button class="btn-alb-tool" style="background:var(--danger)" onclick="deleteAlbum(event, ${index})">🗑️</button></div>`; div.innerHTML = `<div class="collection-cover" style="background-image: url('${art}')"></div><h4>${a.title}</h4>${adminBtns}`; div.onclick = (e) => { if(e.target.tagName === 'BUTTON') return; openAlbumDetail(a); }; c.appendChild(div); }); }
+function openAlbumDetail(album) { const modal = dom.dom_modal_pl_detail; if(!modal) return; const target = norm(album.title || album.name); let songs = appConfig.data.songs.filter(s => s.album && norm(s.album) === target); appConfig.tempPlaylist = songs; if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name; const list = dom.plDetailList; list.innerHTML = ''; if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío.</div>'; else { songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div><div class="song-artist">${s.genre}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); }); } modal.style.display = 'flex'; }
+function renderSmartPlaylists(id) { const c = document.getElementById(id); if(!c) return; c.innerHTML = ''; const createCard = (t,img,grad,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover pl-icon-bg ${grad}" style="background-image:url('${img}')"></div><h4>${t}</h4>`; d.onclick=fn; return d; }; c.appendChild(createCard("Favoritos", "https://cdn-icons-png.flaticon.com/512/833/833472.png", "grad-1", () => openSmartList('fav'))); c.appendChild(createCard("Recientes", "https://cdn-icons-png.flaticon.com/512/2972/2972531.png", "grad-2", () => openSmartList('recent'))); c.appendChild(createCard("Top Hits", "https://cdn-icons-png.flaticon.com/512/651/651717.png", "grad-3", () => openSmartList('top'))); if(appConfig.data.playlists) { appConfig.data.playlists.forEach(pl => { const d = document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover pl-icon-bg grad-2" style="background-image:url('https://cdn-icons-png.flaticon.com/512/1179/1179069.png')"></div><h4>${pl.name}</h4>`; d.onclick=()=>showToast("Lista vacía", 'info'); c.appendChild(d); }); } }
+function openSmartList(type) { const modal = dom.dom_modal_pl_detail; if(!modal) return; let songs = []; let title = ""; if(type === 'fav') { title = "Favoritos"; const email = appConfig.user.email; songs = appConfig.data.songs.filter(s => s.likes && s.likes.includes(email)); } else if (type === 'recent') { title = "Recientes"; songs = [...appConfig.data.songs].sort((a,b) => b.id - a.id).slice(0, 15); } else if (type === 'top') { title = "Top Hits"; songs = [...appConfig.data.songs].sort((a,b) => (b.plays || 0) - (a.plays || 0)).slice(0, 20); } appConfig.tempPlaylist = songs; if(dom.plDetailTitle) dom.plDetailTitle.textContent = title; const list = dom.plDetailList; list.innerHTML = ''; songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); }); modal.style.display = 'flex'; }
+window.openFullScreenPlayer = function() { if(!appConfig.currentSong) return; document.getElementById('view-guest-player').style.display='flex'; if(dom.mainPlayer) dom.mainPlayer.classList.add('hidden'); document.getElementById('guestTitle').textContent = appConfig.currentSong.title; document.getElementById('guestArtist').textContent = appConfig.currentSong.genre; document.getElementById('guestCover').style.backgroundImage = `url('${getSongArt(appConfig.currentSong)}')`; const area = document.querySelector('.guest-info-area'); area.querySelectorAll('.progress-container').forEach(e=>e.remove()); const d = document.createElement('div'); d.className='progress-container'; d.innerHTML = `<span id="expCurTime" class="time-display">0:00</span><input type="range" id="expandedSeekSlider" value="0" max="100"><span id="expTotTime" class="time-display">0:00</span>`; area.appendChild(d); document.getElementById('expandedSeekSlider').addEventListener('input', seekAudio); const ctrls = document.querySelector('.guest-controls-main'); ctrls.innerHTML = `<span class="material-icons-round btn-guest-action" onclick="toggleShuffle()">shuffle</span><span class="material-icons-round btn-guest-action" style="font-size:3rem" onclick="prev()">skip_previous</span><span class="material-icons-round btn-guest-action" id="iconPlayBig" style="font-size:4.5rem" onclick="toggle_play()">pause</span><span class="material-icons-round btn-guest-action" style="font-size:3rem" onclick="next()">skip_next</span><span class="material-icons-round btn-guest-action" onclick="toggleRepeat()">repeat</span>`; }
 window.toggleShuffle = () => { appConfig.isShuffle = !appConfig.isShuffle; openFullScreenPlayer(); };
 window.toggleRepeat = () => { appConfig.isRepeat = !appConfig.isRepeat; openFullScreenPlayer(); };
 window.prev = () => showToast("Anterior", 'info');
 window.next = () => showToast("Siguiente", 'info');
-window.closePlayer = function() {
-    const fs = document.getElementById('view-guest-player');
-    if(fs && fs.style.display === 'flex') {
-        showView(appConfig.isAdmin ? 'view-admin' : 'view-user');
-        if(dom.mainPlayer) dom.mainPlayer.classList.remove('hidden');
-    } else {
-        if(dom.mainPlayer) dom.mainPlayer.style.display='none';
-        dom.audioElement.pause();
-    }
-}
+window.closePlayer = function() { const fs = document.getElementById('view-guest-player'); if(fs && fs.style.display === 'flex') { showView(appConfig.isAdmin ? 'view-admin' : 'view-user'); if(dom.mainPlayer) dom.mainPlayer.classList.remove('hidden'); } else { if(dom.mainPlayer) dom.mainPlayer.style.display='none'; dom.audioElement.pause(); } }
 window.exitFullScreenPlayer = window.closePlayer;
-
-function togglePlayIcon(isPlaying) {
-    const txt = isPlaying ? 'pause' : 'play_arrow';
-    if(dom.iconPlay) dom.iconPlay.textContent = txt;
-    const iconBig = document.getElementById('iconPlayBig'); if(iconBig) iconBig.textContent = txt;
-    const iconMin = document.getElementById('iconPlayMin'); if(iconMin) iconMin.textContent = txt;
-}
-
+function togglePlayIcon(isPlaying) { const txt = isPlaying ? 'pause' : 'play_arrow'; if(dom.iconPlay) dom.iconPlay.textContent = txt; const iconBig = document.getElementById('iconPlayBig'); if(iconBig) iconBig.textContent = txt; const iconMin = document.getElementById('iconPlayMin'); if(iconMin) iconMin.textContent = txt; }
 window.app_logout = () => { if(dom.audioElement) dom.audioElement.pause(); if(dom.mainPlayer) dom.mainPlayer.style.display='none'; localStorage.removeItem('appConfig'); location.reload(); };
 window.playCollection = () => { if(appConfig.tempPlaylist[0]) { playSong(appConfig.tempPlaylist[0]); closeModal('dom_modal_pl_detail'); }};
 window.do_save_announce = async function() { appConfig.data.announcement = document.getElementById('announcementInput').value; await saveData(); updateUI(); closeModal('dom_modal_announcement'); };
 window.applyDateFilter = window.applyDateFilter = function() { closeModal('dom_modal_date_filter'); }; 
 window.clearDateFilter = function() { closeModal('dom_modal_date_filter'); };
-window.do_create_album = async function() { const name = dom.newAlbName.value.trim(); if(!name) return; const cover = dom.newAlbCoverUrl.value || DEFAULT_COVER; appConfig.data.albums.push({ title: name, artist: dom.newAlbArtist.value, cover: cover }); await saveData(); showToast("Álbum creado", 'success'); updateUI(); closeModal('dom_modal_album'); }
-window.doSaveEditAlbum = async function() { const idx = appConfig.editingAlbumIndex; if(idx === null) return; const cover = dom.editAlbCover.value || appConfig.data.albums[idx].cover; appConfig.data.albums[idx] = { ...appConfig.data.albums[idx], title: dom.editAlbName.value, artist: dom.editAlbArtist.value, cover: cover }; await saveData(); showToast("Álbum actualizado", 'success'); updateUI(); closeModal('dom_modal_edit_album'); }
-window.do_create_album = async function() { const name = dom.newAlbName.value.trim(); if(!name) return; appConfig.data.albums.push({ title: name, artist: dom.newAlbArtist.value, cover: dom.newAlbCoverUrl.value || DEFAULT_COVER }); await saveData(); showToast("Creado", 'success'); updateUI(); closeModal('dom_modal_album'); }
-window.shareCurrentSong = async function() { if(!appConfig.currentSong) return; const shareUrl = `${window.location.origin}${window.location.pathname}?s=${appConfig.currentSong.id}`; const textMsg = `Esta canción ministró mi vida y tienes que escucharla:\n\n🎵 ${appConfig.currentSong.title}\n— En MusiChris App\n\nEntra directo con este pase de invitado:\n${shareUrl}`; const data = { title: 'MusiChris', text: textMsg, url: shareUrl }; try { if(navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(textMsg); showToast("Mensaje copiado", 'success'); } } catch(e) {} }
-window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
-window.openModal = (id) => document.getElementById(id).style.display='flex';
+window.openModal = (id) => { const e = document.getElementById(id); if(e) e.style.display='flex'; if(id === 'dom_modal_upload') { const sel = document.getElementById('upAlbum'); if(sel) { sel.innerHTML = '<option value="">Sin Álbum</option>'; appConfig.data.albums.forEach(a => { const opt = document.createElement('option'); opt.value = a.title || a.name; opt.textContent = a.title || a.name; sel.appendChild(opt); }); }}};
 window.closeModal = (id) => document.getElementById(id).style.display='none';
-window.switchTab = (id, btn) => { document.querySelectorAll('.list-tab-content, .tab-btn').forEach(e => e.classList.remove('active')); document.getElementById(id).classList.add('active'); btn.classList.add('active'); updateUI(); };
+window.switchTab = (id, btn) => { document.querySelectorAll('.list-tab-content, .tab-btn').forEach(e => e.classList.remove('active')); document.getElementById(id).classList.add('active'); btn.classList.add('active'); if(id.includes('albums')) renderAlbumGrid(appConfig.isAdmin?'adminAlbumGrid':'userAlbumGrid', appConfig.data?.albums); if(id.includes('playlists')) renderSmartPlaylists(appConfig.isAdmin?'adminPlaylistGrid':'userPlaylistGrid'); if(id.includes('users')) renderUserList('usersListGrid', appConfig.data?.users);};
 window.do_save_settings = () => closeModal('dom_modal_settings');
 window.openProfile = function() { openModal('dom_modal_profile'); }
 window.changeAvatar = function() { appConfig.user.avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.floor(Math.random()*999)}`; if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar; }
@@ -460,5 +359,9 @@ window.do_save_profile = async function() { const idx = appConfig.data.users.fin
 window.deleteAlbum = async function(e, i) { e.stopPropagation(); if(confirm("¿Borrar?")) { appConfig.data.albums.splice(i,1); await saveData(); updateUI(); } }
 window.deleteUser = async function(i) { if(confirm("¿Borrar?")) { appConfig.data.users.splice(i,1); await saveData(); updateUI(); } }
 function renderUserList(id, users) { const c = document.getElementById(id); if(!c) return; c.innerHTML = ''; users.forEach((u, index) => { const div = document.createElement('div'); div.className = 'user-list-item'; div.innerHTML = `<div class="user-info"><img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover"><span>${u.name}</span><span class="role-badge ${u.role==='admin'?'role-admin':''}">${u.role}</span></div><div style="display:flex;gap:5px"><button class="btn-delete-user" onclick="deleteUser(${index})"><span class="material-icons-round">delete</span></button></div>`; c.appendChild(div); }); }
+function filterSongs(query) { const target = norm(query); const filtered = appConfig.data.songs.filter(s => norm(s.title).includes(target) || norm(s.genre).includes(target) || norm(s.album).includes(target)); renderSongList(appConfig.isAdmin ? 'adminSongList' : 'userSongList', filtered); }
 async function saveData() { try { await fetch(`${API_BASE_URL}${PERMANENT_BIN_ID}`, { method: 'PUT', headers: { 'X-Master-Key': PERMANENT_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig.data) }); } catch(e) { showToast("Error guardando", 'error'); } }
 async function saveDataSilent() { try { await fetch(`${API_BASE_URL}${PERMANENT_BIN_ID}`, { method: 'PUT', headers: { 'X-Master-Key': PERMANENT_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(appConfig.data) }); } catch(e) {} }
+window.toggle_play = () => { if(dom.audioElement.paused) dom.audioElement.play(); else dom.audioElement.pause(); };
+window.do_create_album = async function() { const name = dom.newAlbName.value.trim(); if(!name) return; const cover = dom.newAlbCoverUrl.value || DEFAULT_COVER; appConfig.data.albums.push({ title: name, artist: dom.newAlbArtist.value, cover: cover }); await saveData(); showToast("Álbum creado", 'success'); updateUI(); closeModal('dom_modal_album'); }
+window.doSaveEditAlbum = async function() { const idx = appConfig.editingAlbumIndex; if(idx === null) return; const cover = dom.editAlbCover.value || appConfig.data.albums[idx].cover; appConfig.data.albums[idx] = { ...appConfig.data.albums[idx], title: dom.editAlbName.value, artist: dom.editAlbArtist.value, cover: cover }; await saveData(); showToast("Actualizado", 'success'); updateUI(); closeModal('dom_modal_edit_album'); }
