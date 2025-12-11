@@ -4,12 +4,14 @@
     --accent: #FF9F43;
     --text: #ffffff;
     --danger: #ff4757;
-    /* Color específico del botón subir según tu imagen */
-    --upload-border: #E67E22; 
+    --dashed-color: #E67E22; /* Color borde subir */
 }
 
 * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 body { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: var(--primary); color: var(--text); height: 100vh; width: 100vw; overflow: hidden; }
+
+/* ELIMINAR ELEMENTOS FANTASMAS */
+input[type="file"] { display: none !important; }
 
 /* --- LOGIN --- */
 #view-login { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2000; background: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -34,7 +36,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .user-profile { display: flex; align-items: center; gap: 8px; background: var(--secondary); padding: 4px 12px 4px 4px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
 .avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); }
 
-/* --- STATS GRID (IGUAL TAMAÑO) --- */
+/* --- STATS GRID (ENCUADRE CELULAR) --- */
 .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
 .card { 
     background: var(--secondary); 
@@ -42,7 +44,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     border-radius: 16px; 
     text-align: center; 
     border: 1px solid rgba(255,255,255,0.03); 
-    height: 100px; /* Altura forzada igual */
+    height: 95px; /* Altura forzada */
     display: flex; flex-direction: column; justify-content: center; align-items: center; 
 }
 .card h3 { font-size: 0.65rem; color: #aaa; margin: 0 0 5px 0; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -55,19 +57,19 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .list-tab-content { display: none; }
 .list-tab-content.active { display: block; animation: fadeIn 0.4s; }
 
-/* --- BOTÓN AÑADIR (ESTILO DASHED SOLICITADO) --- */
+/* --- BOTÓN AÑADIR (DASHED STYLE) --- */
 .btn-add-content { 
-    display: block; width: 100%; padding: 18px; margin-bottom: 25px;
-    background: rgba(230, 126, 34, 0.1); /* Fondo muy suave */
-    color: var(--upload-border); /* Color naranja/marrón */
-    border: 2px dashed var(--upload-border); /* Borde punteado */
-    border-radius: 15px;
+    display: block; width: 100%; padding: 20px; margin-bottom: 25px;
+    background: rgba(230, 126, 34, 0.05); /* Casi transparente */
+    color: var(--dashed-color); /* Naranja oscuro */
+    border: 2px dashed var(--dashed-color); /* Borde punteado */
+    border-radius: 16px;
     font-weight: 800; font-size: 1.1rem;
     text-align: center; cursor: pointer; 
     position: relative; z-index: 10;
     transition: 0.2s;
 }
-.btn-add-content:active { background: rgba(230, 126, 34, 0.2); transform: scale(0.98); }
+.btn-add-content:active { background: rgba(230, 126, 34, 0.15); transform: scale(0.98); }
 
 /* --- LISTAS CANCIONES --- */
 .song-list-item { display: flex; align-items: center; padding: 10px; background: var(--secondary); margin-bottom: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.02); }
@@ -78,7 +80,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .song-actions { display: flex; gap: 10px; align-items: center; }
 .btn-list-action { background: rgba(255,255,255,0.1); border: none; width: 35px; height: 35px; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-/* --- GRID ÁLBUMES & PLAYLISTS (1 COLUMNA) --- */
+/* --- GRID ÁLBUMES (1 COLUMNA) --- */
 .playlist-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
 .collection-card { 
     background: var(--secondary); 
@@ -89,28 +91,27 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     position: relative; 
     display: flex; flex-direction: column; align-items: center; 
 }
-/* IMAGEN ÁLBUM */
 .collection-cover { 
-    width: 220px; height: 220px; 
+    width: 200px; height: 200px; 
     background-size: cover; background-position: center; 
     border-radius: 15px; margin-bottom: 15px; 
     box-shadow: 0 10px 30px rgba(0,0,0,0.4); 
-    background-color: #222; /* Fondo si no carga */
+    background-color: #222;
 }
-.collection-card h4 { margin: 0 0 10px 0; font-size: 1.2rem; color: white; white-space: normal; }
-.album-admin-tools { display: flex; gap: 15px; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); width: 100%; justify-content: center; }
-.btn-alb-tool { width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; }
-
-/* ESTILOS ICONOS PLAYLIST (FONDO COLORIDO) */
-.pl-icon-bg { 
-    background-size: 50% !important; 
+/* Estilo especial para iconos de playlist */
+.collection-cover.pl-icon-bg {
+    background-size: 40% !important; /* Icono pequeño centrado */
     background-repeat: no-repeat !important;
     background-position: center !important;
 }
-/* Gradientes para las cajas */
-.grad-1 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); } /* Corazón */
-.grad-2 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); } /* Recientes */
-.grad-3 { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); } /* Hits */
+/* Fondos degradados suaves */
+.grad-1 { background: linear-gradient(135deg, #FF9F43 0%, #ff4757 100%); }
+.grad-2 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.grad-3 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+.collection-card h4 { margin: 0 0 10px 0; font-size: 1.2rem; color: white; white-space: normal; }
+.album-admin-tools { display: flex; gap: 15px; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); width: 100%; justify-content: center; }
+.btn-alb-tool { width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; }
 
 /* --- USUARIOS --- */
 .user-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--secondary); padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; }
@@ -118,34 +119,32 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
 .btn-delete-user { background: var(--danger); width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* --- FULLSCREEN PLAYER (LIMPIO) --- */
+/* --- FULLSCREEN PLAYER --- */
 #view-guest-player {
-    background: linear-gradient(180deg, #151521 0%, #000000 100%);
+    background: linear-gradient(180deg, #252535 0%, #151521 100%);
     display: none; flex-direction: column; padding: 20px; z-index: 5000; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
 }
 .guest-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; width: 100%; max-width: 500px; margin: 0 auto; }
-#guestCover { width: 80vw; height: 80vw; max-width: 320px; max-height: 320px; border-radius: 25px; background-size: cover; background-position: center; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
-.guest-info-area { text-align: center; width: 100%; position: relative; }
-.guest-info-area h2 { margin: 0 0 5px 0; font-size: 1.5rem; color: white; }
-.guest-info-area p { margin: 0; color: #888; font-size: 1rem; }
+#guestCover { width: 75vw; height: 75vw; max-width: 320px; max-height: 320px; border-radius: 25px; background-size: cover; background-position: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+.guest-info-area { text-align: center; width: 100%; }
+.guest-info-area h2 { margin: 0 0 10px 0; font-size: 1.5rem; }
+.guest-info-area p { margin: 0; color: #aaa; font-size: 1rem; }
 
-.guest-controls-extra { display: flex; justify-content: space-around; width: 100%; margin-top: 10px; }
-.btn-guest-action { background: transparent; border: none; color: white; cursor: pointer; font-size: 1.5rem; }
+/* CONTROLES LIMPIOS */
+.guest-controls-main { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 10px; margin-top: 10px; }
+.btn-guest-action { background: transparent; border: none; color: white; cursor: pointer; font-size: 1.8rem; }
+#iconPlayBig { font-size: 4.5rem; }
 
 /* BARRA DE PROGRESO ÚNICA */
 .progress-container { 
-    width: 100%; margin: 20px 0; 
-    display: flex; align-items: center; gap: 12px; 
+    width: 100%; margin: 15px 0; 
+    display: flex; align-items: center; gap: 10px; 
 }
 input[type="range"] { flex: 1; height: 4px; border-radius: 5px; -webkit-appearance: none; background: #444; cursor: pointer; }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); }
-.time-display { font-size: 0.8rem; color: #888; min-width: 40px; font-variant-numeric: tabular-nums; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; }
+.time-display { font-size: 0.8rem; color: #aaa; min-width: 35px; }
 
-/* CONTROLES PRINCIPALES (5 BOTONES) */
-.guest-controls-main { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 15px; }
-#iconPlayBig { font-size: 4.5rem; color: white; }
-
-/* --- MINI PLAYER (FIXED) --- */
+/* --- MINI PLAYER --- */
 .bottom-player {
     position: fixed; bottom: 0; left: 0; width: 100%; height: 90px;
     background: rgba(30, 30, 44, 0.98); border-top: 1px solid rgba(255,255,255,0.05);
@@ -172,7 +171,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
 .btn-submit { width: 100%; padding: 12px; background: var(--accent); color: #1a1a2e; border: none; border-radius: 8px; font-weight: 800; margin-top: 20px; cursor: pointer; flex-shrink: 0; }
 .close-modal { background: transparent; border: none; color: #777; width: 100%; margin-top: 15px; cursor: pointer; flex-shrink: 0; }
 
-/* --- MEDIA QUERIES (MÓVIL) --- */
+/* --- MEDIA QUERIES (MÓVIL FIX) --- */
 @media (max-width: 768px) {
     .container { padding: 15px; }
     .brand { font-size: 1.3rem; }
@@ -180,13 +179,9 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12p
     .user-profile { background: transparent; border: none; padding: 0; }
     .header-right { gap: 8px; }
     .btn-icon { width: 35px; height: 35px; font-size: 1.1rem; }
-    
-    /* Stats iguales */
     .card { height: 90px; } .card h3 { font-size: 0.6rem; } .card .value { font-size: 1.1rem; }
-    
     .playlist-grid { grid-template-columns: 1fr !important; }
     .collection-cover { width: 180px; height: 180px; }
-    
     .player-center-group, .player-right-group { display: none !important; }
     .minimized-player-controls { display: flex !important; align-items: center; gap: 20px; }
     .minimized-player-controls span { font-size: 2.2rem !important; color: white; }
