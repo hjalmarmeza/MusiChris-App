@@ -1,8 +1,9 @@
 /**
- * MusiChris App V38.0 - FINAL STABLE
- * - Invitado: Bypass Login automático si hay enlace.
- * - Share Text: Corregido según imagen.
- * - Album Matching: Búsqueda flexible + Fallback imagen.
+ * MusiChris App V39.0 - FINAL FIXES
+ * - Profile Save Fix: Actualiza array global y guarda.
+ * - Album Art Fallback Fix: onerror mejorado.
+ * - Playlist Layout: 1 columna vertical.
+ * - Guest Mode: Bypass login real.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -21,7 +22,6 @@ const dom = {};
 const norm = (str) => (str || '').toString().toLowerCase().trim().replace(/\s+/g, ' '); 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. DETECTAR ENLACE
     const urlParams = new URLSearchParams(window.location.search);
     const sharedId = urlParams.get('s');
     
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'dom_modal_edit_album', 'editAlbName', 'editAlbArtist', 'editAlbCover',
         'dom_modal_date_filter', 'filterStart', 'filterEnd',
         'view-guest-player', 'guestTitle', 'guestArtist', 'guestCover', 'iconPlayBig', 'pLikeBtn', 'guestLikeBtn',
-        'adminPlaylistGrid', 'userPlaylistGrid'
+        'adminPlaylistGrid', 'userPlaylistGrid', 'usersListGrid'
     ];
     ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
 
@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
     appConfig.BIN_ID = PERMANENT_BIN_ID;
     appConfig.API_KEY = PERMANENT_API_KEY;
     
-    // Si hay enlace compartido, CARGAR DATOS DIRECTO (SALTAR LOGIN)
     if(appConfig.isGuest) {
         loadAppData();
     } else {
@@ -83,7 +82,9 @@ function getArt(item) {
 
 function getSongArt(song) {
     let art = song.cover || song.img || song.image;
-    if (art) return art;
+    // Si la imagen es un placeholder de error, intentar buscar álbum
+    if (art && !art.includes("imgbb")) return art; 
+    
     if (song.album && appConfig.data && appConfig.data.albums) {
         const target = norm(song.album);
         const album = appConfig.data.albums.find(a => norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name)));
@@ -113,8 +114,8 @@ async function loadAppData() {
         if(!appConfig.data.songs) appConfig.data.songs = [];
         if(!appConfig.data.users) appConfig.data.users = [];
         if(!appConfig.data.albums) appConfig.data.albums = [];
-        
-        // *** SI ES INVITADO, ACTIVAR MODO DIRECTO ***
+        appConfig.data.songs.forEach(s => { if(!s.likes) s.likes = []; if(!s.plays) s.plays = 0; });
+
         if(appConfig.isGuest && appConfig.pendingSongId) {
             activateGuestMode();
         } else {
@@ -133,7 +134,6 @@ function activateGuestMode() {
         return;
     }
     
-    // REEMPLAZAR PANTALLA LOGIN CON INVITACIÓN
     const loginView = document.getElementById('view-login');
     loginView.innerHTML = `
         <div class="login-card">
@@ -145,7 +145,7 @@ function activateGuestMode() {
             <button style="background:transparent; border:none; color:#666; margin-top:20px; cursor:pointer;" onclick="location.href=location.pathname">Volver al Inicio</button>
         </div>
     `;
-    showView('view-login'); // Mostrar esta vista modificada
+    showView('view-login');
 }
 
 window.playGuestSong = function(id) {
@@ -155,10 +155,7 @@ window.playGuestSong = function(id) {
     const song = appConfig.data.songs.find(s => s.id === id);
     showView('view-user');
     updateUI();
-    
-    // Ocultar tabs innecesarias
     document.querySelector('.tabs').style.display = 'none';
-    
     playSong(song);
     openFullScreenPlayer();
 }
@@ -178,7 +175,7 @@ function updateUI(songListOverride = null) {
     if(dom.adminAvatar) dom.adminAvatar.src = avatar;
     if(dom.userAvatarImg) dom.userAvatarImg.src = avatar;
     if(dom.adminNameDisplay) dom.adminNameDisplay.textContent = appConfig.user?.name || 'Admin';
-    if(dom.userGreeting) dom.userGreeting.innerHTML = `Hola <span id="userGreetingName">${appConfig.user?.name || ''}</span>`; // Estructura para ocultar nombre en movil
+    if(dom.userGreeting) dom.userGreeting.textContent = `Hola, ${appConfig.user?.name || 'Usuario'}`;
 
     if(dom.userAnnouncement && dom.announcementText && appConfig.data.announcement) {
         dom.userAnnouncement.style.display = 'block';
@@ -214,7 +211,39 @@ function renderAlbumGrid(id, albums) {
     });
 }
 
-// ... Resto de funciones
+// PROFILE SAVE FIX
+window.openProfile = function() {
+    if(dom.profileName) dom.profileName.value = appConfig.user.name;
+    if(dom.profileEmail) dom.profileEmail.value = appConfig.user.email;
+    if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar || ADMIN_AVATAR;
+    openModal('dom_modal_profile');
+}
+window.changeAvatar = function() {
+    const randomId = Math.floor(Math.random() * 9999);
+    const newAv = `https://api.dicebear.com/9.x/avataaars/svg?seed=${randomId}`;
+    if(dom.profilePreview) dom.profilePreview.src = newAv;
+    appConfig.user.avatar = newAv; // Update local config user
+}
+window.do_save_profile = async function() {
+    if(dom.profileName) appConfig.user.name = dom.profileName.value;
+    
+    // Buscar índice real en la data
+    const idx = appConfig.data.users.findIndex(u => u.email === appConfig.user.email);
+    if(idx !== -1) {
+        // Actualizar master data
+        appConfig.data.users[idx].name = appConfig.user.name;
+        appConfig.data.users[idx].avatar = appConfig.user.avatar;
+        
+        await saveData(); // Guardar en nube
+        showToast("Perfil guardado correctamente", 'success');
+        updateUI(); 
+        closeModal('dom_modal_profile');
+    } else {
+        showToast("Error encontrando usuario", 'error');
+    }
+}
+
+// ... Resto de funciones standard (share, play, etc.)
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
@@ -227,7 +256,6 @@ function openAlbumDetail(album) {
     modal.style.display = 'flex';
 }
 
-// SHARE TEXT FIX
 window.shareCurrentSong = async function() {
     if(!appConfig.currentSong) return;
     const shareUrl = `${window.location.origin}${window.location.pathname}?s=${appConfig.currentSong.id}`;
@@ -331,9 +359,6 @@ window.closeModal = (id) => document.getElementById(id).style.display='none';
 window.openUpload = () => window.openModal('dom_modal_upload');
 window.switchTab = (id, btn) => { document.querySelectorAll('.list-tab-content, .tab-btn').forEach(e => e.classList.remove('active')); document.getElementById(id).classList.add('active'); btn.classList.add('active'); if(id.includes('albums')) renderAlbumGrid(appConfig.isAdmin?'adminAlbumGrid':'userAlbumGrid', appConfig.data?.albums); if(id.includes('playlists')) renderSmartPlaylists(appConfig.isAdmin?'adminPlaylistGrid':'userPlaylistGrid'); if(id.includes('users')) renderUserList('usersListGrid', appConfig.data?.users);};
 window.do_save_settings = () => closeModal('dom_modal_settings');
-window.openProfile = function() { openModal('dom_modal_profile'); }
-window.changeAvatar = function() { appConfig.user.avatar = `https://api.dicebear.com/9.x/avataaars/svg?seed=${Math.floor(Math.random()*999)}`; if(dom.profilePreview) dom.profilePreview.src = appConfig.user.avatar; }
-window.do_save_profile = async function() { appConfig.data.users.find(u => u.email === appConfig.user.email).avatar = appConfig.user.avatar; await saveData(); closeModal('dom_modal_profile'); }
 window.deleteAlbum = async function(e, i) { e.stopPropagation(); if(confirm("¿Borrar?")) { appConfig.data.albums.splice(i,1); await saveData(); updateUI(); } }
 window.deleteUser = async function(i) { if(confirm("¿Borrar?")) { appConfig.data.users.splice(i,1); await saveData(); updateUI(); } }
 function renderUserList(id, users) { const c = document.getElementById(id); if(!c) return; c.innerHTML = ''; users.forEach((u, index) => { const div = document.createElement('div'); div.className = 'user-list-item'; div.innerHTML = `<div class="user-info"><img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover"><span>${u.name}</span><span class="role-badge ${u.role==='admin'?'role-admin':''}">${u.role}</span></div><div style="display:flex;gap:5px"><button class="btn-delete-user" onclick="deleteUser(${index})"><span class="material-icons-round">delete</span></button></div>`; c.appendChild(div); }); }
