@@ -1,8 +1,8 @@
 /**
- * MusiChris App V41.0 - FINAL FIXES (Players & Images)
- * - Player Conflict Fix: Oculta mini player al abrir fullscreen.
- * - Song Image Fix: Prioriza y fuerza la imagen del álbum si no hay propia.
- * - Admin UI Fix: Botón "Añadir" visible.
+ * MusiChris App V42.0 - STRICT ALBUMS & CUSTOM ICONS
+ * - Filtrado Estricto de Álbumes (Solo coincidencia exacta).
+ * - Iconos personalizados para Playlist (Corazón, Huevo, Nota).
+ * - Corrección de imágenes y reproductor.
  */
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
@@ -18,6 +18,7 @@ let appConfig = {
 };
 
 const dom = {};
+// Helper de normalización (quita espacios extra y minúsculas)
 const norm = (str) => (str || '').toString().toLowerCase().trim().replace(/\s+/g, ' '); 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         appConfig.isGuest = true;
     }
 
-    // IDs actualizados incluyendo los botones de añadir
     const ids = [
         'view-login', 'view-admin', 'view-user', 'loginEmail', 'loginPass', 'btnLoginBtn', 
         'audioElement', 'customToast', 'statsTotalSongs', 'statsTotalUsers', 'adminAvatar', 
@@ -44,11 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
         'dom_modal_date_filter', 'filterStart', 'filterEnd',
         'view-guest-player', 'guestTitle', 'guestArtist', 'guestCover', 'iconPlayBig', 'pLikeBtn', 'guestLikeBtn',
         'adminPlaylistGrid', 'userPlaylistGrid', 'usersListGrid',
-        'btnAddSong', 'btnAddAlbum', 'btnAddUser' // Nuevos IDs de botones
+        'btnAddSong', 'btnAddAlbum'
     ];
     ids.forEach(id => { const el = document.getElementById(id); if(el) dom[id] = el; });
 
-    if (dom.mainPlayer) dom.mainPlayer.style.display = 'none'; // Empieza oculto
+    if (dom.mainPlayer) dom.mainPlayer.style.display = 'none';
 
     if (dom.btnLoginBtn) dom.btnLoginBtn.addEventListener('click', handleLoginAttempt);
     if (dom.btnTogglePass) dom.btnTogglePass.addEventListener('click', () => {
@@ -59,23 +59,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dom.audioElement) {
         dom.audioElement.addEventListener('play', () => togglePlayIcon(true));
         dom.audioElement.addEventListener('pause', () => togglePlayIcon(false));
-        dom.audioElement.addEventListener('ended', () => togglePlayIcon(false));
     }
-
-    // Listeners para botones de añadir (Admin)
+    
     if(dom.btnAddSong) dom.btnAddSong.addEventListener('click', openUpload);
     if(dom.btnAddAlbum) dom.btnAddAlbum.addEventListener('click', () => openModal('dom_modal_album'));
-    // if(dom.btnAddUser) dom.btnAddUser.addEventListener('click', ...); // Futuro uso
 
-    
     appConfig.BIN_ID = PERMANENT_BIN_ID;
     appConfig.API_KEY = PERMANENT_API_KEY;
     
-    if(appConfig.isGuest) {
-        loadAppData();
-    } else {
-        loadConfig();
-    }
+    if(appConfig.isGuest) { loadAppData(); } else { loadConfig(); }
 });
 
 function showToast(msg, type = 'info') {
@@ -90,23 +82,15 @@ function getArt(item) {
     return DEFAULT_COVER;
 }
 
-// *** FIX IMÁGENES CANCIONES ***
 function getSongArt(song) {
-    // 1. Intentar usar imagen propia válida
     let art = song.cover || song.img || song.image;
     if (art && !art.includes("imgbb") && !art.includes("image not found")) return art;
-    
-    // 2. Si no tiene o es inválida, buscar imagen del álbum
+    // BÚSQUEDA EXACTA PARA HERENCIA
     if (song.album && appConfig.data && appConfig.data.albums) {
         const target = norm(song.album);
-        // Búsqueda exacta primero, luego parcial
-        const album = appConfig.data.albums.find(a => norm(a.title || a.name) === target) ||
-                      appConfig.data.albums.find(a => norm(a.title || a.name).includes(target));
-        
-        if (album) return getArt(album); // Usar la del álbum (que ya tiene fallback)
+        const album = appConfig.data.albums.find(a => norm(a.title || a.name) === target);
+        if (album) return getArt(album);
     }
-    
-    // 3. Si todo falla, usar default
     return DEFAULT_COVER;
 }
 
@@ -117,7 +101,6 @@ function showView(viewId) {
     const t = document.getElementById(viewId);
     if(t) { 
         t.style.display = (viewId === 'view-login' || viewId === 'view-guest-player') ? 'flex' : 'block'; 
-        // Si se muestra una vista principal, asegurar que el player mini sea visible si hay canción
         if(viewId !== 'view-guest-player' && appConfig.currentSong && dom.mainPlayer) {
              dom.mainPlayer.classList.remove('hidden');
         }
@@ -137,23 +120,14 @@ async function loadAppData() {
         if(!appConfig.data.albums) appConfig.data.albums = [];
         appConfig.data.songs.forEach(s => { if(!s.likes) s.likes = []; if(!s.plays) s.plays = 0; });
 
-        if(appConfig.isGuest && appConfig.pendingSongId) {
-            activateGuestMode();
-        } else {
-            updateUI();
-        }
+        if(appConfig.isGuest && appConfig.pendingSongId) activateGuestMode(); else updateUI();
 
     } catch(e) { console.error(e); showToast("Conectando...", 'info'); }
 }
 
 function activateGuestMode() {
     const song = appConfig.data.songs.find(s => s.id === appConfig.pendingSongId);
-    if (!song) {
-        showToast("Link expirado", 'error');
-        appConfig.isGuest = false;
-        showView('view-login');
-        return;
-    }
+    if (!song) { showToast("Link expirado", 'error'); appConfig.isGuest = false; showView('view-login'); return; }
     
     const loginView = document.getElementById('view-login');
     loginView.innerHTML = `
@@ -164,8 +138,7 @@ function activateGuestMode() {
             <p style="color:#FF9F43; font-size:0.9rem; margin-bottom:20px;">Te han dedicado esta canción ❤️</p>
             <button class="btn-login" onclick="playGuestSong(${song.id})">▶ ESCUCHAR AHORA</button>
             <button style="background:transparent; border:none; color:#666; margin-top:20px; cursor:pointer;" onclick="location.href=location.pathname">Volver al Inicio</button>
-        </div>
-    `;
+        </div>`;
     showView('view-login');
 }
 
@@ -194,7 +167,6 @@ function updateUI(songListOverride = null) {
     const avatar = appConfig.user?.avatar || ADMIN_AVATAR;
     if(dom.adminAvatar) dom.adminAvatar.src = avatar;
     if(dom.userAvatarImg) dom.userAvatarImg.src = avatar;
-    
     if(dom.adminNameDisplay) dom.adminNameDisplay.innerHTML = `<span id="adminNameDisplay">${appConfig.user?.name || 'Admin'}</span>`;
     if(dom.userGreeting) dom.userGreeting.innerHTML = `Hola <span id="userGreetingName">${appConfig.user?.name || 'Usuario'}</span>`;
 
@@ -209,11 +181,9 @@ function renderSongList(id, songs) {
     if(songs.length === 0) { c.innerHTML = '<div style="text-align:center;padding:20px;color:#666">No hay canciones</div>'; return; }
     songs.forEach((s) => { 
         const div = document.createElement('div'); div.className = 'song-list-item';
-        // Usar la nueva lógica de imágenes
         const art = getSongArt(s);
         let deleteBtn = '';
         if(appConfig.isAdmin) deleteBtn = `<button class="btn-list-action" style="background:rgba(255,71,87,0.1);color:#ff4757" onclick="deleteSong(event, ${s.id})"><span class="material-icons-round">delete</span></button>`;
-        // Añadido onerror al estilo para doble seguridad
         div.innerHTML = `<div class="song-cover" style="background-image: url('${art}')" onerror="this.style.backgroundImage='url(${DEFAULT_COVER})'"></div><div class="song-info"><div class="song-title">${s.title || 'Sin Título'}</div><div class="song-artist">${s.genre || s.album || 'General'}</div></div><div class="song-actions"><button class="btn-list-action" onclick="playSongId(${s.id})"><span class="material-icons-round">play_arrow</span></button>${deleteBtn}</div>`;
         div.onclick = (e) => { if(e.target.tagName === 'BUTTON' || e.target.closest('button')) return; playSong(s); };
         c.appendChild(div);
@@ -234,19 +204,62 @@ function renderAlbumGrid(id, albums) {
     });
 }
 
-// ... Resto de funciones (OpenAlbumDetail, Share, etc.)
+// *** FILTRO DE ÁLBUMES ESTRICTO ***
 function openAlbumDetail(album) {
     const modal = dom.dom_modal_pl_detail; if(!modal) return;
     const target = norm(album.title || album.name);
-    let songs = appConfig.data.songs.filter(s => norm(s.album).includes(target) || target.includes(norm(s.album)));
+    // SOLO COINCIDENCIA EXACTA
+    let songs = appConfig.data.songs.filter(s => norm(s.album) === target);
+    
     appConfig.tempPlaylist = songs;
     if(dom.plDetailTitle) dom.plDetailTitle.textContent = album.title || album.name;
     const list = dom.plDetailList; list.innerHTML = '';
-    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío.</div>';
+    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Álbum vacío. <br><small>Verifica el nombre en "Editar Canción"</small></div>';
     else { songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div><div class="song-artist">${s.genre}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); }); }
     modal.style.display = 'flex';
 }
 
+// *** ICONOS Y DEGRADADOS DE PLAYLIST ***
+function renderSmartPlaylists(id) {
+    const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
+    
+    // Función helper con clase de gradiente y URL de icono
+    const createCard = (t, s, imgUrl, gradClass, fn) => { 
+        const d = document.createElement('div'); 
+        d.className = 'collection-card'; 
+        d.innerHTML = `<div class="collection-cover pl-icon-bg ${gradClass}" style="background-image:url('${imgUrl}')"></div><h4>${t}</h4>`; 
+        d.onclick = fn; 
+        return d; 
+    };
+
+    // 1. FAVORITOS (Corazón)
+    c.appendChild(createCard("Favoritos", "Likes", "https://cdn-icons-png.flaticon.com/512/833/833472.png", "grad-1", () => openSmartList('fav')));
+    
+    // 2. RECIENTES (Huevo/Pollito)
+    c.appendChild(createCard("Recientes", "Nuevas", "https://cdn-icons-png.flaticon.com/512/3094/3094863.png", "grad-2", () => openSmartList('recent')));
+    
+    // 3. TOP HITS (Nota musical)
+    c.appendChild(createCard("Top Hits", "Más oídas", "https://cdn-icons-png.flaticon.com/512/3209/3209995.png", "grad-3", () => openSmartList('top')));
+}
+
+function openSmartList(type) {
+    const modal = dom.dom_modal_pl_detail; if(!modal) return;
+    let songs = []; let title = "";
+    if(type === 'fav') { title = "Favoritos"; const email = appConfig.user.email; songs = appConfig.data.songs.filter(s => s.likes && s.likes.includes(email)); }
+    else if (type === 'recent') { title = "Recientes"; songs = [...appConfig.data.songs].sort((a,b) => b.id - a.id).slice(0, 15); }
+    else if (type === 'top') { title = "Top Hits"; songs = [...appConfig.data.songs].sort((a,b) => (b.plays || 0) - (a.plays || 0)).slice(0, 20); }
+    
+    appConfig.tempPlaylist = songs;
+    if(dom.plDetailTitle) dom.plDetailTitle.textContent = title;
+    const list = dom.plDetailList; list.innerHTML = '';
+    if(songs.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Lista vacía.</div>';
+    else {
+        songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); });
+    }
+    modal.style.display = 'flex';
+}
+
+// ... Resto de funciones (Share, Play, CRUD)
 window.shareCurrentSong = async function() {
     if(!appConfig.currentSong) return;
     const shareUrl = `${window.location.origin}${window.location.pathname}?s=${appConfig.currentSong.id}`;
@@ -255,7 +268,6 @@ window.shareCurrentSong = async function() {
     try { if(navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(textMsg); showToast("Mensaje copiado", 'success'); } } catch(e) {}
 }
 
-// *** FIX REPRODUCTORES ***
 window.openFullScreenPlayer = function() {
     if(!appConfig.currentSong) return;
     const song = appConfig.currentSong;
@@ -264,25 +276,16 @@ window.openFullScreenPlayer = function() {
     if(dom.guestArtist) dom.guestArtist.textContent = song.genre;
     if(dom.guestCover) dom.guestCover.style.backgroundImage = `url('${art}')`;
     updateLikeIcon();
-    
-    // Ocultar mini player
     if(dom.mainPlayer) dom.mainPlayer.classList.add('hidden');
     showView('view-guest-player');
 }
-
 window.closePlayer = function() {
     const fs = document.getElementById('view-guest-player');
     if(fs && fs.style.display === 'flex') {
-        // Volver a la vista anterior
         showView(appConfig.isAdmin ? 'view-admin' : 'view-user');
-        // Mostrar mini player de nuevo
         if(dom.mainPlayer) dom.mainPlayer.classList.remove('hidden');
     } else {
-        // Cerrar mini player (stop)
-        if(dom.mainPlayer) {
-             dom.mainPlayer.style.display = 'none';
-             dom.mainPlayer.classList.remove('hidden'); // Reset estado
-        }
+        if(dom.mainPlayer) { dom.mainPlayer.style.display = 'none'; dom.mainPlayer.classList.remove('hidden'); }
         if(dom.audioElement) dom.audioElement.pause();
         appConfig.currentSong = null;
     }
@@ -291,10 +294,7 @@ window.exitFullScreenPlayer = window.closePlayer;
 
 function playSong(song) {
     appConfig.currentSong = song;
-    if(dom.mainPlayer) {
-        dom.mainPlayer.style.display = 'flex';
-        dom.mainPlayer.classList.remove('hidden'); // Asegurar visible
-    }
+    if(dom.mainPlayer) { dom.mainPlayer.style.display = 'flex'; dom.mainPlayer.classList.remove('hidden'); }
     const art = getSongArt(song);
     if(dom.pTitle) dom.pTitle.textContent = song.title;
     if(dom.pArtist) dom.pArtist.textContent = song.genre;
@@ -314,23 +314,6 @@ function playSong(song) {
     if(idx !== -1) { if(!appConfig.data.songs[idx].plays) appConfig.data.songs[idx].plays = 0; appConfig.data.songs[idx].plays++; saveDataSilent(); }
 }
 
-function renderSmartPlaylists(id) {
-    const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
-    const createCard = (t,s,img,fn) => { const d=document.createElement('div'); d.className='collection-card'; d.innerHTML=`<div class="collection-cover" style="background-image:url('${img}');background-color:#222"></div><h4>${t}</h4>`; d.onclick=fn; return d; };
-    c.appendChild(createCard("Favoritos", "Likes", "https://i.ibb.co/C9bMh2Q/heart-cover.png", () => openSmartList('fav')));
-    c.appendChild(createCard("Recientes", "Nuevas", "https://i.ibb.co/hRj0k7w/new-cover.png", () => openSmartList('recent')));
-}
-function openSmartList(type) {
-    const modal = dom.dom_modal_pl_detail; if(!modal) return;
-    let songs = []; let title = "";
-    if(type === 'fav') { title = "Favoritos"; const email = appConfig.user.email; songs = appConfig.data.songs.filter(s => s.likes && s.likes.includes(email)); }
-    else if (type === 'recent') { title = "Recientes"; songs = [...appConfig.data.songs].sort((a,b) => b.id - a.id).slice(0, 15); }
-    appConfig.tempPlaylist = songs;
-    if(dom.plDetailTitle) dom.plDetailTitle.textContent = title;
-    const list = dom.plDetailList; list.innerHTML = '';
-    songs.forEach(s => { const item = document.createElement('div'); item.className = 'song-list-item'; item.innerHTML = `<div class="song-info"><div class="song-title">${s.title}</div></div><span class="material-icons-round" style="color:var(--accent)">play_circle</span>`; item.onclick = () => { playSong(s); closeModal('dom_modal_pl_detail'); }; list.appendChild(item); });
-    modal.style.display = 'flex';
-}
 function updateLikeIcon() {
     if(!appConfig.currentSong) return;
     const userEmail = appConfig.user?.email || "guest";
