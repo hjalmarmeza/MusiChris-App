@@ -20,7 +20,7 @@
             <input type="email" id="loginEmail" class="login-input" placeholder="Usuario o Email">
             <div class="password-wrapper">
                 <input type="password" id="loginPass" class="login-input" placeholder="Contraseña">
-                <span class="material-icons-round pass-toggle" id="btnTogglePass">visibility_off</span>
+                <span class="material-icons-round pass-toggle" onclick="togglePassLogin()">visibility_off</span>
             </div>
             <button id="btnLoginBtn" class="btn-login" onclick="handleLoginAttempt()">Ingresar</button>
         </div>
@@ -160,8 +160,8 @@
         <div class="player-right-group">
             <span class="material-icons-round" id="pLikeBtn" onclick="event.stopPropagation(); toggleLikeCurrent()">favorite_border</span>
             <span class="material-icons-round" onclick="event.stopPropagation(); openModal('dom_modal_eq')">graphic_eq</span>
-            <span class="material-icons-round" onclick="event.stopPropagation(); openFullScreenPlayer()" style="font-size:1.5rem">open_in_full</span>
-            <span class="material-icons-round" onclick="event.stopPropagation(); closePlayer()" style="color:var(--danger)">close</span>
+            <span class="material-icons-round" onclick="event.stopPropagation(); openFullScreenPlayer()">open_in_full</span> 
+            <span class="material-icons-round" onclick="event.stopPropagation(); closePlayer()">close</span>
         </div>
 
         <div class="minimized-player-controls">
@@ -202,7 +202,9 @@
             <h3 id="modalUploadTitle" style="margin-top:0">Subir Canción</h3>
             <input type="text" id="upTitle" class="form-input" placeholder="Título">
             <input type="text" id="upGenre" class="form-input" placeholder="Artista / Género">
-            <select id="upAlbum" class="form-input" style="background:#1a1a2e;color:#aaa"><option value="">Sin Álbum</option></select>
+            <select id="upAlbum" class="form-input" style="background:#1a1a2e;color:#aaa">
+                <option value="">Sin Álbum</option>
+            </select>
             <input type="text" id="upUrl" class="form-input" placeholder="Enlace MP3 (http://...)">
             <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
                  <button class="close-modal" onclick="closeModal('dom_modal_upload')" style="flex:1; border:1px solid #666; color:#ddd; padding:12px; border-radius:8px;">Cancelar</button>
@@ -211,7 +213,7 @@
         </div>
     </div>
 
-    <div id="dom_modal_album" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_album')">×</button><h3>Nuevo Álbum</h3><input type="text" id="newAlbName" class="form-input" placeholder="Nombre"><input type="text" id="newAlbArtist" class="form-input" placeholder="Artista"><div style="margin:10px 0; border:1px dashed #555; padding:10px; border-radius:10px;"><label for="newAlbCoverFile" style="color:var(--accent); cursor:pointer;">📂 Elegir Portada (Dispositivo)</label><input type="file" id="newAlbCoverFile" accept="image/*" style="display:none;" onchange="previewFile(this, 'newAlbCoverUrl')"></div><input type="text" id="newAlbCoverUrl" class="form-input" placeholder="O pegar enlace..."><button class="btn-submit" onclick="do_create_album()">Crear</button></div></div>
+    <div id="dom_modal_album" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_album')">×</button><h3>Nuevo Álbum</h3><input type="text" id="newAlbName" class="form-input" placeholder="Nombre del Álbum"><input type="text" id="newAlbArtist" class="form-input" placeholder="Artista Principal"><div style="margin:10px 0; border:1px dashed #555; padding:10px; border-radius:10px;"><label for="newAlbCoverFile" style="color:var(--accent); cursor:pointer;">📂 Elegir Portada (Dispositivo)</label><input type="file" id="newAlbCoverFile" accept="image/*" style="display:none;" onchange="previewFile(this, 'newAlbCoverUrl')"></div><input type="text" id="newAlbCoverUrl" class="form-input" placeholder="O pegar enlace..."><button class="btn-submit" onclick="do_create_album()">Crear</button></div></div>
     <div id="dom_modal_new_user" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_new_user')">×</button><h3>Registrar Usuario</h3><input type="text" id="newUser_Name" class="form-input" placeholder="Nombre"><input type="email" id="newUser_Email" class="form-input" placeholder="Email"><input type="password" id="newUser_Pass" class="form-input" placeholder="Contraseña"><div style="display:flex; gap:10px; margin-top:20px;"><button class="close-modal" onclick="closeModal('dom_modal_new_user')" style="flex:1; border:1px solid #666; color:#ddd;">Cancelar</button><button class="btn-submit" style="flex:2; margin:0;" onclick="do_create_user_modal()">Registrar</button></div></div></div>
     <div id="dom_modal_pl_detail" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_pl_detail')">×</button><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;"><h3 id="plDetailTitle" style="margin:0">Lista</h3><button class="btn-submit" style="margin:0; width:auto; padding:8px 15px;" onclick="playCollection()">Reproducir Todo</button></div><div id="plDetailList"></div></div></div>
     <div id="dom_modal_profile" class="modal-overlay"><div class="modal-content"><button class="close-btn-x" onclick="closeModal('dom_modal_profile')">×</button><h3>Mi Perfil</h3><div style="text-align:center;margin-bottom:15px;"><img id="profilePreview" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);"><br><button style="background:transparent;border:1px solid #555;color:#ccc;padding:5px 10px;border-radius:15px;margin-top:10px;cursor:pointer;" onclick="changeAvatar()">Cambiar Avatar</button></div><input type="text" id="profileName" class="form-input"><input type="email" id="profileEmail" class="form-input" disabled style="opacity:0.5"><button class="btn-submit" onclick="do_save_profile()">Guardar Cambios</button></div></div>
@@ -222,11 +224,9 @@
     <div id="dom_modal_eq" class="modal-overlay"><div class="modal-content" style="max-width:320px; text-align:center"><button class="close-btn-x" onclick="closeModal('dom_modal_eq')">×</button><h3>Ecualizador 🎛️</h3><div style="display:flex; justify-content:space-around; height:150px; align-items:center; margin:20px 0"><div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Bajos</label></div><div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Medios</label></div><div class="eq-band"><input type="range" orient="vertical" min="-10" max="10" value="0" class="eq-slider"><label>Agudos</label></div></div></div></div>
 
     <div id="customToast" class="customToast">Mensaje</div>
-    <script src="./script.js?v=67"></script>
+    <script src="./script.js?v=68"></script>
 </body>
 </html>
-
-
 
 
 
