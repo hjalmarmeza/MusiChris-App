@@ -11,8 +11,8 @@ body { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: va
 
 /* --- LOGIN --- */
 #view-login { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2000; background: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.login-card { background: var(--secondary); padding: 30px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
-.logo-text { font-size: 2rem; font-weight: 700; margin-bottom: 20px; }
+.login-card { background: var(--secondary); padding: 40px 30px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+.logo-text { font-size: 2.2rem; font-weight: 700; margin-bottom: 20px; }
 .logo-text span { color: var(--accent); }
 .password-wrapper { position: relative; width: 100%; margin-bottom: 10px; }
 .login-input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #252535; color: white; font-size: 1rem; }
@@ -20,103 +20,126 @@ body { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: va
 .btn-login { width: 100%; padding: 15px; margin-top: 20px; border-radius: 12px; border: none; background: linear-gradient(90deg, #FF9F43, #FFC75F); color: #1a1a2e; font-weight: 800; font-size: 1.1rem; cursor: pointer; }
 
 /* --- HEADER --- */
-.view-section { display: none; height: 100%; width: 100%; overflow-y: auto; padding-bottom: 120px; opacity: 0; transition: opacity 0.3s; }
+.view-section { display: none; height: 100%; width: 100%; overflow-y: auto; padding-bottom: 110px; opacity: 0; transition: opacity 0.3s; }
 .view-section.active { opacity: 1; }
-.container { padding: 15px; max-width: 600px; margin: 0 auto; }
+.container { padding: 20px; max-width: 800px; margin: 0 auto; } /* Ancho aumentado para laptop */
 
-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-top: 10px; }
-.brand { font-size: 1.4rem; font-weight: 800; }
-.header-right { display: flex; align-items: center; gap: 8px; }
-.btn-icon { background: rgba(255,255,255,0.08); border: none; width: 38px; height: 38px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-.user-profile { display: flex; align-items: center; gap: 5px; background: var(--secondary); padding: 3px 10px 3px 3px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); }
-.avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); }
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-top: 15px; }
+.brand { font-size: 1.6rem; font-weight: 800; letter-spacing: -1px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.btn-icon { background: rgba(255,255,255,0.08); border: none; width: 40px; height: 40px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+.user-profile { display: flex; align-items: center; gap: 8px; background: var(--secondary); padding: 4px 12px 4px 4px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); }
 
-/* --- STATS GRID (FIXED HEIGHT) --- */
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
-.card { background: var(--secondary); padding: 5px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.03); height: 90px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-.card h3 { font-size: 0.6rem; color: #aaa; margin: 0 0 5px 0; text-transform: uppercase; }
-.card .value { font-size: 1.2rem; font-weight: bold; color: var(--accent); margin: 0; }
+/* --- STATS GRID --- */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+.card { background: var(--secondary); padding: 10px; border-radius: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.03); height: 110px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.card h3 { font-size: 0.7rem; color: #aaa; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+.card .value { font-size: 1.4rem; font-weight: bold; color: var(--accent); margin: 0; }
 
-/* --- TABS --- */
-.tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none; }
-.tab-btn { background: var(--secondary); border: 1px solid rgba(255,255,255,0.05); color: #888; padding: 8px 16px; border-radius: 12px; cursor: pointer; font-weight: 600; white-space: nowrap; font-size: 0.9rem; }
+/* --- TABS (FIX ANCHO COMPLETO) --- */
+.tabs { display: flex; width: 100%; gap: 10px; margin-bottom: 20px; }
+.tab-btn { flex: 1; /* Esto hace que ocupen todo el ancho */ text-align: center; background: var(--secondary); border: 1px solid rgba(255,255,255,0.05); color: #888; padding: 12px 0; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.3s; }
 .tab-btn.active { background: var(--accent); color: #1a1a2e; border-color: var(--accent); }
 .list-tab-content { display: none; }
 .list-tab-content.active { display: block; animation: fadeIn 0.4s; }
 
-/* --- LISTAS --- */
-.song-list-item { display: flex; align-items: center; padding: 8px; background: var(--secondary); margin-bottom: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.02); }
-.song-cover { width: 45px; height: 45px; border-radius: 8px; background-size: cover; background-position: center; margin-right: 10px; flex-shrink: 0; background-color: #333; }
+/* --- LISTAS CANCIONES --- */
+.song-list-item { display: flex; align-items: center; padding: 10px; background: var(--secondary); margin-bottom: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.02); }
+.song-cover { width: 50px; height: 50px; border-radius: 10px; background-size: cover; background-position: center; margin-right: 15px; flex-shrink: 0; background-color: #333; }
 .song-info { flex: 1; min-width: 0; }
-.song-title { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-.song-artist { font-size: 0.75rem; color: #888; }
-.song-actions { display: flex; gap: 8px; }
-.btn-list-action { background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.song-title { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+.song-artist { font-size: 0.8rem; color: #888; }
+.song-actions { display: flex; gap: 10px; }
+.btn-list-action { background: rgba(255,255,255,0.1); border: none; width: 35px; height: 35px; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-/* --- ÁLBUMES (LAYOUT RESPONSIVE) --- */
-.playlist-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+/* --- GRID ÁLBUMES (FILA ÚNICA VERTICAL) --- */
+.playlist-grid { 
+    display: grid; 
+    grid-template-columns: 1fr; /* UNA SOLA COLUMNA SIEMPRE */
+    gap: 20px; 
+}
 .collection-card { 
     background: var(--secondary); 
-    border-radius: 16px; 
-    padding: 15px; 
+    border-radius: 18px; 
+    padding: 20px; 
     text-align: center; 
     border: 1px solid rgba(255,255,255,0.03); 
-    position: relative;
+    position: relative; 
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Altura automática para crecer */
-    height: auto; 
-    min-height: 220px; 
 }
+/* IMAGEN ÁLBUM GRANDE Y CLARA */
 .collection-cover { 
-    width: 100%; 
-    aspect-ratio: 1; /* Cuadrada */
+    width: 200px; 
+    height: 200px; 
     background-size: cover; 
     background-position: center; 
-    border-radius: 12px; 
-    margin-bottom: 10px; 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+    border-radius: 15px; 
+    margin-bottom: 15px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
 }
 .collection-card h4 { 
     margin: 0 0 10px 0; 
-    font-size: 1rem; 
+    font-size: 1.2rem; 
     color: white; 
-    /* Permitir varias líneas */
-    white-space: normal; 
-    line-height: 1.3;
+    white-space: normal; /* Permitir saltos de línea */
 }
-/* BOTONES DEBAJO DEL NOMBRE */
+/* BOTONES ADMIN DEBAJO */
 .album-admin-tools { 
-    margin-top: auto; /* Empujar al fondo */
     display: flex; 
     gap: 15px; 
-    justify-content: center;
-    width: 100%;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255,255,255,0.05);
+    margin-top: 10px;
 }
-.btn-alb-tool { width: 30px; height: 30px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; }
+.btn-alb-tool { width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; }
 
 /* --- USUARIOS --- */
-.user-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--secondary); padding: 10px; border-radius: 12px; margin-bottom: 8px; }
-.user-info { display: flex; align-items: center; gap: 10px; }
+.user-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--secondary); padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; }
+.user-info { display: flex; align-items: center; gap: 15px; }
+.user-info img { width: 40px; height: 40px; }
 .btn-delete-user { background: var(--danger); width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
+/* --- MINI PLAYER (LAPTOP FIX) --- */
+.bottom-player { 
+    position: fixed; bottom: 0; left: 0; width: 100%; height: 90px; 
+    background: rgba(30, 30, 44, 0.98); border-top: 1px solid rgba(255,255,255,0.05); 
+    display: flex; align-items: center; justify-content: space-between; 
+    padding: 0 30px; z-index: 1000; 
+}
+.player-info { width: 30%; display: flex; align-items: center; }
+.player-info h4 { margin: 0; font-size: 1rem; }
+
+.player-center-group { 
+    width: 40%; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+}
+.controls-row { 
+    display: flex; 
+    gap: 25px; 
+    margin-bottom: 8px; 
+    align-items: center; 
+}
+.btn-play-circle { 
+    width: 45px; height: 45px; background: white; border-radius: 50%; color: black; 
+    display: flex; align-items: center; justify-content: center; cursor: pointer; 
+}
+/* SLIDER DEBAJO DE BOTONES */
+#seekSlider { width: 100%; max-width: 400px; height: 4px; }
+
+.player-right-group { width: 30%; display: flex; justify-content: flex-end; gap: 15px; color: #aaa; }
+.minimized-player-controls { display: none; }
+
 /* --- FULLSCREEN --- */
-#view-guest-player { background: linear-gradient(180deg, #252535 0%, #151521 100%); display: none; flex-direction: column; justify-content: space-between; padding: 30px 20px; z-index: 5000; }
+#view-guest-player { background: linear-gradient(180deg, #252535 0%, #151521 100%); display: none; flex-direction: column; justify-content: space-between; padding: 40px 20px; z-index: 5000; }
 .guest-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
 #guestCover { width: 70vw; height: 70vw; max-width: 300px; max-height: 300px; border-radius: 20px; background-size: cover; background-position: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); margin-bottom: 20px; }
 .guest-controls-extra { display: flex; justify-content: space-around; width: 100%; margin-bottom: 20px; }
 .btn-guest-action { background: transparent; border: none; color: white; cursor: pointer; font-size: 1.2rem; } 
 .guest-controls-main { display: flex; justify-content: center; align-items: center; gap: 40px; }
-
-/* --- MINI PLAYER --- */
-.bottom-player { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; background: rgba(30, 30, 44, 0.98); border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 20px; z-index: 1000; justify-content: space-between; }
-.player-info { display: flex; align-items: center; width: 40%; overflow: hidden; }
-.player-info h4 { margin: 0; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.player-info p { margin: 0; font-size: 0.75rem; color: #aaa; }
-.minimized-player-controls { display: none; }
 
 /* --- MODALES --- */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
@@ -126,20 +149,21 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .btn-submit { width: 100%; padding: 12px; background: var(--accent); color: #1a1a2e; border: none; border-radius: 8px; font-weight: 800; margin-top: 15px; cursor: pointer; flex-shrink: 0; }
 .close-modal { background: transparent; border: none; color: #777; width: 100%; margin-top: 10px; cursor: pointer; flex-shrink: 0; }
 
-/* --- MEDIA QUERIES (FIX CELULAR) --- */
+/* --- MEDIA QUERIES (CELULAR) --- */
 @media (max-width: 768px) {
-    /* HEADER: Ocultar nombre para dar espacio */
-    #userGreetingName { display: none; }
+    .container { width: 100%; padding: 15px; }
     
-    /* ÁLBUMES: 1 SOLA COLUMNA */
-    .playlist-grid { grid-template-columns: 1fr !important; }
-    .collection-card { min-height: auto; padding-bottom: 15px; }
-    
-    /* PLAYER: Solo controles mini */
+    /* PLAYER MÓVIL: OCULTAR CONTROLES PC */
     .player-center-group, .player-right-group { display: none !important; }
-    .minimized-player-controls { display: flex !important; align-items: center; gap: 20px; }
+    
+    .minimized-player-controls {
+        display: flex !important;
+        align-items: center;
+        gap: 20px;
+    }
     .minimized-player-controls span { font-size: 2rem !important; color: white; }
     #iconPlayMin { color: var(--accent); font-size: 2.5rem !important; }
-    .bottom-player { padding: 0 15px !important; }
+    
+    .bottom-player { padding: 0 15px !important; height: 80px !important; }
     .player-info { width: 55%; }
 }
