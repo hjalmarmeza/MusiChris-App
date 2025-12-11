@@ -32,22 +32,39 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .user-profile { display: flex; align-items: center; gap: 8px; background: var(--secondary); padding: 4px 12px 4px 4px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
 .avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); }
 
-/* --- STATS --- */
+/* --- STATS GRID --- */
 .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
 .card { background: var(--secondary); padding: 10px; border-radius: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.03); height: 110px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .card h3 { font-size: 0.7rem; color: #aaa; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
 .card .value { font-size: 1.4rem; font-weight: bold; color: var(--accent); margin: 0; }
 
 /* --- TABS --- */
-.tabs { display: flex; width: 100%; gap: 10px; margin-bottom: 15px; }
+.tabs { display: flex; width: 100%; gap: 10px; margin-bottom: 20px; }
 .tab-btn { flex: 1; text-align: center; background: var(--secondary); border: 1px solid rgba(255,255,255,0.05); color: #888; padding: 12px 0; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.3s; }
 .tab-btn.active { background: var(--accent); color: #1a1a2e; border-color: var(--accent); }
 .list-tab-content { display: none; }
 .list-tab-content.active { display: block; animation: fadeIn 0.4s; }
 
-.btn-add-content { display: block; width: 100%; padding: 15px; margin-bottom: 20px; background: rgba(255, 159, 67, 0.15); color: var(--accent); border: 1px dashed var(--accent); border-radius: 12px; font-weight: 700; text-align: center; cursor: pointer; transition: 0.2s; }
+/* --- BOTÓN AÑADIR (FIX VISIBILIDAD) --- */
+.btn-add-content { 
+    display: block; 
+    width: 100%; 
+    padding: 15px; 
+    margin-bottom: 20px;
+    background: var(--accent); /* NARANJA SOLIDO */
+    color: #151521; /* LETRA OSCURA */
+    border: none; 
+    border-radius: 12px;
+    font-weight: 800; 
+    font-size: 1rem;
+    text-align: center; 
+    cursor: pointer; 
+    box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);
+    transition: 0.2s;
+}
+.btn-add-content:active { transform: scale(0.98); }
 
-/* --- LISTAS --- */
+/* --- LISTAS CANCIONES --- */
 .song-list-item { display: flex; align-items: center; padding: 10px; background: var(--secondary); margin-bottom: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.02); }
 .song-cover { width: 50px; height: 50px; border-radius: 10px; background-size: cover; background-position: center; margin-right: 15px; flex-shrink: 0; background-color: #333; position: relative; }
 .song-info { flex: 1; min-width: 0; }
@@ -63,14 +80,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .collection-card h4 { margin: 0 0 10px 0; font-size: 1.2rem; color: white; white-space: normal; }
 .album-admin-tools { display: flex; gap: 15px; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); width: 100%; justify-content: center; }
 .btn-alb-tool { width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; }
-
-/* ESTILOS ESPECÍFICOS PARA ICONOS PLAYLIST */
-.pl-icon-bg { 
-    display: flex; align-items: center; justify-content: center; 
-    background-size: 50% !important; /* Icono más pequeño dentro del cuadro */
-    background-repeat: no-repeat !important;
-}
-/* Gradientes para las playlists genéricas */
+.pl-icon-bg { display: flex; align-items: center; justify-content: center; background-size: 50% !important; background-repeat: no-repeat !important; }
 .grad-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
 .grad-2 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); }
 .grad-3 { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
@@ -81,7 +91,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
 .btn-delete-user { background: var(--danger); width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* --- FULLSCREEN PLAYER --- */
+/* --- FULLSCREEN PLAYER (EXPANDIDO) --- */
 #view-guest-player {
     background: linear-gradient(180deg, #252535 0%, #151521 100%);
     display: none; flex-direction: column; padding: 30px 20px; z-index: 5000; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -91,12 +101,20 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .guest-info-area { text-align: center; width: 100%; }
 .guest-info-area h2 { margin: 0 0 10px 0; font-size: 1.5rem; }
 .guest-info-area p { margin: 0; color: #aaa; font-size: 1rem; }
-.guest-controls-extra { display: flex; justify-content: space-around; width: 100%; }
+.guest-controls-extra { display: flex; justify-content: space-around; width: 100%; margin-bottom: 20px; }
 .btn-guest-action { background: transparent; border: none; color: white; cursor: pointer; font-size: 1.5rem; }
-.guest-controls-main { display: flex; justify-content: center; align-items: center; gap: 40px; }
-#iconPlayBig { font-size: 4rem; }
 
-/* --- MINI PLAYER --- */
+/* CONTROLES PRINCIPALES EXPANDIDOS */
+.guest-controls-main { 
+    display: flex; 
+    justify-content: space-between; /* Distribuye los 5 botones */
+    align-items: center; 
+    width: 100%; 
+    padding: 0 20px; /* Margen lateral */
+}
+#iconPlayBig { font-size: 4.5rem; } /* Play más grande */
+
+/* --- MINI PLAYER (LAPTOP FIX) --- */
 .bottom-player {
     position: fixed; bottom: 0; left: 0; width: 100%; height: 90px;
     background: rgba(30, 30, 44, 0.98); border-top: 1px solid rgba(255,255,255,0.05);
@@ -107,8 +125,18 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .player-info { width: 30%; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
 .player-info h4 { margin: 0; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .player-info p { margin: 0; font-size: 0.8rem; color: #aaa; }
-.player-center-group { width: 40%; display: flex; flex-direction: column; align-items: center; }
-.btn-play-circle { width: 45px; height: 45px; background: white; border-radius: 50%; color: black; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+/* FIX LAPTOP: Botones en FILA */
+.player-center-group { width: 40%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.controls-row { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    gap: 20px; /* Espacio entre botones */
+    margin-bottom: 5px;
+    width: 100%;
+}
+.btn-play-circle { width: 45px; height: 45px; background: white; border-radius: 50%; color: black; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 .player-right-group { width: 30%; display: flex; justify-content: flex-end; gap: 15px; color: #aaa; }
 .minimized-player-controls { display: none; }
 
@@ -120,7 +148,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .btn-submit { width: 100%; padding: 12px; background: var(--accent); color: #1a1a2e; border: none; border-radius: 8px; font-weight: 800; margin-top: 20px; cursor: pointer; flex-shrink: 0; }
 .close-modal { background: transparent; border: none; color: #777; width: 100%; margin-top: 15px; cursor: pointer; flex-shrink: 0; }
 
-/* --- MEDIA QUERIES --- */
+/* --- MEDIA QUERIES (MÓVIL) --- */
 @media (max-width: 768px) {
     .container { padding: 15px; }
     .brand { font-size: 1.3rem; }
