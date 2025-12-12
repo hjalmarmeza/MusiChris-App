@@ -140,7 +140,6 @@
             .bottom-player { padding: 0 20px !important; height: 85px !important; }
             .player-info { width: 55%; }
             
-            /* Ajustes reproductor expandido móvil */
             #guestCover { width: 65vw; height: 65vw; max-width: 240px; max-height: 240px; margin: 5px 0; }
             .guest-info-area h2 { font-size: 1.1rem; }
             .guest-info-area p { font-size: 0.85rem; }
@@ -645,27 +644,17 @@
             const cfgApiKey = document.getElementById('cfgApiKey');
             if (cfgBinId) cfgBinId.value = PERMANENT_BIN_ID;
             if (cfgApiKey) cfgApiKey.value = PERMANENT_API_KEY;
-         window.openUpload = function() {
-    appConfig.editingSongId = null;
-    document.getElementById('modalUploadTitle').textContent = "Subir Canción";
-    document.getElementById('btnUploadSubmit').textContent = "Subir";
-    document.getElementById('upTitle').value = '';
-    document.getElementById('upGenre').value = '';
-    document.getElementById('upUrl').value = '';
-    
-    const sel = document.getElementById('upAlbum');
-    sel.innerHTML = '<option value="">Sin Álbum</option>';
-    if (appConfig.data && appConfig.data.albums) {
-        appConfig.data.albums.forEach(a => {
-            const opt = document.createElement('option');
-            opt.value = a.title || a.name;
-            opt.textContent = a.title || a.name;
-            sel.appendChild(opt);
-        });
-    }
-    
-    openModal('dom_modal_upload');
-};
+            
+            if (document.getElementById('userAnnouncement') && document.getElementById('announcementText') && appConfig.data.announcement) {
+                document.getElementById('userAnnouncement').style.display = 'block';
+                document.getElementById('announcementText').textContent = appConfig.data.announcement;
+            } else if (document.getElementById('userAnnouncement')) {
+                document.getElementById('userAnnouncement').style.display = 'none';
+            }
+        }
+
+        function renderSongList(id, songs) {
+            const c = document.getElementById(id);
             if (!c) return;
             c.innerHTML = '';
             
@@ -717,17 +706,21 @@
                 const target = norm(song.album);
                 const album = appConfig.data.albums.find(a => 
                     norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name))
-           const sel = document.getElementById('upAlbum');
-sel.innerHTML = '<option value="">Sin Álbum</option>';
-if (appConfig.data && appConfig.data.albums) {
-    appConfig.data.albums.forEach(a => {
-        const opt = document.createElement('option');
-        opt.value = a.title || a.name;
-        opt.textContent = a.title || a.name;
-        sel.appendChild(opt);
-    });
-}
-sel.value = song.album || "";
+                );
+                if (album) return getArt(album);
+            }
+            return DEFAULT_COVER;
+        }
+
+        function getArt(item) {
+            if (!item) return DEFAULT_COVER;
+            const url = item.cover || item.img || item.image || item.coverUrl;
+            return url || DEFAULT_COVER;
+        }
+
+        window.playSongId = function(id) {
+            const song = appConfig.data.songs.find(s => s.id === id);
+            if (song) playSong(song);
         }
 
         function playSong(song) {
@@ -740,172 +733,6 @@ sel.value = song.album || "";
             const mainPlayer = document.getElementById('mainPlayer');
             if (mainPlayer) {
                 mainPlayer.style.display = 'flex';
-                mainPlayer.classList.remove('hidden');
-            }
-            
-            const art = getSongArt(song);
-            
-            if (document.getElementById('pTitle')) 
-                document.getElementById('pTitle').textContent = song.title;
-            if (document.getElementById('pArtist')) 
-                document.getElementById('pArtist').textContent = song.genre;
-            if (document.getElementById('pCoverMini')) 
-                document.getElementById('pCoverMini').src = art;
-            
-            updateLikeIcon();
-            
-            if (dom.audioElement && song.url) {
-                dom.audioElement.pause();
-                dom.audioElement.src = song.url;
-                dom.audioElement.load();
-                
-                dom.audioElement.play()
-                    .then(() => {
-                        console.log('Playing...');
-                        togglePlayIcon(true);
-                    })
-                    .catch(err => {
-                        console.error('Play error:', err);
-                        showToast("Error al reproducir", 'error');
-                        togglePlayIcon(false);
-                    });
-            }
-            
-            const idx = appConfig.data.songs.findIndex(s => s.id === song.id);
-            if (idx !== -1) {
-                if (!appConfig.data.songs[idx].plays) appConfig.data.songs[idx].plays = 0;
-                appConfig.data.songs[idx].plays++;
-                saveDataSilent();
-            }
-        }
-
-        function togglePlayIcon(isPlaying) {
-            const txt = isPlaying ? 'pause' : 'play_arrow';
-            if (document.getElementById('iconPlay')) 
-                document.getElementById('iconPlay').textContent = txt;
-            const iconBig = document.getElementById('iconPlayBig');
-            if (iconBig) iconBig.textContent = txt;
-            const iconMin = document.getElementById('iconPlayMin');
-            if (iconMin) iconMin.textContent = txt;
-        }
-
-        window.toggle_play = () => {
-            if (!dom.audioElement) return;
-            if (dom.audioElement.paused) {
-                dom.audioElement.play().catch(err => console.error('Play error:', err));
-            } else {
-                dom.audioElement.pause();
-            }
-        };
-
-        window.toggleShuffle = () => {
-            appConfig.isShuffle = !appConfig.isShuffle;
-            showToast(appConfig.isShuffle ? "Aleatorio activado" : "Aleatorio desactivado", 'info');
-        };
-
-        window.toggleRepeat = () => {
-            appConfig.isRepeat = !appConfig.isRepeat;
-            showToast(appConfig.isRepeat ? "Repetir activado" : "Repetir desactivado", 'info');
-        };
-
-        window.prev = () => {
-            if (appConfig.isGuest) {
-                showToast("Solo puedes reproducir esta canción", 'info');
-                return;
-            }
-            
-            if (appConfig.currentIndex > 0) {
-                appConfig.currentIndex--;
-                playSong(appConfig.tempPlaylist[appConfig.currentIndex]);
-            } else {
-                showToast("Primera canción", 'info');
-            }
-        };
-
-        window.next = () => {
-            if (appConfig.isGuest) {
-                showToast("Solo puedes reproducir esta canción", 'info');
-                return;
-            }
-            
-            if (appConfig.isShuffle) {
-                const randomIndex = Math.floor(Math.random() * appConfig.tempPlaylist.length);
-                appConfig.currentIndex = randomIndex;
-                playSong(appConfig.tempPlaylist[randomIndex]);
-            } else if (appConfig.currentIndex < appConfig.tempPlaylist.length - 1) {
-                appConfig.currentIndex++;
-                playSong(appConfig.tempPlaylist[appConfig.currentIndex]);
-            } else if (appConfig.isRepeat) {
-                appConfig.currentIndex = 0;
-                playSong(appConfig.tempPlaylist[0]);
-            } else {
-                showToast("Última canción", 'info');
-            }
-        };
-
-        window.openFullScreenPlayer = function() {
-            if (!appConfig.currentSong) return;
-            
-            document.getElementById('view-guest-player').style.display = 'flex';
-            const mainPlayer = document.getElementById('mainPlayer');
-            if (mainPlayer) mainPlayer.classList.add('hidden');
-            
-            document.getElementById('guestTitle').textContent = appConfig.currentSong.title;
-            document.getElementById('guestArtist').textContent = appConfig.currentSong.genre;
-            document.getElementById('guestCover').style.backgroundImage = `url('${getSongArt(appConfig.currentSong)}')`;
-            
-            const area = document.querySelector('.guest-info-area');
-            area.querySelectorAll('.progress-container').forEach(e => e.remove());
-            
-            const d = document.createElement('div');
-            d.className = 'progress-container';
-            d.innerHTML = `
-                <span id="expCurTime" class="time-display">0:00</span>
-                <input type="range" id="expandedSeekSlider" value="0" max="100">
-                <span id="expTotTime" class="time-display">0:00</span>
-            `;
-            area.appendChild(d);
-            
-            document.getElementById('expandedSeekSlider').addEventListener('input', seekAudio);
-            
-            const ctrls = document.querySelector('.guest-controls-main');
-            ctrls.innerHTML = `
-                <span class="material-icons-round btn-guest-action" onclick="toggleShuffle()" style="font-size:1.3rem;">shuffle</span>
-                <span class="material-icons-round btn-guest-action" style="font-size:2.5rem" onclick="prev()">skip_previous</span>
-                <span class="material-icons-round btn-guest-action" id="iconPlayBig" style="font-size:3.5rem" onclick="toggle_play()">pause</span>
-                <span class="material-icons-round btn-guest-action" style="font-size:2.5rem" onclick="next()">skip_next</span>
-                <span class="material-icons-round btn-guest-action" onclick="toggleRepeat()" style="font-size:1.3rem;">repeat</span>
-            `;
-        };
-
-        window.closeFullScreenPlayer = function() {
-            document.getElementById('view-guest-player').style.display = 'none';
-            const mainPlayer = document.getElementById('mainPlayer');
-            if (mainPlayer) mainPlayer.classList.remove('hidden');
-        };
-
-        window.closeGuestMode = function() {
-            if (appConfig.isGuest) {
-                if (confirm("¿Deseas iniciar sesión en MusiChris?")) {
-                    // Usuario quiere ir al login
-                    if (dom.audioElement) {
-                        dom.audioElement.pause();
-                    }
-                    document.getElementById('view-guest-player').style.display = 'none';
-                    document.getElementById('view-login').style.display = 'flex';
-                    appConfig.isGuest = false;
-                    appConfig.currentSong = null;
-                }
-                // Si dice "No", no hace nada y se queda en el modo invitado
-            } else {
-                closeFullScreenPlayer();
-            }
-        };
-
-        window.closePlayer = function() {
-            const mainPlayer = document.getElementById('mainPlayer');
-            if (mainPlayer) {
-                mainPlayer.style.display = 'none';
                 mainPlayer.classList.remove('hidden');
             }
             
@@ -1016,13 +843,14 @@ sel.value = song.album || "";
             document.getElementById('upGenre').value = '';
             document.getElementById('upUrl').value = '';
             
+            // FIX: Poblar select de álbumes correctamente
             const sel = document.getElementById('upAlbum');
             sel.innerHTML = '<option value="">Sin Álbum</option>';
-            if (appConfig.data.albums) {
+            if (appConfig.data && appConfig.data.albums && appConfig.data.albums.length > 0) {
                 appConfig.data.albums.forEach(a => {
                     const opt = document.createElement('option');
-                    opt.value = a.title;
-                    opt.textContent = a.title;
+                    opt.value = a.title || a.name;
+                    opt.textContent = a.title || a.name;
                     sel.appendChild(opt);
                 });
             }
@@ -1078,13 +906,14 @@ sel.value = song.album || "";
             document.getElementById('upGenre').value = song.genre;
             document.getElementById('upUrl').value = song.url || '';
             
+            // FIX: Poblar select de álbumes correctamente al editar
             const sel = document.getElementById('upAlbum');
             sel.innerHTML = '<option value="">Sin Álbum</option>';
-            if (appConfig.data.albums) {
+            if (appConfig.data && appConfig.data.albums && appConfig.data.albums.length > 0) {
                 appConfig.data.albums.forEach(a => {
                     const opt = document.createElement('option');
-                    opt.value = a.title;
-                    opt.textContent = a.title;
+                    opt.value = a.title || a.name;
+                    opt.textContent = a.title || a.name;
                     sel.appendChild(opt);
                 });
             }
@@ -1662,8 +1491,171 @@ sel.value = song.album || "";
         });
     </script>
 </body>
-</html>
+</html>('hidden');
+            }
+            
+            const art = getSongArt(song);
+            
+            if (document.getElementById('pTitle')) 
+                document.getElementById('pTitle').textContent = song.title;
+            if (document.getElementById('pArtist')) 
+                document.getElementById('pArtist').textContent = song.genre;
+            if (document.getElementById('pCoverMini')) 
+                document.getElementById('pCoverMini').src = art;
+            
+            updateLikeIcon();
+            
+            if (dom.audioElement && song.url) {
+                dom.audioElement.pause();
+                dom.audioElement.src = song.url;
+                dom.audioElement.load();
+                
+                dom.audioElement.play()
+                    .then(() => {
+                        console.log('Playing...');
+                        togglePlayIcon(true);
+                    })
+                    .catch(err => {
+                        console.error('Play error:', err);
+                        showToast("Error al reproducir", 'error');
+                        togglePlayIcon(false);
+                    });
+            }
+            
+            const idx = appConfig.data.songs.findIndex(s => s.id === song.id);
+            if (idx !== -1) {
+                if (!appConfig.data.songs[idx].plays) appConfig.data.songs[idx].plays = 0;
+                appConfig.data.songs[idx].plays++;
+                saveDataSilent();
+            }
+        }
 
+        function togglePlayIcon(isPlaying) {
+            const txt = isPlaying ? 'pause' : 'play_arrow';
+            if (document.getElementById('iconPlay')) 
+                document.getElementById('iconPlay').textContent = txt;
+            const iconBig = document.getElementById('iconPlayBig');
+            if (iconBig) iconBig.textContent = txt;
+            const iconMin = document.getElementById('iconPlayMin');
+            if (iconMin) iconMin.textContent = txt;
+        }
+
+        window.toggle_play = () => {
+            if (!dom.audioElement) return;
+            if (dom.audioElement.paused) {
+                dom.audioElement.play().catch(err => console.error('Play error:', err));
+            } else {
+                dom.audioElement.pause();
+            }
+        };
+
+        window.toggleShuffle = () => {
+            appConfig.isShuffle = !appConfig.isShuffle;
+            showToast(appConfig.isShuffle ? "Aleatorio activado" : "Aleatorio desactivado", 'info');
+        };
+
+        window.toggleRepeat = () => {
+            appConfig.isRepeat = !appConfig.isRepeat;
+            showToast(appConfig.isRepeat ? "Repetir activado" : "Repetir desactivado", 'info');
+        };
+
+        window.prev = () => {
+            if (appConfig.isGuest) {
+                showToast("Solo puedes reproducir esta canción", 'info');
+                return;
+            }
+            
+            if (appConfig.currentIndex > 0) {
+                appConfig.currentIndex--;
+                playSong(appConfig.tempPlaylist[appConfig.currentIndex]);
+            } else {
+                showToast("Primera canción", 'info');
+            }
+        };
+
+        window.next = () => {
+            if (appConfig.isGuest) {
+                showToast("Solo puedes reproducir esta canción", 'info');
+                return;
+            }
+            
+            if (appConfig.isShuffle) {
+                const randomIndex = Math.floor(Math.random() * appConfig.tempPlaylist.length);
+                appConfig.currentIndex = randomIndex;
+                playSong(appConfig.tempPlaylist[randomIndex]);
+            } else if (appConfig.currentIndex < appConfig.tempPlaylist.length - 1) {
+                appConfig.currentIndex++;
+                playSong(appConfig.tempPlaylist[appConfig.currentIndex]);
+            } else if (appConfig.isRepeat) {
+                appConfig.currentIndex = 0;
+                playSong(appConfig.tempPlaylist[0]);
+            } else {
+                showToast("Última canción", 'info');
+            }
+        };
+
+        window.openFullScreenPlayer = function() {
+            if (!appConfig.currentSong) return;
+            
+            document.getElementById('view-guest-player').style.display = 'flex';
+            const mainPlayer = document.getElementById('mainPlayer');
+            if (mainPlayer) mainPlayer.classList.add('hidden');
+            
+            document.getElementById('guestTitle').textContent = appConfig.currentSong.title;
+            document.getElementById('guestArtist').textContent = appConfig.currentSong.genre;
+            document.getElementById('guestCover').style.backgroundImage = `url('${getSongArt(appConfig.currentSong)}')`;
+            
+            const area = document.querySelector('.guest-info-area');
+            area.querySelectorAll('.progress-container').forEach(e => e.remove());
+            
+            const d = document.createElement('div');
+            d.className = 'progress-container';
+            d.innerHTML = `
+                <span id="expCurTime" class="time-display">0:00</span>
+                <input type="range" id="expandedSeekSlider" value="0" max="100">
+                <span id="expTotTime" class="time-display">0:00</span>
+            `;
+            area.appendChild(d);
+            
+            document.getElementById('expandedSeekSlider').addEventListener('input', seekAudio);
+            
+            const ctrls = document.querySelector('.guest-controls-main');
+            ctrls.innerHTML = `
+                <span class="material-icons-round btn-guest-action" onclick="toggleShuffle()" style="font-size:1.3rem;">shuffle</span>
+                <span class="material-icons-round btn-guest-action" style="font-size:2.5rem" onclick="prev()">skip_previous</span>
+                <span class="material-icons-round btn-guest-action" id="iconPlayBig" style="font-size:3.5rem" onclick="toggle_play()">pause</span>
+                <span class="material-icons-round btn-guest-action" style="font-size:2.5rem" onclick="next()">skip_next</span>
+                <span class="material-icons-round btn-guest-action" onclick="toggleRepeat()" style="font-size:1.3rem;">repeat</span>
+            `;
+        };
+
+        window.closeFullScreenPlayer = function() {
+            document.getElementById('view-guest-player').style.display = 'none';
+            const mainPlayer = document.getElementById('mainPlayer');
+            if (mainPlayer) mainPlayer.classList.remove('hidden');
+        };
+
+        window.closeGuestMode = function() {
+            if (appConfig.isGuest) {
+                if (confirm("¿Deseas iniciar sesión en MusiChris?")) {
+                    if (dom.audioElement) {
+                        dom.audioElement.pause();
+                    }
+                    document.getElementById('view-guest-player').style.display = 'none';
+                    document.getElementById('view-login').style.display = 'flex';
+                    appConfig.isGuest = false;
+                    appConfig.currentSong = null;
+                }
+            } else {
+                closeFullScreenPlayer();
+            }
+        };
+
+        window.closePlayer = function() {
+            const mainPlayer = document.getElementById('mainPlayer');
+            if (mainPlayer) {
+                mainPlayer.style.display = 'none';
+                mainPlayer.classList.remove
 
 
 
