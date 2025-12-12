@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -879,9 +880,17 @@
 
         window.closeGuestMode = function() {
             if (appConfig.isGuest) {
-                if (confirm("¿Salir del modo invitado?")) {
-                    window.location.href = window.location.origin + window.location.pathname;
+                if (confirm("¿Deseas iniciar sesión en MusiChris?")) {
+                    // Usuario quiere ir al login
+                    if (dom.audioElement) {
+                        dom.audioElement.pause();
+                    }
+                    document.getElementById('view-guest-player').style.display = 'none';
+                    document.getElementById('view-login').style.display = 'flex';
+                    appConfig.isGuest = false;
+                    appConfig.currentSong = null;
                 }
+                // Si dice "No", no hace nada y se queda en el modo invitado
             } else {
                 closeFullScreenPlayer();
             }
@@ -976,7 +985,7 @@
         window.shareCurrentSong = async function() {
             if (!appConfig.currentSong) return;
             const shareUrl = `${window.location.origin}${window.location.pathname}?s=${appConfig.currentSong.id}`;
-            const textMsg = `¡Tienes que escuchar esto! 🎧 Acabo de descubrir esta canción en MusiChris y es increíble. Se llama ${appConfig.currentSong.title}, te la recomiendo muchísimo: ${shareUrl}`;
+            const textMsg = `Encontré la canción ${appConfig.currentSong.title} en la app MusiChris. Te la recomiendo: ${shareUrl}`;
             
             try {
                 if (navigator.share) {
