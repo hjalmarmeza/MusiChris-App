@@ -78,16 +78,16 @@
         .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; }
         .btn-delete-user { background: var(--danger); width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        #view-guest-player { background: linear-gradient(180deg, #252535 0%, #151521 100%); display: none; flex-direction: column; padding: 20px; z-index: 5000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
-        .guest-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; width: 100%; max-width: 500px; margin: 0 auto; }
-        #guestCover { width: 75vw; height: 75vw; max-width: 350px; max-height: 350px; border-radius: 25px; background-size: cover; background-position: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
-        .guest-info-area { text-align: center; width: 100%; margin-bottom: 20px; }
-        .guest-info-area h2 { margin: 0 0 10px 0; font-size: 1.5rem; }
-        .guest-info-area p { margin: 0; color: #aaa; font-size: 1rem; }
-        .guest-controls-extra { display: flex; justify-content: space-around; width: 100%; }
-        .btn-guest-action { background: transparent; border: none; color: white; cursor: pointer; font-size: 1.8rem; }
-        .guest-controls-main { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 15px; }
-        #iconPlayBig { font-size: 4.5rem; }
+        #view-guest-player { background: linear-gradient(180deg, #252535 0%, #151521 100%); display: none; flex-direction: column; padding: 15px; z-index: 5000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
+        .guest-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 100%; max-width: 500px; margin: 0 auto; padding: 10px 0; }
+        #guestCover { width: 70vw; height: 70vw; max-width: 280px; max-height: 280px; border-radius: 20px; background-size: cover; background-position: center; box-shadow: 0 15px 40px rgba(0,0,0,0.6); margin: 10px 0; }
+        .guest-info-area { text-align: center; width: 100%; margin: 10px 0; }
+        .guest-info-area h2 { margin: 0 0 8px 0; font-size: 1.3rem; }
+        .guest-info-area p { margin: 0; color: #aaa; font-size: 0.95rem; }
+        .guest-controls-extra { display: flex; justify-content: space-around; width: 100%; margin: 10px 0; }
+        .btn-guest-action { background: transparent; border: none; color: white; cursor: pointer; font-size: 1.5rem; padding: 5px; }
+        .guest-controls-main { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 10px; margin: 10px 0; }
+        #iconPlayBig { font-size: 3.5rem; }
         
         .progress-container { width: 100%; margin: 15px 0; display: flex; align-items: center; gap: 10px; }
         input[type="range"] { flex: 1; height: 4px; border-radius: 5px; -webkit-appearance: none; background: #444; cursor: pointer; width: 100%; }
@@ -138,6 +138,23 @@
             #iconPlayMin { color: var(--accent); font-size: 2.8rem !important; }
             .bottom-player { padding: 0 20px !important; height: 85px !important; }
             .player-info { width: 55%; }
+            
+            /* Ajustes reproductor expandido móvil */
+            #guestCover { width: 65vw; height: 65vw; max-width: 240px; max-height: 240px; margin: 5px 0; }
+            .guest-info-area h2 { font-size: 1.1rem; }
+            .guest-info-area p { font-size: 0.85rem; }
+            .btn-guest-action { font-size: 1.3rem !important; padding: 3px; }
+            #iconPlayBig { font-size: 3rem !important; }
+            .guest-controls-main { padding: 0 5px; }
+            .guest-container { padding: 5px 0; }
+            #view-guest-player { padding: 10px; }
+        }
+        
+        @media (max-width: 375px) {
+            #guestCover { width: 60vw; height: 60vw; max-width: 200px; max-height: 200px; }
+            .guest-info-area h2 { font-size: 1rem; }
+            .btn-guest-action { font-size: 1.2rem !important; }
+            #iconPlayBig { font-size: 2.8rem !important; }
         }
     </style>
 </head>
@@ -288,10 +305,10 @@
     </div>
 
     <div id="view-guest-player">
-        <div style="display:flex; justify-content:space-between; width:100%; padding:10px;">
-            <span class="material-icons-round btn-guest-action" onclick="closeFullScreenPlayer()">keyboard_arrow_down</span>
-            <span style="color:#aaa; font-size:0.9rem; letter-spacing:1px;">REPRODUCIENDO</span>
-            <span class="material-icons-round btn-guest-action" onclick="openModal('dom_modal_eq')">graphic_eq</span>
+        <div style="display:flex; justify-content:space-between; width:100%; padding:5px 10px; align-items: center;">
+            <span class="material-icons-round btn-guest-action" onclick="closeGuestMode()" style="font-size:1.8rem;">keyboard_arrow_down</span>
+            <span style="color:#aaa; font-size:0.85rem; letter-spacing:1px;">REPRODUCIENDO</span>
+            <span class="material-icons-round btn-guest-action" onclick="openModal('dom_modal_eq')" style="font-size:1.5rem;">graphic_eq</span>
         </div>
         <div class="guest-container">
             <div id="guestCover"></div>
@@ -304,7 +321,7 @@
                 <div id="guestLikeBtn" onclick="toggleLikeCurrent()">
                     <span class="material-icons-round btn-guest-action">favorite_border</span>
                 </div>
-                <span class="material-icons-round btn-guest-action">bedtime</span>
+                <span class="material-icons-round btn-guest-action" style="opacity:0.3;">bedtime</span>
             </div>
             <div class="guest-controls-main"></div>
         </div>
@@ -785,6 +802,11 @@
         };
 
         window.prev = () => {
+            if (appConfig.isGuest) {
+                showToast("Solo puedes reproducir esta canción", 'info');
+                return;
+            }
+            
             if (appConfig.currentIndex > 0) {
                 appConfig.currentIndex--;
                 playSong(appConfig.tempPlaylist[appConfig.currentIndex]);
@@ -794,6 +816,11 @@
         };
 
         window.next = () => {
+            if (appConfig.isGuest) {
+                showToast("Solo puedes reproducir esta canción", 'info');
+                return;
+            }
+            
             if (appConfig.isShuffle) {
                 const randomIndex = Math.floor(Math.random() * appConfig.tempPlaylist.length);
                 appConfig.currentIndex = randomIndex;
@@ -836,11 +863,11 @@
             
             const ctrls = document.querySelector('.guest-controls-main');
             ctrls.innerHTML = `
-                <span class="material-icons-round btn-guest-action" onclick="toggleShuffle()">shuffle</span>
-                <span class="material-icons-round btn-guest-action" style="font-size:3rem" onclick="prev()">skip_previous</span>
-                <span class="material-icons-round btn-guest-action" id="iconPlayBig" style="font-size:4.5rem" onclick="toggle_play()">pause</span>
-                <span class="material-icons-round btn-guest-action" style="font-size:3rem" onclick="next()">skip_next</span>
-                <span class="material-icons-round btn-guest-action" onclick="toggleRepeat()">repeat</span>
+                <span class="material-icons-round btn-guest-action" onclick="toggleShuffle()" style="font-size:1.3rem;">shuffle</span>
+                <span class="material-icons-round btn-guest-action" style="font-size:2.5rem" onclick="prev()">skip_previous</span>
+                <span class="material-icons-round btn-guest-action" id="iconPlayBig" style="font-size:3.5rem" onclick="toggle_play()">pause</span>
+                <span class="material-icons-round btn-guest-action" style="font-size:2.5rem" onclick="next()">skip_next</span>
+                <span class="material-icons-round btn-guest-action" onclick="toggleRepeat()" style="font-size:1.3rem;">repeat</span>
             `;
         };
 
@@ -848,6 +875,16 @@
             document.getElementById('view-guest-player').style.display = 'none';
             const mainPlayer = document.getElementById('mainPlayer');
             if (mainPlayer) mainPlayer.classList.remove('hidden');
+        };
+
+        window.closeGuestMode = function() {
+            if (appConfig.isGuest) {
+                if (confirm("¿Salir del modo invitado?")) {
+                    window.location.href = window.location.origin + window.location.pathname;
+                }
+            } else {
+                closeFullScreenPlayer();
+            }
         };
 
         window.closePlayer = function() {
@@ -893,6 +930,11 @@
         }
 
         window.toggleLikeCurrent = async function() {
+            if (appConfig.isGuest) {
+                showToast("Inicia sesión para agregar favoritos", 'info');
+                return;
+            }
+            
             if (!appConfig.currentSong || !appConfig.user) return;
             
             const song = appConfig.data.songs.find(s => s.id === appConfig.currentSong.id);
@@ -934,14 +976,13 @@
         window.shareCurrentSong = async function() {
             if (!appConfig.currentSong) return;
             const shareUrl = `${window.location.origin}${window.location.pathname}?s=${appConfig.currentSong.id}`;
-            const textMsg = `🎵 ${appConfig.currentSong.title}\n— En MusiChris App\n${shareUrl}`;
+            const textMsg = `¡Tienes que escuchar esto! 🎧 Acabo de descubrir esta canción en MusiChris y es increíble. Se llama ${appConfig.currentSong.title}, te la recomiendo muchísimo: ${shareUrl}`;
             
             try {
                 if (navigator.share) {
                     await navigator.share({
                         title: 'MusiChris',
-                        text: textMsg,
-                        url: shareUrl
+                        text: textMsg
                     });
                 } else {
                     await navigator.clipboard.writeText(textMsg);
@@ -1491,10 +1532,22 @@
         };
 
         function activateGuestMode() {
+            console.log('Activando modo invitado para canción:', appConfig.pendingSongId);
             const song = appConfig.data.songs.find(s => s.id === appConfig.pendingSongId);
             if (song) {
+                appConfig.tempPlaylist = [song];
+                appConfig.currentIndex = 0;
                 playSong(song);
                 openFullScreenPlayer();
+                
+                document.getElementById('view-login').style.display = 'none';
+                document.getElementById('view-admin').style.display = 'none';
+                document.getElementById('view-user').style.display = 'none';
+                
+                const mainPlayer = document.getElementById('mainPlayer');
+                if (mainPlayer) mainPlayer.style.display = 'none';
+            } else {
+                showToast("Canción no encontrada", 'error');
             }
         }
 
