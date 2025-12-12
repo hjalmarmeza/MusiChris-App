@@ -645,17 +645,27 @@
             const cfgApiKey = document.getElementById('cfgApiKey');
             if (cfgBinId) cfgBinId.value = PERMANENT_BIN_ID;
             if (cfgApiKey) cfgApiKey.value = PERMANENT_API_KEY;
-            
-            if (document.getElementById('userAnnouncement') && document.getElementById('announcementText') && appConfig.data.announcement) {
-                document.getElementById('userAnnouncement').style.display = 'block';
-                document.getElementById('announcementText').textContent = appConfig.data.announcement;
-            } else if (document.getElementById('userAnnouncement')) {
-                document.getElementById('userAnnouncement').style.display = 'none';
-            }
-        }
-
-        function renderSongList(id, songs) {
-            const c = document.getElementById(id);
+         window.openUpload = function() {
+    appConfig.editingSongId = null;
+    document.getElementById('modalUploadTitle').textContent = "Subir Canción";
+    document.getElementById('btnUploadSubmit').textContent = "Subir";
+    document.getElementById('upTitle').value = '';
+    document.getElementById('upGenre').value = '';
+    document.getElementById('upUrl').value = '';
+    
+    const sel = document.getElementById('upAlbum');
+    sel.innerHTML = '<option value="">Sin Álbum</option>';
+    if (appConfig.data && appConfig.data.albums) {
+        appConfig.data.albums.forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = a.title || a.name;
+            opt.textContent = a.title || a.name;
+            sel.appendChild(opt);
+        });
+    }
+    
+    openModal('dom_modal_upload');
+};
             if (!c) return;
             c.innerHTML = '';
             
@@ -707,21 +717,17 @@
                 const target = norm(song.album);
                 const album = appConfig.data.albums.find(a => 
                     norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name))
-                );
-                if (album) return getArt(album);
-            }
-            return DEFAULT_COVER;
-        }
-
-        function getArt(item) {
-            if (!item) return DEFAULT_COVER;
-            const url = item.cover || item.img || item.image || item.coverUrl;
-            return url || DEFAULT_COVER;
-        }
-
-        window.playSongId = function(id) {
-            const song = appConfig.data.songs.find(s => s.id === id);
-            if (song) playSong(song);
+           const sel = document.getElementById('upAlbum');
+sel.innerHTML = '<option value="">Sin Álbum</option>';
+if (appConfig.data && appConfig.data.albums) {
+    appConfig.data.albums.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.title || a.name;
+        opt.textContent = a.title || a.name;
+        sel.appendChild(opt);
+    });
+}
+sel.value = song.album || "";
         }
 
         function playSong(song) {
@@ -1657,6 +1663,7 @@
     </script>
 </body>
 </html>
+
 
 
 
