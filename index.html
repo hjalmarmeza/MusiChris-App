@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -55,17 +54,57 @@
         .announcement-box h3 { margin: 0 0 5px 0; font-size: 0.8rem; color: white; display: flex; align-items: center; gap: 5px; }
         .announcement-box p { margin: 0; color: #ccc; font-size: 0.9rem; font-weight: normal; }
 
-        .song-list-item { display: flex; align-items: center; padding: 10px; background: var(--secondary); margin-bottom: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.02); cursor: pointer; }
+        .song-list-item { display: flex; align-items: center; padding: 10px; background: var(--secondary); margin-bottom: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.02); cursor: pointer; position: relative; }
         .song-cover { width: 50px; height: 50px; border-radius: 10px; background-size: cover; background-position: center; margin-right: 15px; flex-shrink: 0; background-color: #333; position: relative; }
         .song-info { flex: 1; min-width: 0; }
         .song-title { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
         .song-artist { font-size: 0.8rem; color: #888; }
         .song-actions { display: flex; gap: 8px; align-items: center; }
         .btn-list-action { background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        /* Animación de barras para canción en reproducción */
+        .playing-indicator {
+            display: none;
+            align-items: flex-end;
+            height: 16px;
+            margin-left: 8px;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .playing-bar {
+            width: 3px;
+            background-color: rgba(247, 159, 31, 0.7);
+            margin: 0 1px;
+            border-radius: 1px;
+            animation: bar-animation 1.2s ease-in-out infinite;
+        }
+        
+        .playing-bar:nth-child(1) {
+            animation-delay: 0s;
+            height: 8px;
+        }
+        
+        .playing-bar:nth-child(2) {
+            animation-delay: 0.2s;
+            height: 12px;
+        }
+        
+        .playing-bar:nth-child(3) {
+            animation-delay: 0.4s;
+            height: 16px;
+        }
+        
+        @keyframes bar-animation {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
 
         .playlist-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         .collection-card { background: var(--secondary); border-radius: 18px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.03); position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-        .collection-cover { width: 200px; height: 200px; background-size: cover; background-position: center; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); background-color: #333; }
+        .collection-cover { width: 200px; height: 200px; background-size: cover; background-position: center; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); background-color: #333; position: relative; }
         .collection-card h4 { margin: 0 0 10px 0; font-size: 1.2rem; color: white; white-space: normal; }
         .album-admin-tools { display: flex; gap: 15px; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); width: 100%; justify-content: center; }
         .btn-alb-tool { width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; }
@@ -73,6 +112,45 @@
         .grad-1 { background: linear-gradient(135deg, #FF9F43 0%, #ff4757 100%); }
         .grad-2 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
         .grad-3 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        
+        /* Indicador de reproducción para álbumes */
+        .album-playing-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(247, 159, 31, 0.8);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            box-shadow: 0 0 10px rgba(247, 159, 31, 0.5);
+        }
+        
+        .album-playing-indicator .playing-bar {
+            width: 2px;
+            margin: 0 1px;
+            border-radius: 1px;
+            background-color: rgba(255, 255, 255, 0.9);
+            animation: bar-animation 1.2s ease-in-out infinite;
+        }
+        
+        .album-playing-indicator .playing-bar:nth-child(1) {
+            animation-delay: 0s;
+            height: 6px;
+        }
+        
+        .album-playing-indicator .playing-bar:nth-child(2) {
+            animation-delay: 0.2s;
+            height: 9px;
+        }
+        
+        .album-playing-indicator .playing-bar:nth-child(3) {
+            animation-delay: 0.4s;
+            height: 12px;
+        }
 
         .user-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--secondary); padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; }
         .user-info { display: flex; align-items: center; gap: 15px; }
@@ -321,7 +399,7 @@
                 <div id="guestLikeBtn" onclick="toggleLikeCurrent()">
                     <span class="material-icons-round btn-guest-action">favorite_border</span>
                 </div>
-                <span class="material-icons-round btn-guest-action" style="opacity:0.3;">bedtime</span>
+                <span class="material-icons-round btn-guest-action" onclick="activateSleepTimer()" id="sleepTimerBtn">bedtime</span>
             </div>
             <div class="guest-controls-main"></div>
         </div>
@@ -429,7 +507,7 @@
             <input type="text" id="editAlbArtist" class="form-input" placeholder="Artista">
             <div style="margin:10px 0; border:1px dashed #555; padding:10px; border-radius:10px;">
                 <label for="editAlbCoverFile" style="color:var(--accent); cursor:pointer;">📂 Cambiar Portada</label>
-                <input type="file" id="editAlbCoverFile" accept="image/*" onchange="previewFile(this, 'editAlbCover')">
+                    <input type="file" id="editAlbCoverFile" accept="image/*" onchange="previewFile(this, 'editAlbCover')">
             </div>
             <input type="text" id="editAlbCover" class="form-input" placeholder="URL Portada">
             <button class="btn-submit" onclick="doSaveEditAlbum()">Guardar</button>
@@ -471,11 +549,27 @@
             <button class="close-modal" onclick="closeModal('dom_modal_eq')" style="width:100%; padding:12px; border-radius:8px;">Cerrar</button>
         </div>
     </div>
+    
+    <!-- Modal de Sleep Timer -->
+    <div id="dom_modal_sleep_timer" class="modal-overlay">
+        <div class="modal-content" style="max-width:300px">
+            <button class="close-btn-x" onclick="closeModal('dom_modal_sleep_timer')">×</button>
+            <h3>⏰ Sleep Timer</h3>
+            <p style="text-align:center; color:#aaa; margin-bottom:20px;">La reproducción se detendrá automáticamente</p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn-submit" onclick="setSleepTimer(15)" style="background:rgba(247, 159, 31, 0.1); border:1px solid rgba(247, 159, 31, 0.3); color:#F79F1F;">15 minutos</button>
+                <button class="btn-submit" onclick="setSleepTimer(30)" style="background:rgba(247, 159, 31, 0.2); border:1px solid rgba(247, 159, 31, 0.4); color:#F79F1F;">30 minutos</button>
+                <button class="btn-submit" onclick="setSleepTimer(60)" style="background:rgba(247, 159, 31, 0.3); border:1px solid rgba(247, 159, 31, 0.5); color:#F79F1F;">60 minutos</button>
+                <button class="btn-submit" onclick="cancelSleepTimer()" style="background:transparent; border:1px solid #555; margin-top:10px;">Cancelar Timer</button>
+            </div>
+            <button class="close-modal" onclick="closeModal('dom_modal_sleep_timer')" style="width:100%; padding:12px; border-radius:8px; margin-top:15px;">Cerrar</button>
+        </div>
+    </div>
 
     <div id="customToast" class="customToast">Mensaje</div>
 
     <script>
-const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
+        const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
         const DEFAULT_COVER = "https://i.ibb.co/3WqP7tX/default-cover.png";
         const PERMANENT_BIN_ID = "69349a76ae596e708f880e31";
         const PERMANENT_API_KEY = "$2a$10$ME7fO8Oqq2iWhHkYQKGQsu0M6PqJ8d1ymFBxHVhhxFJ70BcAg1FZe";
@@ -496,7 +590,9 @@ const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
             editingSongId: null,
             isShuffle: false,
             isRepeat: false,
-            currentIndex: 0
+            currentIndex: 0,
+            sleepTimer: null,
+            sleepTimerEnd: null
         };
 
         const dom = {};
@@ -652,6 +748,9 @@ const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
             } else if (document.getElementById('userAnnouncement')) {
                 document.getElementById('userAnnouncement').style.display = 'none';
             }
+            
+            // Actualizar indicadores visuales de reproducción
+            updatePlayingIndicators();
         }
 
         function renderSongList(id, songs) {
@@ -662,6 +761,7 @@ const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
             songs.forEach((s) => {
                 const div = document.createElement('div');
                 div.className = 'song-list-item';
+                div.id = `song-item-${s.id}`;
                 const art = getSongArt(s);
                 
                 let adminBtns = '';
@@ -675,6 +775,16 @@ const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
                         </button>
                     `;
                 }
+                
+                // Crear indicador de reproducción
+                const playingIndicator = document.createElement('div');
+                playingIndicator.className = 'playing-indicator';
+                playingIndicator.id = `playing-indicator-${s.id}`;
+                playingIndicator.innerHTML = `
+                    <div class="playing-bar"></div>
+                    <div class="playing-bar"></div>
+                    <div class="playing-bar"></div>
+                `;
                 
                 div.innerHTML = `
                     <div class="song-cover" style="background-image:url('${art}')"></div>
@@ -690,6 +800,9 @@ const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
                     </div>
                 `;
                 
+                // Añadir el indicador de reproducción al div
+                div.appendChild(playingIndicator);
+                
                 div.onclick = (e) => {
                     if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
                     playSong(s);
@@ -697,6 +810,9 @@ const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
                 
                 c.appendChild(div);
             });
+            
+            // Actualizar indicadores después de renderizar
+            updatePlayingIndicators();
         }
 
         function getSongArt(song) {
@@ -773,6 +889,42 @@ const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
                 appConfig.data.songs[idx].plays++;
                 saveDataSilent();
             }
+            
+            // Actualizar indicadores visuales
+            updatePlayingIndicators();
+        }
+
+        function updatePlayingIndicators() {
+            // Ocultar todos los indicadores primero
+            document.querySelectorAll('.playing-indicator').forEach(indicator => {
+                indicator.style.display = 'none';
+            });
+            
+            document.querySelectorAll('.album-playing-indicator').forEach(indicator => {
+                indicator.style.display = 'none';
+            });
+            
+            // Mostrar indicador para la canción actual en la lista de canciones
+            if (appConfig.currentSong) {
+                const songIndicator = document.getElementById(`playing-indicator-${appConfig.currentSong.id}`);
+                if (songIndicator) {
+                    songIndicator.style.display = 'flex';
+                }
+                
+                // Mostrar indicador en álbumes si la canción actual pertenece a un álbum
+                if (appConfig.currentSong.album && appConfig.data && appConfig.data.albums) {
+                    const target = norm(appConfig.currentSong.album);
+                    appConfig.data.albums.forEach((album, index) => {
+                        const albumNorm = norm(album.title || album.name);
+                        if (albumNorm === target || target.includes(albumNorm) || albumNorm.includes(target)) {
+                            const albumIndicator = document.getElementById(`album-indicator-${index}`);
+                            if (albumIndicator) {
+                                albumIndicator.style.display = 'flex';
+                            }
+                        }
+                    });
+                }
+            }
         }
 
         function togglePlayIcon(isPlaying) {
@@ -838,7 +990,8 @@ const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
                 showToast("Última canción", 'info');
             }
         };
-window.openFullScreenPlayer = function() {
+
+        window.openFullScreenPlayer = function() {
             if (!appConfig.currentSong) return;
             
             document.getElementById('view-guest-player').style.display = 'flex';
@@ -1107,7 +1260,18 @@ window.openFullScreenPlayer = function() {
             albums.forEach((a, index) => {
                 const div = document.createElement('div');
                 div.className = 'collection-card';
+                div.id = `album-card-${index}`;
                 const art = getArt(a);
+                
+                // Crear indicador de reproducción para el álbum
+                const albumIndicator = document.createElement('div');
+                albumIndicator.className = 'album-playing-indicator';
+                albumIndicator.id = `album-indicator-${index}`;
+                albumIndicator.innerHTML = `
+                    <div class="playing-bar"></div>
+                    <div class="playing-bar"></div>
+                    <div class="playing-bar"></div>
+                `;
                 
                 let adminBtns = '';
                 if (appConfig.isAdmin) {
@@ -1125,6 +1289,10 @@ window.openFullScreenPlayer = function() {
                     ${adminBtns}
                 `;
                 
+                // Añadir el indicador de reproducción al álbum
+                const coverDiv = div.querySelector('.collection-cover');
+                coverDiv.appendChild(albumIndicator);
+                
                 div.onclick = (e) => {
                     if (e.target.tagName === 'BUTTON') return;
                     openAlbumDetail(a);
@@ -1132,6 +1300,9 @@ window.openFullScreenPlayer = function() {
                 
                 c.appendChild(div);
             });
+            
+            // Actualizar indicadores después de renderizar
+            updatePlayingIndicators();
         }
 
         function openAlbumDetail(album) {
@@ -1259,7 +1430,8 @@ window.openFullScreenPlayer = function() {
             
             openModal('dom_modal_pl_detail');
         }
-window.playCollection = () => {
+
+        window.playCollection = () => {
             if (appConfig.tempPlaylist && appConfig.tempPlaylist[0]) {
                 playSong(appConfig.tempPlaylist[0]);
                 closeModal('dom_modal_pl_detail');
@@ -1558,6 +1730,63 @@ window.playCollection = () => {
             }
         }
 
+        // *** FUNCIONES DEL SLEEP TIMER ***
+        window.activateSleepTimer = function() {
+            openModal('dom_modal_sleep_timer');
+        };
+
+        window.setSleepTimer = function(minutes) {
+            if (appConfig.sleepTimer) {
+                clearTimeout(appConfig.sleepTimer);
+            }
+            
+            const milliseconds = minutes * 60 * 1000;
+            appConfig.sleepTimerEnd = new Date(Date.now() + milliseconds);
+            
+            appConfig.sleepTimer = setTimeout(() => {
+                if (dom.audioElement && !dom.audioElement.paused) {
+                    dom.audioElement.pause();
+                    togglePlayIcon(false);
+                    showToast("Sleep Timer: Reproducción detenida", 'info');
+                }
+                appConfig.sleepTimer = null;
+                appConfig.sleepTimerEnd = null;
+                updateSleepTimerButton();
+                closeModal('dom_modal_sleep_timer');
+            }, milliseconds);
+            
+            showToast(`Sleep Timer activado: ${minutes} minutos`, 'success');
+            updateSleepTimerButton();
+            closeModal('dom_modal_sleep_timer');
+        };
+
+        window.cancelSleepTimer = function() {
+            if (appConfig.sleepTimer) {
+                clearTimeout(appConfig.sleepTimer);
+                appConfig.sleepTimer = null;
+                appConfig.sleepTimerEnd = null;
+                showToast("Sleep Timer cancelado", 'info');
+                updateSleepTimerButton();
+            } else {
+                showToast("No hay Sleep Timer activo", 'info');
+            }
+            closeModal('dom_modal_sleep_timer');
+        };
+
+        function updateSleepTimerButton() {
+            const sleepTimerBtn = document.getElementById('sleepTimerBtn');
+            if (!sleepTimerBtn) return;
+            
+            if (appConfig.sleepTimer && appConfig.sleepTimerEnd) {
+                const timeLeft = Math.max(0, Math.round((appConfig.sleepTimerEnd - Date.now()) / 60000));
+                sleepTimerBtn.style.color = '#F79F1F';
+                sleepTimerBtn.title = `Sleep Timer: ${timeLeft} min restantes`;
+            } else {
+                sleepTimerBtn.style.color = '';
+                sleepTimerBtn.title = 'Activar Sleep Timer';
+            }
+        }
+
         // *** INICIALIZACIÓN - PARTE MÁS IMPORTANTE ***
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🎵 MusiChris App iniciando...');
@@ -1575,17 +1804,25 @@ window.playCollection = () => {
             document.body.appendChild(dom.audioElement);
             
             // *** EVENTOS DEL AUDIO ***
-            dom.audioElement.addEventListener('play', () => togglePlayIcon(true));
-            dom.audioElement.addEventListener('pause', () => togglePlayIcon(false));
+            dom.audioElement.addEventListener('play', () => {
+                togglePlayIcon(true);
+                updatePlayingIndicators();
+            });
+            dom.audioElement.addEventListener('pause', () => {
+                togglePlayIcon(false);
+                updatePlayingIndicators();
+            });
             dom.audioElement.addEventListener('timeupdate', updateProgress);
             dom.audioElement.addEventListener('ended', () => {
                 togglePlayIcon(false);
+                updatePlayingIndicators();
                 next();
             });
             dom.audioElement.addEventListener('error', (e) => {
                 console.error("❌ Audio error:", e);
                 showToast("Error de audio", 'error');
                 togglePlayIcon(false);
+                updatePlayingIndicators();
             });
             
             const btnLoginBtn = document.getElementById('btnLoginBtn');
@@ -1658,4 +1895,3 @@ window.playCollection = () => {
     </script>
 </body>
 </html>
-
