@@ -54,13 +54,85 @@
         .announcement-box h3 { margin: 0 0 5px 0; font-size: 0.8rem; color: white; display: flex; align-items: center; gap: 5px; }
         .announcement-box p { margin: 0; color: #ccc; font-size: 0.9rem; font-weight: normal; }
 
-        .song-list-item { display: flex; align-items: center; padding: 10px; background: var(--secondary); margin-bottom: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.02); cursor: pointer; position: relative; }
-        .song-cover { width: 50px; height: 50px; border-radius: 10px; background-size: cover; background-position: center; margin-right: 15px; flex-shrink: 0; background-color: #333; position: relative; }
-        .song-info { flex: 1; min-width: 0; }
-        .song-title { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
-        .song-artist { font-size: 0.8rem; color: #888; }
-        .song-actions { display: flex; gap: 8px; align-items: center; }
-        .btn-list-action { background: rgba(255,255,255,0.1); border: none; width: 32px; height: 32px; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        /* IMPORTANTE: ALTURA FIJA PARA EVITAR REFLOWS */
+        .song-list-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 10px; 
+            background: var(--secondary); 
+            margin-bottom: 10px; 
+            border-radius: 14px; 
+            border: 1px solid rgba(255,255,255,0.02); 
+            cursor: pointer; 
+            position: relative;
+            height: 70px; /* ALTURA FIJA PARA EVITAR SALTOS */
+            min-height: 70px;
+            max-height: 70px;
+            overflow: hidden;
+        }
+        
+        .song-cover { 
+            width: 50px; 
+            height: 50px; 
+            border-radius: 10px; 
+            background-size: cover; 
+            background-position: center; 
+            margin-right: 15px; 
+            flex-shrink: 0; 
+            background-color: #333; 
+            position: relative;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="%23333"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'); /* Placeholder mientras carga */
+        }
+        
+        .song-info { 
+            flex: 1; 
+            min-width: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .song-title { 
+            font-weight: 600; 
+            font-size: 0.95rem; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            margin-bottom: 3px; 
+            line-height: 1.2;
+        }
+        
+        .song-artist { 
+            font-size: 0.8rem; 
+            color: #888; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+        
+        .song-actions { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+            flex-shrink: 0;
+            height: 100%;
+        }
+        
+        .btn-list-action { 
+            background: rgba(255,255,255,0.1); 
+            border: none; 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 50%; 
+            color: white; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-shrink: 0;
+        }
         
         /* Animación de barras para canción en reproducción */
         .playing-indicator {
@@ -152,7 +224,18 @@
             height: 12px;
         }
 
-        .user-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--secondary); padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; }
+        .user-list-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: var(--secondary); 
+            padding: 12px 20px; 
+            border-radius: 12px; 
+            margin-bottom: 10px; 
+            height: 60px; /* ALTURA FIJA */
+            min-height: 60px;
+        }
+        
         .user-info { display: flex; align-items: center; gap: 15px; }
         .user-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; }
         .btn-delete-user { background: var(--danger); width: 35px; height: 35px; border-radius: 8px; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -226,6 +309,25 @@
             .guest-controls-main { padding: 0 5px; }
             .guest-container { padding: 5px 0; }
             #view-guest-player { padding: 10px; }
+            
+            /* Ajustes de altura para móvil */
+            .song-list-item {
+                height: 65px;
+                min-height: 65px;
+                max-height: 65px;
+                padding: 8px;
+            }
+            
+            .song-cover {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .user-list-item {
+                height: 55px;
+                min-height: 55px;
+                padding: 10px 15px;
+            }
         }
         
         @media (max-width: 375px) {
@@ -233,6 +335,19 @@
             .guest-info-area h2 { font-size: 1rem; }
             .btn-guest-action { font-size: 1.2rem !important; }
             #iconPlayBig { font-size: 2.8rem !important; }
+            
+            .song-list-item {
+                height: 60px;
+                min-height: 60px;
+                max-height: 60px;
+                padding: 6px;
+            }
+            
+            .song-cover {
+                width: 40px;
+                height: 40px;
+                margin-right: 10px;
+            }
         }
     </style>
 </head>
@@ -259,7 +374,7 @@
                     <button class="btn-icon" onclick="openModal('dom_modal_announcement')"><span class="material-icons-round">campaign</span></button>
                     <button class="btn-icon" onclick="openModal('dom_modal_settings')"><span class="material-icons-round">settings</span></button>
                     <div class="user-profile" onclick="openProfile()">
-                        <img id="adminAvatar" src="" class="avatar">
+                        <img id="adminAvatar" src="" class="avatar" loading="lazy">
                         <span id="adminNameDisplay">Admin</span>
                     </div>
                     <button class="btn-icon btn-logout" onclick="app_logout()"><span class="material-icons-round">logout</span></button>
@@ -318,7 +433,7 @@
                 <div class="brand">Musi<span>Chris</span></div>
                 <div class="header-right">
                     <div class="user-profile" onclick="openProfile()">
-                        <img id="userAvatarImg" src="" class="avatar">
+                        <img id="userAvatarImg" src="" class="avatar" loading="lazy">
                         <span id="userGreeting">Hola</span>
                     </div>
                     <button class="btn-icon" onclick="app_logout()"><span class="material-icons-round">logout</span></button>
@@ -351,7 +466,7 @@
 
     <div id="mainPlayer" class="bottom-player" style="display:none;" onclick="openFullScreenPlayer()">
         <div class="player-info">
-            <img id="pCoverMini" src="" style="width:45px; height:45px; border-radius:8px; object-fit:cover; background:#333;">
+            <img id="pCoverMini" src="" style="width:45px; height:45px; border-radius:8px; object-fit:cover; background:#333;" loading="lazy">
             <div style="overflow:hidden;">
                 <h4 id="pTitle">Título</h4>
                 <p id="pArtist">Artista</p>
@@ -468,7 +583,7 @@
             <button class="close-btn-x" onclick="closeModal('dom_modal_profile')">×</button>
             <h3>Mi Perfil</h3>
             <div style="text-align:center;margin-bottom:15px;">
-                <img id="profilePreview" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);">
+                <img id="profilePreview" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);" loading="lazy">
                 <br>
                 <button style="background:transparent;border:1px solid #555;color:#ccc;padding:5px 10px;border-radius:15px;margin-top:10px;cursor:pointer;" onclick="changeAvatar()">Cambiar Avatar</button>
             </div>
@@ -507,7 +622,7 @@
             <input type="text" id="editAlbArtist" class="form-input" placeholder="Artista">
             <div style="margin:10px 0; border:1px dashed #555; padding:10px; border-radius:10px;">
                 <label for="editAlbCoverFile" style="color:var(--accent); cursor:pointer;">📂 Cambiar Portada</label>
-                    <input type="file" id="editAlbCoverFile" accept="image/*" onchange="previewFile(this, 'editAlbCover')">
+                <input type="file" id="editAlbCoverFile" accept="image/*" onchange="previewFile(this, 'editAlbCover')">
             </div>
             <input type="text" id="editAlbCover" class="form-input" placeholder="URL Portada">
             <button class="btn-submit" onclick="doSaveEditAlbum()">Guardar</button>
@@ -762,7 +877,9 @@
                 const div = document.createElement('div');
                 div.className = 'song-list-item';
                 div.id = `song-item-${s.id}`;
-                const art = getSongArt(s);
+                
+                // OBTENER IMAGEN OPTIMIZADA PARA MÓVIL
+                const art = getSongArtOptimized(s, 'list');
                 
                 let adminBtns = '';
                 if (appConfig.isAdmin) {
@@ -815,23 +932,43 @@
             updatePlayingIndicators();
         }
 
-        function getSongArt(song) {
+        // FUNCIÓN NUEVA: OBTENER IMAGEN OPTIMIZADA PARA MÓVIL
+        function getSongArtOptimized(song, context = 'list') {
             let art = song.cover || song.img || song.image;
-            if (art && !art.includes("imgbb") && !art.includes("image not found")) return art;
             
-            if (song.album && appConfig.data && appConfig.data.albums) {
-                const target = norm(song.album);
-                const album = appConfig.data.albums.find(a => 
-                    norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name))
-                );
-                if (album) return getArt(album);
+            // Si no hay imagen, usar default
+            if (!art || art === '' || art === 'null') {
+                return DEFAULT_COVER;
             }
-            return DEFAULT_COVER;
+            
+            // Si es URL de Cloudinary, optimizarla
+            if (art.includes('cloudinary.com') && art.includes('/upload/')) {
+                // Diferentes optimizaciones según el contexto
+                if (context === 'list') {
+                    // Para listas: imagen pequeña (50x50)
+                    // Cloudinary: w_50,h_50,c_fill,q_auto,f_auto
+                    art = art.replace('/upload/', '/upload/w_50,h_50,c_fill,q_auto,f_auto/');
+                } else if (context === 'player') {
+                    // Para reproductor: imagen mediana (200x200)
+                    art = art.replace('/upload/', '/upload/w_200,h_200,c_fill,q_auto,f_auto/');
+                } else if (context === 'album') {
+                    // Para álbumes: imagen grande (300x300)
+                    art = art.replace('/upload/', '/upload/w_300,h_300,c_fill,q_auto,f_auto/');
+                }
+            }
+            
+            return art;
         }
 
         function getArt(item) {
             if (!item) return DEFAULT_COVER;
             const url = item.cover || item.img || item.image || item.coverUrl;
+            
+            // Optimizar si es Cloudinary
+            if (url && url.includes('cloudinary.com') && url.includes('/upload/')) {
+                return url.replace('/upload/', '/upload/w_300,h_300,c_fill,q_auto,f_auto/');
+            }
+            
             return url || DEFAULT_COVER;
         }
 
@@ -854,7 +991,8 @@
                 mainPlayer.classList.remove('hidden');
             }
             
-            const art = getSongArt(song);
+            // USAR IMAGEN OPTIMIZADA PARA EL REPRODUCTOR
+            const art = getSongArtOptimized(song, 'player');
             
             if (document.getElementById('pTitle')) 
                 document.getElementById('pTitle').textContent = song.title;
@@ -1000,7 +1138,10 @@
             
             document.getElementById('guestTitle').textContent = appConfig.currentSong.title;
             document.getElementById('guestArtist').textContent = appConfig.currentSong.genre;
-            document.getElementById('guestCover').style.backgroundImage = `url('${getSongArt(appConfig.currentSong)}')`;
+            
+            // USAR IMAGEN OPTIMIZADA PARA EL REPRODUCTOR COMPLETO
+            const art = getSongArtOptimized(appConfig.currentSong, 'player');
+            document.getElementById('guestCover').style.backgroundImage = `url('${art}')`;
             
             const area = document.querySelector('.guest-info-area');
             area.querySelectorAll('.progress-container').forEach(e => e.remove());
@@ -1261,6 +1402,8 @@
                 const div = document.createElement('div');
                 div.className = 'collection-card';
                 div.id = `album-card-${index}`;
+                
+                // USAR IMAGEN OPTIMIZADA PARA ÁLBUMES
                 const art = getArt(a);
                 
                 // Crear indicador de reproducción para el álbum
@@ -1540,7 +1683,7 @@
                 div.className = 'user-list-item';
                 div.innerHTML = `
                     <div class="user-info">
-                        <img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover">
+                        <img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover" loading="lazy">
                         <span>${u.name}</span>
                         <span style="font-size:0.75rem; color:#888; margin-left:5px;">${u.role}</span>
                     </div>
