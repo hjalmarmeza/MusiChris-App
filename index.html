@@ -878,8 +878,8 @@
                 div.className = 'song-list-item';
                 div.id = `song-item-${s.id}`;
                 
-                // OBTENER IMAGEN OPTIMIZADA PARA MÓVIL
-                const art = getSongArtOptimized(s, 'list');
+                // USAR LA FUNCIÓN ORIGINAL getSongArt QUE BUSCA PORTADA DEL ÁLBUM
+                const art = getSongArt(s);
                 
                 let adminBtns = '';
                 if (appConfig.isAdmin) {
@@ -932,32 +932,54 @@
             updatePlayingIndicators();
         }
 
-        // FUNCIÓN NUEVA: OBTENER IMAGEN OPTIMIZADA PARA MÓVIL
-        function getSongArtOptimized(song, context = 'list') {
+        // FUNCIÓN ORIGINAL RESTAURADA - BUSCA PORTADA DEL ÁLBUM
+        function getSongArt(song) {
             let art = song.cover || song.img || song.image;
             
-            // Si no hay imagen, usar default
-            if (!art || art === '' || art === 'null') {
-                return DEFAULT_COVER;
+            // Si la canción tiene su propia portada, optimizarla para móvil
+            if (art && !art.includes("imgbb") && !art.includes("image not found")) {
+                return optimizeImageForMobile(art, 'list');
             }
             
-            // Si es URL de Cloudinary, optimizarla
-            if (art.includes('cloudinary.com') && art.includes('/upload/')) {
-                // Diferentes optimizaciones según el contexto
-                if (context === 'list') {
-                    // Para listas: imagen pequeña (50x50)
-                    // Cloudinary: w_50,h_50,c_fill,q_auto,f_auto
-                    art = art.replace('/upload/', '/upload/w_50,h_50,c_fill,q_auto,f_auto/');
-                } else if (context === 'player') {
-                    // Para reproductor: imagen mediana (200x200)
-                    art = art.replace('/upload/', '/upload/w_200,h_200,c_fill,q_auto,f_auto/');
-                } else if (context === 'album') {
-                    // Para álbumes: imagen grande (300x300)
-                    art = art.replace('/upload/', '/upload/w_300,h_300,c_fill,q_auto,f_auto/');
+            // Si no tiene portada propia, buscar en el álbum
+            if (song.album && appConfig.data && appConfig.data.albums) {
+                const target = norm(song.album);
+                const album = appConfig.data.albums.find(a => 
+                    norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name))
+                );
+                if (album) {
+                    const albumArt = getArt(album);
+                    return optimizeImageForMobile(albumArt, 'list');
                 }
             }
             
-            return art;
+            // Si no hay nada, usar default optimizada
+            return optimizeImageForMobile(DEFAULT_COVER, 'list');
+        }
+
+        // FUNCIÓN NUEVA: OPTIMIZAR IMAGEN PARA MÓVIL
+        function optimizeImageForMobile(imageUrl, context = 'list') {
+            if (!imageUrl) return DEFAULT_COVER;
+            
+            // Si es URL de Cloudinary, optimizarla
+            if (imageUrl.includes('cloudinary.com') && imageUrl.includes('/upload/')) {
+                // Diferentes optimizaciones según el contexto
+                if (context === 'list') {
+                    // Para listas: imagen pequeña (50x50)
+                    return imageUrl.replace('/upload/', '/upload/w_50,h_50,c_fill,q_auto,f_auto/');
+                } else if (context === 'player') {
+                    // Para reproductor: imagen mediana (200x200)
+                    return imageUrl.replace('/upload/', '/upload/w_200,h_200,c_fill,q_auto,f_auto/');
+                } else if (context === 'album') {
+                    // Para álbumes: imagen grande (300x300)
+                    return imageUrl.replace('/upload/', '/upload/w_300,h_300,c_fill,q_auto,f_auto/');
+                } else if (context === 'avatar') {
+                    // Para avatares: (34x34)
+                    return imageUrl.replace('/upload/', '/upload/w_34,h_34,c_fill,q_auto,f_auto/');
+                }
+            }
+            
+            return imageUrl;
         }
 
         function getArt(item) {
@@ -966,7 +988,7 @@
             
             // Optimizar si es Cloudinary
             if (url && url.includes('cloudinary.com') && url.includes('/upload/')) {
-                return url.replace('/upload/', '/upload/w_300,h_300,c_fill,q_auto,f_auto/');
+                return optimizeImageForMobile(url, 'album');
             }
             
             return url || DEFAULT_COVER;
@@ -991,8 +1013,8 @@
                 mainPlayer.classList.remove('hidden');
             }
             
-            // USAR IMAGEN OPTIMIZADA PARA EL REPRODUCTOR
-            const art = getSongArtOptimized(song, 'player');
+            // USAR LA MISMA FUNCIÓN getSongArt PARA MANTENER CONSISTENCIA
+            const art = getSongArt(song);
             
             if (document.getElementById('pTitle')) 
                 document.getElementById('pTitle').textContent = song.title;
@@ -1139,8 +1161,8 @@
             document.getElementById('guestTitle').textContent = appConfig.currentSong.title;
             document.getElementById('guestArtist').textContent = appConfig.currentSong.genre;
             
-            // USAR IMAGEN OPTIMIZADA PARA EL REPRODUCTOR COMPLETO
-            const art = getSongArtOptimized(appConfig.currentSong, 'player');
+            // USAR LA MISMA FUNCIÓN getSongArt PARA MANTENER CONSISTENCIA
+            const art = getSongArt(appConfig.currentSong);
             document.getElementById('guestCover').style.backgroundImage = `url('${art}')`;
             
             const area = document.querySelector('.guest-info-area');
@@ -1403,7 +1425,7 @@
                 div.className = 'collection-card';
                 div.id = `album-card-${index}`;
                 
-                // USAR IMAGEN OPTIMIZADA PARA ÁLBUMES
+                // USAR LA FUNCIÓN getArt QUE AHORA OPTIMIZA IMÁGENES
                 const art = getArt(a);
                 
                 // Crear indicador de reproducción para el álbum
@@ -1683,7 +1705,7 @@
                 div.className = 'user-list-item';
                 div.innerHTML = `
                     <div class="user-info">
-                        <img src="${u.avatar || DEFAULT_COVER}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover" loading="lazy">
+                        <img src="${optimizeImageForMobile(u.avatar || DEFAULT_COVER, 'avatar')}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover" loading="lazy">
                         <span>${u.name}</span>
                         <span style="font-size:0.75rem; color:#888; margin-left:5px;">${u.role}</span>
                     </div>
@@ -1763,14 +1785,14 @@
             
             document.getElementById('profileName').value = appConfig.user.name;
             document.getElementById('profileEmail').value = appConfig.user.email;
-            document.getElementById('profilePreview').src = appConfig.user.avatar || ADMIN_AVATAR;
+            document.getElementById('profilePreview').src = optimizeImageForMobile(appConfig.user.avatar || ADMIN_AVATAR, 'avatar');
             
             openModal('dom_modal_profile');
         };
 
         window.changeAvatar = function() {
             appConfig.user.avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.floor(Math.random() * 999)}`;
-            document.getElementById('profilePreview').src = appConfig.user.avatar;
+            document.getElementById('profilePreview').src = optimizeImageForMobile(appConfig.user.avatar, 'avatar');
         };
 
         window.do_save_profile = async function() {
@@ -2038,3 +2060,4 @@
     </script>
 </body>
 </html>
+
