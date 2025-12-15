@@ -1243,6 +1243,32 @@
             }
         }
 
+        // NUEVA FUNCIÓN: Actualizar interfaz del guest player
+        function updateGuestPlayerUI() {
+            if (!appConfig.currentSong) return;
+            
+            // Solo actualizar si el guest player está visible
+            const guestPlayer = document.getElementById('view-guest-player');
+            if (!guestPlayer || guestPlayer.style.display === 'none') return;
+            
+            // Actualizar elementos del guest player
+            if (document.getElementById('guestTitle')) 
+                document.getElementById('guestTitle').textContent = appConfig.currentSong.title;
+            if (document.getElementById('guestArtist')) 
+                document.getElementById('guestArtist').textContent = appConfig.currentSong.genre;
+            
+            // Actualizar portada (usando la función correcta para reproductor)
+            const art = getSongArtForPlayer(appConfig.currentSong);
+            if (document.getElementById('guestCover')) 
+                document.getElementById('guestCover').style.backgroundImage = `url('${art}')`;
+            
+            // Actualizar botón de like
+            updateLikeIcon();
+            
+            // Actualizar Media Session (ya se hace en playSong, pero por si acaso)
+            updateMediaSession(appConfig.currentSong);
+        }
+
         // FUNCIONES PWA
         function setupPWA() {
             console.log('🔧 Configurando PWA...');
@@ -2152,6 +2178,9 @@
             
             // Actualizar indicadores visuales
             updatePlayingIndicators();
+            
+            // ACTUALIZAR GUEST PLAYER SI ESTÁ VISIBLE
+            updateGuestPlayerUI();
         }
 
         // NUEVA FUNCIÓN: Actualizar estadísticas semanales
