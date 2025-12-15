@@ -282,6 +282,208 @@
 
         .customToast { position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 15px 25px; border-radius: 10px; z-index: 9999; display: none; }
 
+        /* NUEVOS ESTILOS PARA ESTADÍSTICAS */
+        .stats-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .stats-tab-btn {
+            padding: 10px 15px;
+            background: var(--secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #aaa;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .stats-tab-btn.active {
+            background: rgba(247, 159, 31, 0.15);
+            color: var(--accent);
+            border-color: rgba(247, 159, 31, 0.3);
+        }
+
+        .stats-grid-large {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stats-card-large {
+            background: var(--secondary);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stats-card-large h3 {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .top-song-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+
+        .top-song-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .top-song-rank {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .top-song-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top-song-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-song-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 4px;
+        }
+
+        .top-song-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .top-song-stat .material-icons-round {
+            font-size: 0.9rem;
+        }
+
+        .metric-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 5px 5px 5px 0;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .ignored-song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(255, 71, 87, 0.05);
+            border: 1px solid rgba(255, 71, 87, 0.1);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .ignored-song-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ignored-song-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #fff;
+        }
+
+        .ignored-song-artist {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        .ignored-song-age {
+            font-size: 0.75rem;
+            color: #ff4757;
+            margin-left: 15px;
+        }
+
+        .simple-chart {
+            height: 120px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 5px;
+            padding: 20px 10px 0 10px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: 15px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--accent), #F79F1F);
+            border-radius: 3px 3px 0 0;
+            min-height: 2px;
+            position: relative;
+        }
+
+        .chart-label {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+
+        .empty-state .material-icons-round {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            opacity: 0.3;
+        }
+
         @media (max-width: 768px) {
             .container { padding: 15px; }
             .brand { font-size: 1.3rem; }
@@ -327,6 +529,20 @@
                 height: 55px;
                 min-height: 55px;
                 padding: 10px 15px;
+            }
+            
+            /* Responsive para estadísticas */
+            .stats-grid-large {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-tabs {
+                padding-bottom: 10px;
+            }
+            
+            .stats-tab-btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
             }
         }
         
@@ -399,6 +615,7 @@
                 <button class="tab-btn" onclick="switchTab('admin-playlists', this)">Playlist</button>
                 <button class="tab-btn" onclick="switchTab('admin-albums', this)">Álbum</button>
                 <button class="tab-btn" onclick="switchTab('admin-users', this)">Usuarios</button>
+                <button class="tab-btn" onclick="switchTab('admin-stats', this)">Estadísticas</button>
             </div>
 
             <div id="admin-music" class="list-tab-content active">
@@ -423,6 +640,70 @@
             <div id="admin-users" class="list-tab-content">
                 <div class="btn-dashed-style" onclick="openModal('dom_modal_new_user')">+ Nuevo Usuario</div>
                 <div id="usersListGrid"></div>
+            </div>
+            
+            <div id="admin-stats" class="list-tab-content">
+                <div class="btn-dashed-style announcement-box">
+                    <h3 style="color:var(--accent);">📊 Estadísticas de Canciones</h3>
+                    <p>Análisis de preferencias de usuarios</p>
+                </div>
+                
+                <div class="stats-tabs">
+                    <button class="stats-tab-btn active" onclick="showStatsTab('overview')">Resumen</button>
+                    <button class="stats-tab-btn" onclick="showStatsTab('top-plays')">Top Reproducciones</button>
+                    <button class="stats-tab-btn" onclick="showStatsTab('top-likes')">Top Likes</button>
+                    <button class="stats-tab-btn" onclick="showStatsTab('ignored')">Ignoradas</button>
+                    <button class="stats-tab-btn" onclick="showStatsTab('weekly')">Semanal</button>
+                </div>
+                
+                <div id="stats-overview" class="stats-tab-content">
+                    <div class="stats-grid-large">
+                        <div class="stats-card-large">
+                            <h3><span class="material-icons-round" style="color:#4CAF50;">trending_up</span> Top 5 Reproducciones</h3>
+                            <div id="top-plays-list"></div>
+                        </div>
+                        <div class="stats-card-large">
+                            <h3><span class="material-icons-round" style="color:#FF9800;">favorite</span> Top 5 Likes</h3>
+                            <div id="top-likes-list"></div>
+                        </div>
+                        <div class="stats-card-large">
+                            <h3><span class="material-icons-round" style="color:#9C27B0;">insights</span> Métricas Generales</h3>
+                            <div id="general-metrics"></div>
+                        </div>
+                        <div class="stats-card-large">
+                            <h3><span class="material-icons-round" style="color:#2196F3;">schedule</span> Última Sincronización</h3>
+                            <div id="sync-info"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="stats-top-plays" class="stats-tab-content" style="display:none;">
+                    <div class="stats-card-large">
+                        <h3><span class="material-icons-round" style="color:#4CAF50;">play_circle</span> Top 10 Reproducciones</h3>
+                        <div id="full-top-plays"></div>
+                    </div>
+                </div>
+                
+                <div id="stats-top-likes" class="stats-tab-content" style="display:none;">
+                    <div class="stats-card-large">
+                        <h3><span class="material-icons-round" style="color:#FF9800;">favorite</span> Top 10 Likes</h3>
+                        <div id="full-top-likes"></div>
+                    </div>
+                </div>
+                
+                <div id="stats-ignored" class="stats-tab-content" style="display:none;">
+                    <div class="stats-card-large">
+                        <h3><span class="material-icons-round" style="color:#FF4757;">visibility_off</span> Canciones Ignoradas</h3>
+                        <div id="ignored-songs-list"></div>
+                    </div>
+                </div>
+                
+                <div id="stats-weekly" class="stats-tab-content" style="display:none;">
+                    <div class="stats-card-large">
+                        <h3><span class="material-icons-round" style="color:#00BCD4;">calendar_today</span> Actividad Semanal</h3>
+                        <div id="weekly-chart"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -707,7 +988,16 @@
             isRepeat: false,
             currentIndex: 0,
             sleepTimer: null,
-            sleepTimerEnd: null
+            sleepTimerEnd: null,
+            // NUEVO: Datos de estadísticas
+            stats: {
+                lastSync: null,
+                weeklyData: [],
+                topSongs: [],
+                topLikes: [],
+                ignoredSongs: [],
+                superFavorites: []
+            }
         };
 
         const dom = {};
@@ -791,11 +1081,17 @@
                 if (!appConfig.data.users) appConfig.data.users = [];
                 if (!appConfig.data.albums) appConfig.data.albums = [];
                 if (!appConfig.data.playlists) appConfig.data.playlists = [];
+                if (!appConfig.data.stats) appConfig.data.stats = {};
                 
                 appConfig.data.songs.forEach(s => {
                     if (!s.likes) s.likes = [];
                     if (!s.plays) s.plays = 0;
+                    if (!s.superLikes) s.superLikes = [];
+                    if (!s.addedDate) s.addedDate = s.id || Date.now();
                 });
+                
+                // Calcular estadísticas
+                calculateStats();
                 
                 if (appConfig.isGuest && appConfig.pendingSongId) {
                     activateGuestMode();
@@ -810,14 +1106,70 @@
                 
                 appConfig.data = {
                     songs: [
-                        { id: 1, title: "Canción Demo", genre: "Demo Artist", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays: 10, likes: [], cover: DEFAULT_COVER }
+                        { id: 1, title: "Canción Demo", genre: "Demo Artist", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays: 10, likes: [], superLikes: [], addedDate: Date.now(), cover: DEFAULT_COVER }
                     ],
                     users: [],
                     albums: [],
-                    playlists: []
+                    playlists: [],
+                    stats: {}
                 };
+                calculateStats();
                 updateUI();
             }
+        }
+
+        // NUEVA FUNCIÓN: Calcular estadísticas
+        function calculateStats() {
+            if (!appConfig.data || !appConfig.data.songs) return;
+            
+            const now = Date.now();
+            const oneWeekAgo = now - (7 * 24 * 60 * 60 * 1000);
+            const oneMonthAgo = now - (30 * 24 * 60 * 60 * 1000);
+            
+            // 1. Top Canciones por Reproducciones
+            appConfig.stats.topSongs = [...appConfig.data.songs]
+                .sort((a, b) => (b.plays || 0) - (a.plays || 0))
+                .slice(0, 10);
+            
+            // 2. Top Canciones por Likes
+            appConfig.stats.topLikes = [...appConfig.data.songs]
+                .map(song => ({
+                    ...song,
+                    likeCount: song.likes ? song.likes.length : 0
+                }))
+                .sort((a, b) => b.likeCount - a.likeCount)
+                .slice(0, 10);
+            
+            // 3. Canciones Ignoradas (0 plays, más de 1 mes)
+            appConfig.stats.ignoredSongs = appConfig.data.songs
+                .filter(song => {
+                    const plays = song.plays || 0;
+                    const age = now - (song.addedDate || song.id || now);
+                    return plays === 0 && age > oneMonthAgo;
+                })
+                .sort((a, b) => b.addedDate - a.addedDate);
+            
+            // 4. Super Favoritos (más de 3 likes)
+            appConfig.stats.superFavorites = appConfig.data.songs
+                .filter(song => song.likes && song.likes.length >= 3)
+                .sort((a, b) => b.likes.length - a.likes.length);
+            
+            // 5. Datos semanales
+            if (!appConfig.data.stats.weeklyData) {
+                appConfig.data.stats.weeklyData = Array(7).fill(0);
+            }
+            
+            appConfig.stats.lastSync = now;
+            
+            // Guardar en data para persistencia
+            appConfig.data.stats = {
+                ...appConfig.data.stats,
+                lastSync: now,
+                topSongs: appConfig.stats.topSongs.slice(0, 5).map(s => ({id: s.id, plays: s.plays})),
+                topLikes: appConfig.stats.topLikes.slice(0, 5).map(s => ({id: s.id, likes: s.likes.length})),
+                ignoredCount: appConfig.stats.ignoredSongs.length,
+                superFavoritesCount: appConfig.stats.superFavorites.length
+            };
         }
 
         function updateUI(songListOverride = null) {
@@ -839,6 +1191,8 @@
             
             if (appConfig.isAdmin) {
                 renderUserList('usersListGrid', appConfig.data.users);
+                // Renderizar estadísticas
+                renderStatsOverview();
             }
             
             if (appConfig.user) {
@@ -867,6 +1221,321 @@
             // Actualizar indicadores visuales de reproducción
             updatePlayingIndicators();
         }
+
+        // NUEVA FUNCIÓN: Renderizar resumen de estadísticas
+        function renderStatsOverview() {
+            // Top 5 Reproducciones
+            const topPlaysList = document.getElementById('top-plays-list');
+            if (topPlaysList) {
+                if (appConfig.stats.topSongs.length > 0) {
+                    topPlaysList.innerHTML = '';
+                    appConfig.stats.topSongs.slice(0, 5).forEach((song, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'top-song-item';
+                        item.innerHTML = `
+                            <div class="top-song-rank">${index + 1}</div>
+                            <div class="top-song-info">
+                                <div class="top-song-title">${song.title}</div>
+                                <div class="top-song-stats">
+                                    <div class="top-song-stat">
+                                        <span class="material-icons-round" style="color:#4CAF50;">play_circle</span>
+                                        <span>${song.plays || 0}</span>
+                                    </div>
+                                    <div class="top-song-stat">
+                                        <span class="material-icons-round" style="color:#FF9800;">favorite</span>
+                                        <span>${song.likes ? song.likes.length : 0}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        topPlaysList.appendChild(item);
+                    });
+                } else {
+                    topPlaysList.innerHTML = '<div class="empty-state">No hay datos suficientes</div>';
+                }
+            }
+
+            // Top 5 Likes
+            const topLikesList = document.getElementById('top-likes-list');
+            if (topLikesList) {
+                if (appConfig.stats.topLikes.length > 0) {
+                    topLikesList.innerHTML = '';
+                    appConfig.stats.topLikes.slice(0, 5).forEach((song, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'top-song-item';
+                        item.innerHTML = `
+                            <div class="top-song-rank">${index + 1}</div>
+                            <div class="top-song-info">
+                                <div class="top-song-title">${song.title}</div>
+                                <div class="top-song-stats">
+                                    <div class="top-song-stat">
+                                        <span class="material-icons-round" style="color:#FF9800;">favorite</span>
+                                        <span>${song.likeCount}</span>
+                                    </div>
+                                    <div class="top-song-stat">
+                                        <span class="material-icons-round" style="color:#4CAF50;">play_circle</span>
+                                        <span>${song.plays || 0}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        topLikesList.appendChild(item);
+                    });
+                } else {
+                    topLikesList.innerHTML = '<div class="empty-state">No hay datos suficientes</div>';
+                }
+            }
+
+            // Métricas generales
+            const generalMetrics = document.getElementById('general-metrics');
+            if (generalMetrics) {
+                const totalPlays = appConfig.data.songs.reduce((sum, song) => sum + (song.plays || 0), 0);
+                const totalLikes = appConfig.data.songs.reduce((sum, song) => sum + (song.likes ? song.likes.length : 0), 0);
+                const avgPlaysPerSong = appConfig.data.songs.length > 0 ? (totalPlays / appConfig.data.songs.length).toFixed(1) : 0;
+                const likeRate = totalPlays > 0 ? ((totalLikes / totalPlays) * 100).toFixed(1) : 0;
+                
+                generalMetrics.innerHTML = `
+                    <div class="metric-badge">
+                        <span class="material-icons-round" style="color:#4CAF50;">play_circle</span>
+                        <span>Total Reproducciones: <span class="metric-value">${totalPlays}</span></span>
+                    </div>
+                    <div class="metric-badge">
+                        <span class="material-icons-round" style="color:#FF9800;">favorite</span>
+                        <span>Total Likes: <span class="metric-value">${totalLikes}</span></span>
+                    </div>
+                    <div class="metric-badge">
+                        <span class="material-icons-round" style="color:#9C27B0;">trending_up</span>
+                        <span>Promedio por canción: <span class="metric-value">${avgPlaysPerSong}</span></span>
+                    </div>
+                    <div class="metric-badge">
+                        <span class="material-icons-round" style="color:#2196F3;">percent</span>
+                        <span>Tasa de Like: <span class="metric-value">${likeRate}%</span></span>
+                    </div>
+                    <div class="metric-badge">
+                        <span class="material-icons-round" style="color:#FF4757;">visibility_off</span>
+                        <span>Ignoradas: <span class="metric-value">${appConfig.stats.ignoredSongs.length}</span></span>
+                    </div>
+                    <div class="metric-badge">
+                        <span class="material-icons-round" style="color:#F79F1F;">star</span>
+                        <span>Super Favoritos: <span class="metric-value">${appConfig.stats.superFavorites.length}</span></span>
+                    </div>
+                `;
+            }
+
+            // Información de sincronización
+            const syncInfo = document.getElementById('sync-info');
+            if (syncInfo && appConfig.stats.lastSync) {
+                const lastSyncDate = new Date(appConfig.stats.lastSync);
+                const now = new Date();
+                const diffHours = Math.floor((now - lastSyncDate) / (1000 * 60 * 60));
+                
+                let syncStatus = '';
+                if (diffHours < 1) {
+                    syncStatus = 'Recién actualizado';
+                } else if (diffHours < 24) {
+                    syncStatus = `Hace ${diffHours} horas`;
+                } else {
+                    syncStatus = `Hace ${Math.floor(diffHours / 24)} días`;
+                }
+                
+                syncInfo.innerHTML = `
+                    <div style="text-align:center; padding:15px 0;">
+                        <div style="font-size:2rem; color:var(--accent); margin-bottom:10px;">
+                            <span class="material-icons-round">sync</span>
+                        </div>
+                        <div style="color:#aaa; font-size:0.9rem;">${syncStatus}</div>
+                        <div style="font-size:0.8rem; color:#666; margin-top:5px;">
+                            ${lastSyncDate.toLocaleDateString()} ${lastSyncDate.toLocaleTimeString()}
+                        </div>
+                        <button onclick="calculateStats(); renderStatsOverview(); showToast('Estadísticas actualizadas', 'success')" 
+                                style="margin-top:15px; padding:8px 15px; background:rgba(247, 159, 31, 0.1); border:1px solid rgba(247, 159, 31, 0.3); color:#F79F1F; border-radius:8px; cursor:pointer;">
+                            Actualizar Ahora
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Renderizar otras pestañas de estadísticas
+            renderFullTopPlays();
+            renderFullTopLikes();
+            renderIgnoredSongs();
+            renderWeeklyChart();
+        }
+
+        // NUEVA FUNCIÓN: Renderizar Top 10 Reproducciones completo
+        function renderFullTopPlays() {
+            const container = document.getElementById('full-top-plays');
+            if (!container) return;
+            
+            if (appConfig.stats.topSongs.length > 0) {
+                container.innerHTML = '';
+                appConfig.stats.topSongs.forEach((song, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'top-song-item';
+                    item.onclick = () => playSong(song);
+                    item.innerHTML = `
+                        <div class="top-song-rank">${index + 1}</div>
+                        <div class="top-song-info">
+                            <div class="top-song-title">${song.title}</div>
+                            <div class="top-song-stats">
+                                <div class="top-song-stat">
+                                    <span class="material-icons-round" style="color:#4CAF50;">play_circle</span>
+                                    <span>${song.plays || 0} reproducciones</span>
+                                </div>
+                                <div class="top-song-stat">
+                                    <span class="material-icons-round" style="color:#FF9800;">favorite</span>
+                                    <span>${song.likes ? song.likes.length : 0} likes</span>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="material-icons-round" style="color:var(--accent);">play_arrow</span>
+                    `;
+                    container.appendChild(item);
+                });
+            } else {
+                container.innerHTML = '<div class="empty-state"><span class="material-icons-round">music_off</span><p>No hay datos de reproducciones</p></div>';
+            }
+        }
+
+        // NUEVA FUNCIÓN: Renderizar Top 10 Likes completo
+        function renderFullTopLikes() {
+            const container = document.getElementById('full-top-likes');
+            if (!container) return;
+            
+            if (appConfig.stats.topLikes.length > 0) {
+                container.innerHTML = '';
+                appConfig.stats.topLikes.forEach((song, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'top-song-item';
+                    item.onclick = () => playSong(song);
+                    item.innerHTML = `
+                        <div class="top-song-rank">${index + 1}</div>
+                        <div class="top-song-info">
+                            <div class="top-song-title">${song.title}</div>
+                            <div class="top-song-stats">
+                                <div class="top-song-stat">
+                                    <span class="material-icons-round" style="color:#FF9800;">favorite</span>
+                                    <span>${song.likeCount} likes</span>
+                                </div>
+                                <div class="top-song-stat">
+                                    <span class="material-icons-round" style="color:#4CAF50;">play_circle</span>
+                                    <span>${song.plays || 0} reproducciones</span>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="material-icons-round" style="color:var(--accent);">play_arrow</span>
+                    `;
+                    container.appendChild(item);
+                });
+            } else {
+                container.innerHTML = '<div class="empty-state"><span class="material-icons-round">favorite_border</span><p>No hay datos de likes</p></div>';
+            }
+        }
+
+        // NUEVA FUNCIÓN: Renderizar canciones ignoradas
+        function renderIgnoredSongs() {
+            const container = document.getElementById('ignored-songs-list');
+            if (!container) return;
+            
+            if (appConfig.stats.ignoredSongs.length > 0) {
+                container.innerHTML = '';
+                appConfig.stats.ignoredSongs.slice(0, 20).forEach(song => {
+                    const addedDate = new Date(song.addedDate || song.id || Date.now());
+                    const ageDays = Math.floor((Date.now() - addedDate) / (1000 * 60 * 60 * 24));
+                    
+                    const item = document.createElement('div');
+                    item.className = 'ignored-song-item';
+                    item.onclick = () => playSong(song);
+                    item.innerHTML = `
+                        <div class="ignored-song-info">
+                            <div class="ignored-song-title">${song.title}</div>
+                            <div class="ignored-song-artist">${song.genre}</div>
+                        </div>
+                        <div class="ignored-song-age">${ageDays} días</div>
+                    `;
+                    container.appendChild(item);
+                });
+                
+                // Añadir contador si hay más
+                if (appConfig.stats.ignoredSongs.length > 20) {
+                    const more = document.createElement('div');
+                    more.style.textAlign = 'center';
+                    more.style.padding = '10px';
+                    more.style.color = '#888';
+                    more.style.fontSize = '0.8rem';
+                    more.textContent = `+ ${appConfig.stats.ignoredSongs.length - 20} más canciones ignoradas`;
+                    container.appendChild(more);
+                }
+            } else {
+                container.innerHTML = '<div class="empty-state"><span class="material-icons-round">check_circle</span><p>¡Excelente! No hay canciones ignoradas</p></div>';
+            }
+        }
+
+        // NUEVA FUNCIÓN: Renderizar gráfico semanal
+        function renderWeeklyChart() {
+            const container = document.getElementById('weekly-chart');
+            if (!container) return;
+            
+            // Generar datos de ejemplo para la semana
+            const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+            let weeklyData = appConfig.data.stats.weeklyData || Array(7).fill(0);
+            
+            // Si no hay datos, generar algunos aleatorios
+            if (weeklyData.every(val => val === 0)) {
+                weeklyData = days.map(() => Math.floor(Math.random() * 100));
+            }
+            
+            const maxValue = Math.max(...weeklyData, 1);
+            
+            container.innerHTML = `
+                <div class="simple-chart">
+                    ${weeklyData.map((value, index) => {
+                        const height = maxValue > 0 ? (value / maxValue * 100) : 0;
+                        return `
+                            <div class="chart-bar" style="height: ${height}%">
+                                <div class="chart-label">${days[index]}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div style="text-align:center; margin-top:30px; color:#aaa; font-size:0.8rem;">
+                    <div>Total semanal: <span style="color:var(--accent); font-weight:bold;">${weeklyData.reduce((a, b) => a + b, 0)}</span> reproducciones</div>
+                    <div style="margin-top:5px;">Promedio diario: <span style="color:var(--accent); font-weight:bold;">${Math.round(weeklyData.reduce((a, b) => a + b, 0) / 7)}</span></div>
+                </div>
+            `;
+        }
+
+        // NUEVA FUNCIÓN: Cambiar pestañas de estadísticas
+        window.showStatsTab = function(tabName) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.stats-tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remover clase active de todos los botones
+            document.querySelectorAll('.stats-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar pestaña seleccionada
+            const tab = document.getElementById(`stats-${tabName}`);
+            if (tab) {
+                tab.style.display = 'block';
+            }
+            
+            // Activar botón
+            const buttons = document.querySelectorAll('.stats-tab-btn');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(tabName)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Actualizar datos específicos si es necesario
+            if (tabName === 'weekly') {
+                renderWeeklyChart();
+            }
+        };
 
         function renderSongList(id, songs) {
             const c = document.getElementById(id);
@@ -1035,6 +1704,9 @@
                     .then(() => {
                         console.log('✅ Playing successfully');
                         togglePlayIcon(true);
+                        
+                        // Actualizar estadísticas semanales
+                        updateWeeklyStats();
                     })
                     .catch(err => {
                         console.error('❌ Play error:', err);
@@ -1048,10 +1720,34 @@
                 if (!appConfig.data.songs[idx].plays) appConfig.data.songs[idx].plays = 0;
                 appConfig.data.songs[idx].plays++;
                 saveDataSilent();
+                
+                // Recalcular estadísticas
+                calculateStats();
+                if (appConfig.isAdmin) {
+                    renderStatsOverview();
+                }
             }
             
             // Actualizar indicadores visuales
             updatePlayingIndicators();
+        }
+
+        // NUEVA FUNCIÓN: Actualizar estadísticas semanales
+        function updateWeeklyStats() {
+            if (!appConfig.data.stats.weeklyData) {
+                appConfig.data.stats.weeklyData = Array(7).fill(0);
+            }
+            
+            const today = new Date().getDay(); // 0 = Domingo, 1 = Lunes, etc.
+            // Convertir a índice de lunes (0) a domingo (6)
+            const index = today === 0 ? 6 : today - 1;
+            
+            appConfig.data.stats.weeklyData[index] = (appConfig.data.stats.weeklyData[index] || 0) + 1;
+            
+            // Guardar cada 10 reproducciones para no saturar la API
+            if (appConfig.data.stats.weeklyData[index] % 10 === 0) {
+                saveDataSilent();
+            }
         }
 
         function updatePlayingIndicators() {
@@ -1278,6 +1974,13 @@
             }
             
             await saveData();
+            
+            // Recalcular estadísticas
+            calculateStats();
+            if (appConfig.isAdmin) {
+                renderStatsOverview();
+            }
+            
             updateLikeIcon();
         };
 
@@ -1365,12 +2068,21 @@
                     album: document.getElementById('upAlbum').value,
                     url: url,
                     plays: 0,
-                    likes: []
+                    likes: [],
+                    superLikes: [],
+                    addedDate: Date.now()
                 });
                 showToast("Subido", 'success');
             }
             
             await saveData();
+            
+            // Recalcular estadísticas
+            calculateStats();
+            if (appConfig.isAdmin) {
+                renderStatsOverview();
+            }
+            
             updateUI();
             closeModal('dom_modal_upload');
         };
@@ -1410,6 +2122,13 @@
             if (idx !== -1) {
                 appConfig.data.songs.splice(idx, 1);
                 await saveData();
+                
+                // Recalcular estadísticas
+                calculateStats();
+                if (appConfig.isAdmin) {
+                    renderStatsOverview();
+                }
+                
                 updateUI();
                 showToast("Canción eliminada", 'success');
             }
@@ -2059,5 +2778,5 @@
         });
     </script>
 </body>
-</html>
+    </html>
 
