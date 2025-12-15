@@ -1197,9 +1197,9 @@
             
             if (appConfig.user) {
                 if (document.getElementById('adminAvatar')) 
-                    document.getElementById('adminAvatar').src = appConfig.user.avatar || ADMIN_AVATAR;
+                    document.getElementById('adminAvatar').src = getOptimizedAvatar(appConfig.user.avatar || ADMIN_AVATAR);
                 if (document.getElementById('userAvatarImg')) 
-                    document.getElementById('userAvatarImg').src = appConfig.user.avatar || ADMIN_AVATAR;
+                    document.getElementById('userAvatarImg').src = getOptimizedAvatar(appConfig.user.avatar || ADMIN_AVATAR);
                 if (document.getElementById('adminNameDisplay')) 
                     document.getElementById('adminNameDisplay').textContent = appConfig.user.name;
                 if (document.getElementById('userGreeting')) 
@@ -1547,8 +1547,8 @@
                 div.className = 'song-list-item';
                 div.id = `song-item-${s.id}`;
                 
-                // USAR LA FUNCIÓN ORIGINAL getSongArt QUE BUSCA PORTADA DEL ÁLBUM
-                const art = getSongArt(s);
+                // FUNCIÓN CORREGIDA: Solo optimizar para listas
+                const art = getSongArtForList(s);
                 
                 let adminBtns = '';
                 if (appConfig.isAdmin) {
@@ -1601,11 +1601,11 @@
             updatePlayingIndicators();
         }
 
-        // FUNCIÓN ORIGINAL RESTAURADA - BUSCA PORTADA DEL ÁLBUM
-        function getSongArt(song) {
+        // FUNCIÓN CORREGIDA: Para listas de canciones - optimizar imagen
+        function getSongArtForList(song) {
             let art = song.cover || song.img || song.image;
             
-            // Si la canción tiene su propia portada, optimizarla para móvil
+            // Si la canción tiene su propia portada, optimizarla para lista
             if (art && !art.includes("imgbb") && !art.includes("image not found")) {
                 return optimizeImageForMobile(art, 'list');
             }
@@ -1617,49 +1617,87 @@
                     norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name))
                 );
                 if (album) {
-                    const albumArt = getArt(album);
-                    return optimizeImageForMobile(albumArt, 'list');
+                    const albumArt = getArtForList(album);
+                    return albumArt;
                 }
             }
             
-            // Si no hay nada, usar default optimizada
-            return optimizeImageForMobile(DEFAULT_COVER, 'list');
+            // Si no hay nada, usar default optimizada para lista
+            return DEFAULT_COVER;
         }
 
-        // FUNCIÓN NUEVA: OPTIMIZAR IMAGEN PARA MÓVIL
+        // FUNCIÓN CORREGIDA: Para reproductor - usar imagen original
+        function getSongArtForPlayer(song) {
+            let art = song.cover || song.img || song.image;
+            
+            // Si la canción tiene su propia portada, usar original
+            if (art && !art.includes("imgbb") && !art.includes("image not found")) {
+                return art; // SIN OPTIMIZAR para reproductor
+            }
+            
+            // Si no tiene portada propia, buscar en el álbum
+            if (song.album && appConfig.data && appConfig.data.albums) {
+                const target = norm(song.album);
+                const album = appConfig.data.albums.find(a => 
+                    norm(a.title || a.name).includes(target) || target.includes(norm(a.title || a.name))
+                );
+                if (album) {
+                    const albumArt = getArtForAlbum(album);
+                    return albumArt;
+                }
+            }
+            
+            // Si no hay nada, usar default
+            return DEFAULT_COVER;
+        }
+
+        // FUNCIÓN NUEVA: Optimizar imagen SOLO para contextos específicos
         function optimizeImageForMobile(imageUrl, context = 'list') {
             if (!imageUrl) return DEFAULT_COVER;
             
-            // Si es URL de Cloudinary, optimizarla
-            if (imageUrl.includes('cloudinary.com') && imageUrl.includes('/upload/')) {
-                // Diferentes optimizaciones según el contexto
-                if (context === 'list') {
-                    // Para listas: imagen pequeña (50x50)
-                    return imageUrl.replace('/upload/', '/upload/w_50,h_50,c_fill,q_auto,f_auto/');
-                } else if (context === 'player') {
-                    // Para reproductor: imagen mediana (200x200)
-                    return imageUrl.replace('/upload/', '/upload/w_200,h_200,c_fill,q_auto,f_auto/');
-                } else if (context === 'album') {
-                    // Para álbumes: imagen grande (300x300)
-                    return imageUrl.replace('/upload/', '/upload/w_300,h_300,c_fill,q_auto,f_auto/');
-                } else if (context === 'avatar') {
-                    // Para avatares: (34x34)
-                    return imageUrl.replace('/upload/', '/upload/w_34,h_34,c_fill,q_auto,f_auto/');
-                }
+            // Si NO es una URL de Cloudinary, retornar tal cual
+            if (!imageUrl.includes('cloudinary.com') || !imageUrl.includes('/upload/')) {
+                return imageUrl;
+            }
+            
+            // Diferentes optimizaciones según el contexto
+            if (context === 'list') {
+                // Para listas: imagen pequeña (50x50) con fill para cuadrados perfectos
+                return imageUrl.replace('/upload/', '/upload/w_50,h_50,c_fill,q_auto,f_auto/');
+            } else if (context === 'album') {
+                // Para álbumes: imagen mediana (300x300) manteniendo relación de aspecto
+                return imageUrl.replace('/upload/', '/upload/w_300,h_300,c_fit,q_auto,f_auto/');
+            } else if (context === 'avatar') {
+                // Para avatares: (80x80) con fill para círculos perfectos
+                return imageUrl.replace('/upload/', '/upload/w_80,h_80,c_fill,q_auto,f_auto/');
             }
             
             return imageUrl;
         }
 
+        // FUNCIÓN NUEVA: Para avatares optimizados
+        function getOptimizedAvatar(avatarUrl) {
+            return optimizeImageForMobile(avatarUrl, 'avatar');
+        }
+
+        // FUNCIÓN CORREGIDA: Para álbumes en lista
+        function getArtForList(item) {
+            if (!item) return DEFAULT_COVER;
+            const url = item.cover || item.img || item.image || item.coverUrl;
+            return optimizeImageForMobile(url, 'list');
+        }
+
+        // FUNCIÓN CORREGIDA: Para álbumes en vista de álbum
+        function getArtForAlbum(item) {
+            if (!item) return DEFAULT_COVER;
+            const url = item.cover || item.img || item.image || item.coverUrl;
+            return optimizeImageForMobile(url, 'album');
+        }
+
+        // FUNCIÓN ORIGINAL: Para obtener arte sin optimizar (para reproductor)
         function getArt(item) {
             if (!item) return DEFAULT_COVER;
             const url = item.cover || item.img || item.image || item.coverUrl;
-            
-            // Optimizar si es Cloudinary
-            if (url && url.includes('cloudinary.com') && url.includes('/upload/')) {
-                return optimizeImageForMobile(url, 'album');
-            }
-            
             return url || DEFAULT_COVER;
         }
 
@@ -1682,8 +1720,8 @@
                 mainPlayer.classList.remove('hidden');
             }
             
-            // USAR LA MISMA FUNCIÓN getSongArt PARA MANTENER CONSISTENCIA
-            const art = getSongArt(song);
+            // USAR LA FUNCIÓN CORREGIDA para reproductor (sin optimizar)
+            const art = getSongArtForPlayer(song);
             
             if (document.getElementById('pTitle')) 
                 document.getElementById('pTitle').textContent = song.title;
@@ -1857,8 +1895,8 @@
             document.getElementById('guestTitle').textContent = appConfig.currentSong.title;
             document.getElementById('guestArtist').textContent = appConfig.currentSong.genre;
             
-            // USAR LA MISMA FUNCIÓN getSongArt PARA MANTENER CONSISTENCIA
-            const art = getSongArt(appConfig.currentSong);
+            // USAR LA FUNCIÓN CORREGIDA para reproductor (sin optimizar)
+            const art = getSongArtForPlayer(appConfig.currentSong);
             document.getElementById('guestCover').style.backgroundImage = `url('${art}')`;
             
             const area = document.querySelector('.guest-info-area');
@@ -2144,8 +2182,8 @@
                 div.className = 'collection-card';
                 div.id = `album-card-${index}`;
                 
-                // USAR LA FUNCIÓN getArt QUE AHORA OPTIMIZA IMÁGENES
-                const art = getArt(a);
+                // USAR LA FUNCIÓN CORREGIDA para álbumes
+                const art = getArtForAlbum(a);
                 
                 // Crear indicador de reproducción para el álbum
                 const albumIndicator = document.createElement('div');
@@ -2424,7 +2462,7 @@
                 div.className = 'user-list-item';
                 div.innerHTML = `
                     <div class="user-info">
-                        <img src="${optimizeImageForMobile(u.avatar || DEFAULT_COVER, 'avatar')}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover" loading="lazy">
+                        <img src="${getOptimizedAvatar(u.avatar || DEFAULT_COVER)}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover" loading="lazy">
                         <span>${u.name}</span>
                         <span style="font-size:0.75rem; color:#888; margin-left:5px;">${u.role}</span>
                     </div>
@@ -2504,14 +2542,14 @@
             
             document.getElementById('profileName').value = appConfig.user.name;
             document.getElementById('profileEmail').value = appConfig.user.email;
-            document.getElementById('profilePreview').src = optimizeImageForMobile(appConfig.user.avatar || ADMIN_AVATAR, 'avatar');
+            document.getElementById('profilePreview').src = getOptimizedAvatar(appConfig.user.avatar || ADMIN_AVATAR);
             
             openModal('dom_modal_profile');
         };
 
         window.changeAvatar = function() {
             appConfig.user.avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.floor(Math.random() * 999)}`;
-            document.getElementById('profilePreview').src = optimizeImageForMobile(appConfig.user.avatar, 'avatar');
+            document.getElementById('profilePreview').src = getOptimizedAvatar(appConfig.user.avatar);
         };
 
         window.do_save_profile = async function() {
@@ -2778,5 +2816,5 @@
         });
     </script>
 </body>
-    </html>
+</html>
 
