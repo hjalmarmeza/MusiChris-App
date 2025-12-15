@@ -1,0 +1,29 @@
+﻿{
+  "name": "MusiChris",
+  "short_name": "MusiChris",
+  "description": "Reproductor de música MusiChris",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#151521",
+  "theme_color": "#151521",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/3WqP7tX/default-cover.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.ibb.co/3WqP7tX/default-cover.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.ibb.co/3WqP7tX/default-cover.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["music", "entertainment"]
+}
