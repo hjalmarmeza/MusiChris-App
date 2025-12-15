@@ -1045,7 +1045,7 @@
         </div>
     </div>
     
-    <!-- NUEVO MODAL PARA INSTALACIÓN iOS -->
+    <!-- NUEVO MODAL PARA INSTRUCCIONES iOS -->
     <div id="dom_modal_ios_install" class="modal-overlay">
         <div class="modal-content">
             <button class="close-btn-x" onclick="closeModal('dom_modal_ios_install')">×</button>
@@ -1101,6 +1101,7 @@
         const PERMANENT_BIN_ID = "69349a76ae596e708f880e31";
         const PERMANENT_API_KEY = "$2a$10$ME7fO8Oqq2iWhHkYQKGQsu0M6PqJ8d1ymFBxHVhhxFJ70BcAg1FZe";
         const ADMIN_AVATAR = "https://api.dicebear.com/7.x/avataaars/svg?seed=Chris";
+        const APP_LOGO = "https://i.ibb.co/3WqP7tX/default-cover.png"; // Logo de MusiChris para pantalla bloqueada
 
         let appConfig = {
             BIN_ID: PERMANENT_BIN_ID,
@@ -1132,6 +1133,115 @@
 
         const dom = {};
         const norm = (str) => (str || '').toString().toLowerCase().trim().replace(/\s+/g, ' ');
+
+        // FUNCIÓN PARA CONFIGURAR MEDIA SESSION (PANTALLA BLOQUEADA)
+        function setupMediaSession(song) {
+            if ('mediaSession' in navigator) {
+                console.log('🎵 Configurando Media Session para pantalla bloqueada...');
+                
+                // Configurar metadatos fijos de MusiChris
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: song ? song.title : 'MusiChris',
+                    artist: song ? song.genre : 'Reproductor de Música',
+                    album: 'MusiChris',
+                    artwork: [
+                        { src: APP_LOGO, sizes: '96x96', type: 'image/png' },
+                        { src: APP_LOGO, sizes: '128x128', type: 'image/png' },
+                        { src: APP_LOGO, sizes: '192x192', type: 'image/png' },
+                        { src: APP_LOGO, sizes: '256x256', type: 'image/png' },
+                        { src: APP_LOGO, sizes: '384x384', type: 'image/png' },
+                        { src: APP_LOGO, sizes: '512x512', type: 'image/png' }
+                    ]
+                });
+
+                // Configurar acciones del reproductor
+                navigator.mediaSession.setActionHandler('play', function() {
+                    if (dom.audioElement) {
+                        dom.audioElement.play();
+                        togglePlayIcon(true);
+                    }
+                });
+
+                navigator.mediaSession.setActionHandler('pause', function() {
+                    if (dom.audioElement) {
+                        dom.audioElement.pause();
+                        togglePlayIcon(false);
+                    }
+                });
+
+                navigator.mediaSession.setActionHandler('previoustrack', function() {
+                    prev();
+                });
+
+                navigator.mediaSession.setActionHandler('nexttrack', function() {
+                    next();
+                });
+
+                navigator.mediaSession.setActionHandler('seekbackward', function(details) {
+                    if (dom.audioElement) {
+                        dom.audioElement.currentTime = Math.max(dom.audioElement.currentTime - (details.seekOffset || 10), 0);
+                    }
+                });
+
+                navigator.mediaSession.setActionHandler('seekforward', function(details) {
+                    if (dom.audioElement) {
+                        dom.audioElement.currentTime = Math.min(
+                            dom.audioElement.currentTime + (details.seekOffset || 10), 
+                            dom.audioElement.duration
+                        );
+                    }
+                });
+
+                navigator.mediaSession.setActionHandler('seekto', function(details) {
+                    if (dom.audioElement && details.seekTime !== undefined) {
+                        dom.audioElement.currentTime = details.seekTime;
+                    }
+                });
+
+                // Actualizar estado de reproducción
+                if (dom.audioElement) {
+                    navigator.mediaSession.playbackState = dom.audioElement.paused ? 'paused' : 'playing';
+                    
+                    // Actualizar posición de reproducción
+                    if ('setPositionState' in navigator.mediaSession) {
+                        navigator.mediaSession.setPositionState({
+                            duration: dom.audioElement.duration || 0,
+                            playbackRate: dom.audioElement.playbackRate,
+                            position: dom.audioElement.currentTime || 0
+                        });
+                    }
+                }
+
+                console.log('✅ Media Session configurada para pantalla bloqueada');
+            }
+        }
+
+        // ACTUALIZAR MEDIA SESSION CUANDO CAMBIA LA CANCIÓN
+        function updateMediaSession(song) {
+            if ('mediaSession' in navigator) {
+                console.log('🔄 Actualizando Media Session...');
+                
+                // Siempre usar el logo de MusiChris en lugar de portada dinámica
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: song ? song.title : 'MusiChris',
+                    artist: song ? song.genre : 'Reproductor de Música',
+                    album: 'MusiChris',
+                    artwork: [
+                        { src: APP_LOGO, sizes: '96x96', type: 'image/png' },
+                        { src: APP_LOGO, sizes: '128x128', type: 'image/png' },
+                        { src: APP_LOGO, sizes: '192x192', type: 'image/png' },
+                        { src: APP_LOGO, sizes: '256x256', type: 'image/png' },
+                        { src: APP_LOGO, sizes: '384x384', type: 'image/png' },
+                        { src: APP_LOGO, sizes: '512x512', type: 'image/png' }
+                    ]
+                });
+                
+                // Actualizar estado de reproducción
+                if (dom.audioElement) {
+                    navigator.mediaSession.playbackState = dom.audioElement.paused ? 'paused' : 'playing';
+                }
+            }
+        }
 
         // FUNCIONES PWA
         function setupPWA() {
@@ -2000,6 +2110,9 @@
             
             updateLikeIcon();
             
+            // *** CONFIGURAR MEDIA SESSION PARA PANTALLA BLOQUEADA ***
+            setupMediaSession(song);
+            
             // *** PARTE CRÍTICA DEL AUDIO ***
             if (dom.audioElement && song.url) {
                 dom.audioElement.pause();
@@ -2010,6 +2123,9 @@
                     .then(() => {
                         console.log('✅ Playing successfully');
                         togglePlayIcon(true);
+                        
+                        // Actualizar Media Session
+                        updateMediaSession(song);
                         
                         // Actualizar estadísticas semanales
                         updateWeeklyStats();
@@ -2097,14 +2213,33 @@
             if (iconBig) iconBig.textContent = txt;
             const iconMin = document.getElementById('iconPlayMin');
             if (iconMin) iconMin.textContent = txt;
+            
+            // Actualizar Media Session
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+            }
         }
 
         window.toggle_play = () => {
             if (!dom.audioElement) return;
             if (dom.audioElement.paused) {
-                dom.audioElement.play().catch(err => console.error('Play error:', err));
+                dom.audioElement.play()
+                    .then(() => {
+                        togglePlayIcon(true);
+                        // Actualizar Media Session
+                        if ('mediaSession' in navigator) {
+                            navigator.mediaSession.playbackState = 'playing';
+                            updateMediaSession(appConfig.currentSong);
+                        }
+                    })
+                    .catch(err => console.error('Play error:', err));
             } else {
                 dom.audioElement.pause();
+                togglePlayIcon(false);
+                // Actualizar Media Session
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = 'paused';
+                }
             }
         };
 
@@ -2223,6 +2358,12 @@
             if (dom.audioElement) dom.audioElement.pause();
             appConfig.currentSong = null;
             closeFullScreenPlayer();
+            
+            // Limpiar Media Session
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = null;
+                navigator.mediaSession.playbackState = 'none';
+            }
         };
 
         function updateProgress() {
@@ -2241,6 +2382,15 @@
             if (expSlider) expSlider.value = pct;
             if (curTime) curTime.textContent = formatTime(au.currentTime);
             if (totTime) totTime.textContent = formatTime(au.duration);
+            
+            // Actualizar Media Session con posición actual
+            if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+                navigator.mediaSession.setPositionState({
+                    duration: au.duration,
+                    playbackRate: au.playbackRate,
+                    position: au.currentTime
+                });
+            }
         }
 
         function formatTime(seconds) {
@@ -3000,15 +3150,27 @@
             dom.audioElement.addEventListener('play', () => {
                 togglePlayIcon(true);
                 updatePlayingIndicators();
+                // Actualizar Media Session
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = 'playing';
+                }
             });
             dom.audioElement.addEventListener('pause', () => {
                 togglePlayIcon(false);
                 updatePlayingIndicators();
+                // Actualizar Media Session
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = 'paused';
+                }
             });
             dom.audioElement.addEventListener('timeupdate', updateProgress);
             dom.audioElement.addEventListener('ended', () => {
                 togglePlayIcon(false);
                 updatePlayingIndicators();
+                // Actualizar Media Session
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = 'none';
+                }
                 next();
             });
             dom.audioElement.addEventListener('error', (e) => {
@@ -3100,4 +3262,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
