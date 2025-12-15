@@ -4,6 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MusiChris App</title>
+    
+    <!-- META TAGS PARA PWA -->
+    <meta name="theme-color" content="#151521">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MusiChris">
+    <meta name="description" content="Reproductor de música MusiChris">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- ICONOS PARA IOS -->
+    <link rel="apple-touch-icon" href="https://i.ibb.co/3WqP7tX/default-cover.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="https://i.ibb.co/3WqP7tX/default-cover.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://i.ibb.co/3WqP7tX/default-cover.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="https://i.ibb.co/3WqP7tX/default-cover.png">
+    
+    <!-- MANIFEST PARA PWA -->
+    <link rel="manifest" href="manifest.json">
+    
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
     
@@ -484,6 +502,69 @@
             opacity: 0.3;
         }
 
+        /* NUEVOS ESTILOS PARA PWA INSTALACIÓN */
+        .pwa-install-btn {
+            background: rgba(247, 159, 31, 0.1);
+            border: 1px solid rgba(247, 159, 31, 0.3);
+            color: #F79F1F;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .pwa-install-btn:hover {
+            background: rgba(247, 159, 31, 0.2);
+        }
+        
+        .ios-instructions {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .ios-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .ios-step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        
+        .ios-step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .ios-screenshot {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
         @media (max-width: 768px) {
             .container { padding: 15px; }
             .brand { font-size: 1.3rem; }
@@ -801,7 +882,7 @@
         </div>
     </div>
 
-    <!-- MODALES -->
+    <!-- MODALES EXISTENTES -->
     <div id="dom_modal_upload" class="modal-overlay">
         <div class="modal-content">
             <button class="close-btn-x" onclick="closeModal('dom_modal_upload')">×</button>
@@ -891,6 +972,8 @@
             <input type="text" id="cfgBinId" class="form-input" disabled>
             <label style="color:#aaa; font-size:0.85rem;">API KEY:</label>
             <input type="password" id="cfgApiKey" class="form-input" disabled>
+            <!-- AÑADIR OPCIÓN PWA AQUÍ -->
+            <div id="pwaSettingsSection" style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1);"></div>
             <button class="btn-submit" onclick="closeModal('dom_modal_settings')">Cerrar</button>
         </div>
     </div>
@@ -961,10 +1044,58 @@
             <button class="close-modal" onclick="closeModal('dom_modal_sleep_timer')" style="width:100%; padding:12px; border-radius:8px; margin-top:15px;">Cerrar</button>
         </div>
     </div>
+    
+    <!-- NUEVO MODAL PARA INSTALACIÓN iOS -->
+    <div id="dom_modal_ios_install" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn-x" onclick="closeModal('dom_modal_ios_install')">×</button>
+            <h3>📱 Instalar en iPhone</h3>
+            <div class="ios-instructions">
+                <p style="color:#aaa; margin-bottom:20px;">Sigue estos pasos para añadir MusiChris a tu pantalla de inicio:</p>
+                
+                <div class="ios-steps">
+                    <div class="ios-step">
+                        <div class="ios-step-number">1</div>
+                        <div>Abre MusiChris en <strong>Safari</strong></div>
+                    </div>
+                    
+                    <div class="ios-step">
+                        <div class="ios-step-number">2</div>
+                        <div>Toca el ícono <span class="material-icons-round" style="vertical-align:middle; color:var(--accent);">ios_share</span> <strong>"Compartir"</strong></div>
+                    </div>
+                    
+                    <div class="ios-step">
+                        <div class="ios-step-number">3</div>
+                        <div>Desplaza hacia abajo y toca <strong>"Añadir a pantalla de inicio"</strong></div>
+                    </div>
+                    
+                    <div class="ios-step">
+                        <div class="ios-step-number">4</div>
+                        <div>Escribe "MusiChris" y toca <strong>"Añadir"</strong> en la esquina superior derecha</div>
+                    </div>
+                </div>
+                
+                <p style="color:#aaa; font-size:0.9rem; margin-top:20px; text-align:center;">
+                    ¡Listo! Ahora tendrás MusiChris como una app en tu pantalla de inicio.
+                </p>
+                
+                <button class="btn-submit" onclick="closeModal('dom_modal_ios_install')" style="margin-top:20px;">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div id="customToast" class="customToast">Mensaje</div>
 
     <script>
+        // VARIABLES GLOBALES PARA PWA
+        let deferredPrompt = null;
+        let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        let isAndroid = /android/i.test(navigator.userAgent);
+        let isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        let pwaInstallShown = false;
+        
         const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
         const DEFAULT_COVER = "https://i.ibb.co/3WqP7tX/default-cover.png";
         const PERMANENT_BIN_ID = "69349a76ae596e708f880e31";
@@ -989,7 +1120,6 @@
             currentIndex: 0,
             sleepTimer: null,
             sleepTimerEnd: null,
-            // NUEVO: Datos de estadísticas
             stats: {
                 lastSync: null,
                 weeklyData: [],
@@ -1003,6 +1133,142 @@
         const dom = {};
         const norm = (str) => (str || '').toString().toLowerCase().trim().replace(/\s+/g, ' ');
 
+        // FUNCIONES PWA
+        function setupPWA() {
+            console.log('🔧 Configurando PWA...');
+            console.log('📱 Detección:', { isIOS, isAndroid, isStandalone });
+            
+            // Registrar Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('✅ Service Worker registrado:', reg.scope))
+                    .catch(err => console.log('❌ Service Worker error:', err));
+            }
+            
+            // Detectar evento de instalación para Android
+            window.addEventListener('beforeinstallprompt', (e) => {
+                console.log('📲 Evento beforeinstallprompt detectado');
+                e.preventDefault();
+                deferredPrompt = e;
+                
+                // Solo mostrar si no está instalado y es Android
+                if (!isStandalone && isAndroid && !localStorage.getItem('pwaPromptRejected')) {
+                    // Mostrar después de 5 segundos (no intrusivo)
+                    setTimeout(() => {
+                        showPWAInstallOption();
+                    }, 5000);
+                }
+            });
+            
+            // Verificar si ya está instalado
+            if (isStandalone) {
+                console.log('✅ App ya instalada como PWA');
+                localStorage.setItem('pwaInstalled', 'true');
+            }
+            
+            // Actualizar sección de configuración cuando se abra
+            updatePWAInstallSection();
+            
+            // Mostrar opción discreta después de interacción
+            setupPWAInteractionListener();
+        }
+        
+        function showPWAInstallOption() {
+            if (pwaInstallShown || isStandalone || localStorage.getItem('pwaPromptRejected')) return;
+            
+            pwaInstallShown = true;
+            
+            // Crear notificación discreta
+            const toast = document.getElementById('customToast');
+            if (toast && !isIOS) {
+                toast.textContent = "💡 ¿Quieres instalar MusiChris como app? Ve a Configuración.";
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 4000);
+            }
+        }
+        
+        function setupPWAInteractionListener() {
+            // Contar interacciones del usuario
+            let interactionCount = 0;
+            const interactions = ['click', 'touchstart', 'play', 'like'];
+            
+            interactions.forEach(eventType => {
+                document.addEventListener(eventType, () => {
+                    interactionCount++;
+                    // Después de 3 interacciones, mostrar opción PWA
+                    if (interactionCount >= 3 && !pwaInstallShown && !isStandalone) {
+                        showPWAInstallOption();
+                    }
+                }, { once: false });
+            });
+        }
+        
+        function updatePWAInstallSection() {
+            const pwaSection = document.getElementById('pwaSettingsSection');
+            if (!pwaSection) return;
+            
+            pwaSection.innerHTML = '';
+            
+            if (isStandalone) {
+                pwaSection.innerHTML = `
+                    <h4 style="color:var(--accent); margin-bottom:10px;">✅ App Instalada</h4>
+                    <p style="color:#aaa; font-size:0.9rem;">MusiChris está instalada como aplicación en tu dispositivo.</p>
+                `;
+            } else if (isIOS) {
+                pwaSection.innerHTML = `
+                    <h4 style="margin-bottom:10px;">📱 Instalar en iPhone</h4>
+                    <p style="color:#aaa; font-size:0.9rem;">Añade MusiChris a tu pantalla de inicio para mejor experiencia.</p>
+                    <button class="pwa-install-btn" onclick="showIOSInstallInstructions()" style="margin-top:10px;">
+                        <span class="material-icons-round">smartphone</span>
+                        Ver Instrucciones
+                    </button>
+                `;
+            } else if (isAndroid && deferredPrompt) {
+                pwaSection.innerHTML = `
+                    <h4 style="margin-bottom:10px;">📱 Instalar App</h4>
+                    <p style="color:#aaa; font-size:0.9rem;">Instala MusiChris como aplicación para acceso rápido.</p>
+                    <button class="pwa-install-btn" onclick="installPWA()" style="margin-top:10px;">
+                        <span class="material-icons-round">install_mobile</span>
+                        Instalar Aplicación
+                    </button>
+                `;
+            } else {
+                pwaSection.innerHTML = `
+                    <h4 style="margin-bottom:10px;">📱 App Web</h4>
+                    <p style="color:#aaa; font-size:0.9rem;">Usa MusiChris desde tu navegador.</p>
+                `;
+            }
+        }
+        
+        async function installPWA() {
+            if (!deferredPrompt) {
+                showToast("Tu navegador no soporta instalación automática", 'info');
+                return;
+            }
+            
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                showToast("✅ App instalada correctamente", 'success');
+                localStorage.setItem('pwaInstalled', 'true');
+                isStandalone = true;
+                updatePWAInstallSection();
+            } else {
+                localStorage.setItem('pwaPromptRejected', 'true');
+                showToast("Instalación cancelada", 'info');
+            }
+            
+            deferredPrompt = null;
+        }
+        
+        function showIOSInstallInstructions() {
+            openModal('dom_modal_ios_install');
+        }
+        
+        // FUNCIONES EXISTENTES (se mantienen igual)
         function showToast(msg, type = 'info') {
             const toast = document.getElementById('customToast');
             if (toast) {
@@ -1118,7 +1384,6 @@
             }
         }
 
-        // NUEVA FUNCIÓN: Calcular estadísticas
         function calculateStats() {
             if (!appConfig.data || !appConfig.data.songs) return;
             
@@ -1220,6 +1485,9 @@
             
             // Actualizar indicadores visuales de reproducción
             updatePlayingIndicators();
+            
+            // Actualizar sección PWA
+            updatePWAInstallSection();
         }
 
         // NUEVA FUNCIÓN: Renderizar resumen de estadísticas
@@ -2720,6 +2988,9 @@
                 appConfig.isGuest = true;
             }
             
+            // *** CONFIGURAR PWA ***
+            setupPWA();
+            
             // *** CREAR ELEMENTO DE AUDIO ***
             dom.audioElement = document.createElement('audio');
             dom.audioElement.id = 'audioElement';
@@ -2814,7 +3085,19 @@
                 }
             }
         });
+        
+        // REGISTRAR SERVICE WORKER
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('✅ ServiceWorker registrado con éxito:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('❌ Error al registrar ServiceWorker:', error);
+                    });
+            });
+        }
     </script>
 </body>
-</html>
-
+    </html>
