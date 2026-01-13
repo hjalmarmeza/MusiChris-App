@@ -635,3 +635,13 @@ header {
     filter: brightness(1.1);
     transform: translateY(-2px);
 }
+
+/* Tab Content Visibility */
+.list-tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.list-tab-content.active {
+    display: block;
+}

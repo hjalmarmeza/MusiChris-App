@@ -105,8 +105,9 @@ function renderAlbumGrid(id, albums) {
                     <div class="playing-bar"></div><div class="playing-bar"></div><div class="playing-bar"></div>
                 </div>
             </div>
-            <h4>${a.name}</h4>
+            <h4>${a.name || a.title || 'Sin Título'}</h4>
             <p style="color:#888; font-size:0.85rem; margin:0;">${a.artist}</p>
+
             ${adminBtns}
         `;
 
