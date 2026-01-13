@@ -62,7 +62,14 @@ function switchTab(id, btn) {
     const container = parent.nextElementSibling.parentElement;
     container.querySelectorAll('.list-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+
+    // Si volvemos a la pestaña de música, mostramos todo
+    if (id === 'admin-music' || id === 'user-music') {
+        appConfig.currentFilter = null;
+        updateUI();
+    }
 }
+
 
 // --- ACCIONES DE CONTENIDO ---
 async function do_upload() {
@@ -194,16 +201,24 @@ function openAlbum(index) {
     const album = appConfig.data.albums[index];
     if (!album) return;
 
-    const albumSongs = appConfig.data.songs.filter(s => norm(s.album) === norm(album.name));
+    const albumName = album.name || album.title;
+    const albumSongs = appConfig.data.songs.filter(s => norm(s.album) === norm(albumName));
 
     if (albumSongs.length === 0) {
         showToast("Álbum vacío", 'info');
         return;
     }
 
+    // Cambiar a la pestaña de música para ver las canciones del álbum
+    const tabId = appConfig.isAdmin ? 'admin-music' : 'user-music';
+    const tabBtnSelector = appConfig.isAdmin ? '.view-section#view-admin .tab-btn' : '.view-section#view-user .tab-btn';
+    const musicBtn = document.querySelector(`${tabBtnSelector}[onclick*="${tabId}"]`);
+
+    if (musicBtn) switchTab(tabId, musicBtn);
+
     appConfig.tempPlaylist = albumSongs;
     updateUI(albumSongs);
-    showToast(`Mostrando álbum: ${album.name}`, 'info');
+    showToast(`Mostrando: ${albumName}`, 'info');
 }
 
 function updateLikeIcon() {

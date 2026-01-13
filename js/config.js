@@ -1,10 +1,10 @@
 // CONFIGURACIÓN GLOBAL Y ESTADO DE LA APLICACIÓN
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
-const DEFAULT_COVER = "https://i.ibb.co/3WqP7tX/default-cover.png";
+const DEFAULT_COVER = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=500&auto=format&fit=crop";
 const PERMANENT_BIN_ID = "69349a76ae596e708f880e31";
 const PERMANENT_API_KEY = "$2a$10$ME7fO8Oqq2iWhHkYQKGQsu0M6PqJ8d1ymFBxHVhhxFJ70BcAg1FZe";
 const ADMIN_AVATAR = "https://api.dicebear.com/7.x/avataaars/svg?seed=Chris";
-const APP_LOGO = "https://i.ibb.co/3WqP7tX/default-cover.png";
+const APP_LOGO = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=100&auto=format&fit=crop";
 
 // Estado de la Aplicación
 let appConfig = {
@@ -16,6 +16,7 @@ let appConfig = {
     isAdmin: false,
     currentSong: null,
     tempPlaylist: [],
+    currentFilter: null, // Para mantener el filtro (ej: álbum abierto) al actualizar
     editingAlbumIndex: null,
     pendingSongId: null,
     isGuest: false,
@@ -34,6 +35,7 @@ let appConfig = {
         superFavorites: []
     }
 };
+
 
 // Variables para PWA
 let deferredPrompt = null;

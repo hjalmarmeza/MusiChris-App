@@ -1,10 +1,11 @@
 ﻿// Service Worker básico para PWA
-const CACHE_NAME = 'musichris-v1';
+const CACHE_NAME = 'musichris-v2';
 const urlsToCache = [
   './',
   './index.html',
-  'https://i.ibb.co/3WqP7tX/default-cover.png'
+  './css/styles.css'
 ];
+
 
 
 self.addEventListener('install', event => {

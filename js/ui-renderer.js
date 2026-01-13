@@ -1,6 +1,10 @@
 // RENDERIZADO DE INTERFAZ Y COMPONENTES
 
 function updateUI(songListOverride = null) {
+    if (songListOverride) {
+        appConfig.currentFilter = songListOverride;
+    }
+
     if (document.getElementById('statsTotalSongs') && appConfig.data) {
         document.getElementById('statsTotalSongs').textContent = appConfig.data.songs.length;
     }
@@ -8,7 +12,7 @@ function updateUI(songListOverride = null) {
         document.getElementById('statsTotalUsers').textContent = appConfig.data.users.length;
     }
 
-    const songs = songListOverride || appConfig.data.songs;
+    const songs = appConfig.currentFilter || appConfig.data.songs;
     renderSongList(appConfig.isAdmin ? 'adminSongList' : 'userSongList', songs);
     renderAlbumGrid(appConfig.isAdmin ? 'adminAlbumGrid' : 'userAlbumGrid', appConfig.data.albums);
     renderSmartPlaylists(appConfig.isAdmin ? 'adminPlaylistGrid' : 'userPlaylistGrid');
@@ -40,6 +44,7 @@ function renderSongList(id, songs) {
         div.id = `song-item-${s.id}`;
 
         const art = getSongArtForList(s);
+        const artist = s.genre || s.artist || 'Artista Desconocido';
 
         let adminBtns = '';
         if (appConfig.isAdmin) {
@@ -57,7 +62,7 @@ function renderSongList(id, songs) {
             <div class="song-cover" style="background-image:url('${art}')"></div>
             <div class="song-info">
                 <div class="song-title">${s.title}</div>
-                <div class="song-artist">${s.genre}</div>
+                <div class="song-artist">${artist}</div>
             </div>
             <div class="song-actions">
                 <button class="btn-list-action" onclick="event.stopPropagation(); playSongId(${s.id})">
@@ -74,6 +79,7 @@ function renderSongList(id, songs) {
         c.appendChild(div);
     });
 }
+
 
 function renderAlbumGrid(id, albums) {
     const c = document.getElementById(id);
@@ -199,10 +205,26 @@ function openRecent() {
 }
 
 // Helpers para Imágenes
-function getSongArtForList(song) { return song.cover || DEFAULT_COVER; }
-function getSongArtForPlayer(song) { return song.cover || DEFAULT_COVER; }
-function getArtForAlbum(album) { return album.cover || DEFAULT_COVER; }
-function getOptimizedAvatar(url) { return url || ADMIN_AVATAR; }
+function getSongArtForList(song) {
+    if (song.cover) return song.cover;
+    if (song.album && appConfig.data.albums) {
+        const alb = appConfig.data.albums.find(a => norm(a.name) === norm(song.album) || norm(a.title) === norm(song.album));
+        if (alb && alb.cover) return alb.cover;
+    }
+    return DEFAULT_COVER;
+}
+
+function getSongArtForPlayer(song) {
+    return getSongArtForList(song);
+}
+
+function getArtForAlbum(album) {
+    return album.cover || DEFAULT_COVER;
+}
+
+function getOptimizedAvatar(url) {
+    return url || ADMIN_AVATAR;
+}
 
 function showToast(msg, type = 'info') {
     const toast = document.getElementById('customToast');
@@ -213,3 +235,4 @@ function showToast(msg, type = 'info') {
         setTimeout(() => { toast.style.display = 'none'; }, 2500);
     }
 }
+
