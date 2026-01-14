@@ -1,17 +1,17 @@
 ﻿// Service Worker MusiChris - Versión Forzada 2.0
-const CACHE_NAME = 'musichris-v33';
+const CACHE_NAME = 'musichris-v34';
 const urlsToCache = [
   './',
-  './index.html?v=33',
-  './css/styles.css?v=33',
+  './index.html?v=34',
+  './css/styles.css?v=34',
   './assets/icon-512.png',
-  './js/config.js?v=33',
-  './js/app.js?v=33',
-  './js/player.js?v=33',
-  './js/ui-renderer.js?v=33',
-  './js/data-manager.js?v=33',
-  './js/modals.js?v=33',
-  './js/pwa-manager.js?v=33'
+  './js/config.js?v=34',
+  './js/app.js?v=34',
+  './js/player.js?v=34',
+  './js/ui-renderer.js?v=34',
+  './js/data-manager.js?v=34',
+  './js/modals.js?v=34',
+  './js/pwa-manager.js?v=34'
 ];
 
 // Forzar activación inmediata
@@ -65,5 +65,11 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       caches.match(event.request).then(response => response || fetch(event.request))
     );
+  }
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });

@@ -1,54 +1,65 @@
 // MANEJADOR DE DATOS (API Y PERSISTENCIA)
 
 async function loadAppData() {
+    // 1. Cargar desde LocalStorage inmediatamente para velocidad
+    const cachedData = localStorage.getItem('musichris_db_cache');
+    if (cachedData) {
+        try {
+            appConfig.data = JSON.parse(cachedData);
+            validateAndInitData();
+            updateUI();
+            console.log("⚡ Carga instantánea desde caché local");
+        } catch (e) { console.error("Error cache:", e); }
+    }
+
+    // 2. Sincronizar con la API en segundo plano
     try {
-        const res = await fetch(API_BASE_URL); // El proxy ya gestiona la API Key y el Bin ID
+        const res = await fetch(API_BASE_URL);
         if (!res.ok) throw new Error("API Error");
         const json = await res.json();
 
-        // El proxy devuelve directamente el .record o el objeto completo de JSONBin según cómo se configure
-        appConfig.data = json.record || json;
+        const freshData = json.record || json;
 
-        // Inicializar arrays si no existen
-        if (!appConfig.data.songs) appConfig.data.songs = [];
-        if (!appConfig.data.users) appConfig.data.users = [];
-        if (!appConfig.data.albums) appConfig.data.albums = [];
-        if (!appConfig.data.playlists) appConfig.data.playlists = [];
-        if (!appConfig.data.stats) appConfig.data.stats = {};
+        // Solo actualizar si hay cambios reales para evitar parpadeos
+        if (JSON.stringify(appConfig.data) !== JSON.stringify(freshData)) {
+            appConfig.data = freshData;
+            validateAndInitData();
 
-        // Limpieza y validación de canciones
-        appConfig.data.songs.forEach(s => {
-            if (!s.likes) s.likes = [];
-            if (!s.plays) s.plays = 0;
-            if (!s.superLikes) s.superLikes = [];
-            if (!s.addedDate) s.addedDate = s.id || Date.now();
-        });
+            // Guardar en caché local para la próxima vez
+            localStorage.setItem('musichris_db_cache', JSON.stringify(appConfig.data));
 
-        calculateStats();
-
-        if (appConfig.isGuest && appConfig.pendingSongId) {
-            activateGuestMode();
-        } else {
+            if (appConfig.isGuest && appConfig.pendingSongId) {
+                activateGuestMode();
+            } else {
+                updateUI();
+            }
+            showToast("Datos sincronizados", 'success');
+        }
+    } catch (e) {
+        console.error("Error al sincronizar datos:", e);
+        if (!appConfig.data) {
+            showToast("Modo Offline - Sin datos", 'error');
+            appConfig.data = { songs: [], users: [], albums: [], playlists: [], stats: {} };
             updateUI();
         }
-
-        showToast("Datos sincronizados", 'success');
-    } catch (e) {
-        console.error("Error al cargar datos:", e);
-        showToast("Error de conexión - Modo Offline", 'error');
-
-        // Datos de respaldo si falla la API
-        if (!appConfig.data) {
-            appConfig.data = {
-                songs: [],
-                users: [],
-                albums: [],
-                playlists: [],
-                stats: {}
-            };
-        }
-        updateUI();
     }
+}
+
+function validateAndInitData() {
+    if (!appConfig.data) return;
+    if (!appConfig.data.songs) appConfig.data.songs = [];
+    if (!appConfig.data.users) appConfig.data.users = [];
+    if (!appConfig.data.albums) appConfig.data.albums = [];
+    if (!appConfig.data.playlists) appConfig.data.playlists = [];
+    if (!appConfig.data.stats) appConfig.data.stats = {};
+
+    appConfig.data.songs.forEach(s => {
+        if (!s.likes) s.likes = [];
+        if (!s.plays) s.plays = 0;
+        if (!s.superLikes) s.superLikes = [];
+        if (!s.addedDate) s.addedDate = s.id || Date.now();
+    });
+    calculateStats();
 }
 
 async function saveData() {

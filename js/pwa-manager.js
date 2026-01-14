@@ -4,39 +4,48 @@ function setupPWA() {
     console.log('🔧 Configurando PWA...');
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
+        navigator.serviceWorker.register('sw.js?v=34')
             .then(reg => {
                 console.log('✅ SW registrado:', reg.scope);
 
-                // Detectar actualización
+                // Forzar actualización inmediata si hay un SW esperando
+                if (reg.waiting) {
+                    reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+
                 reg.onupdatefound = () => {
                     const installingWorker = reg.installing;
                     installingWorker.onstatechange = () => {
                         if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log('✨ Nueva versión detectada, recargando...');
-                            showToast("Actualizando aplicación...", 'info');
-                            setTimeout(() => window.location.reload(), 1500);
+                            showToast("✨ Nueva versión lista. Actualizando...", 'info');
+                            setTimeout(() => {
+                                skipWaitingAndReload();
+                            }, 2000);
                         }
                     };
                 };
             })
             .catch(err => console.log('❌ SW error:', err));
 
-        // Evento cuando un nuevo SW toma el control
-        let refreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (!refreshing) {
-                refreshing = true;
-                window.location.reload();
-            }
+            window.location.reload();
         });
     }
-
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
         if (!isStandalone && isAndroid && !localStorage.getItem('pwaPromptRejected')) {
             setTimeout(showPWAInstallOption, 5000);
+        }
+    });
+}
+
+function skipWaitingAndReload() {
+    navigator.serviceWorker.ready.then(reg => {
+        if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+            window.location.reload();
         }
     });
 }
