@@ -1,4 +1,5 @@
 // RENDERIZADO DE INTERFAZ Y COMPONENTES
+let activityChart = null;
 
 function updateUI(songListOverride = null) {
     if (songListOverride) {
@@ -163,24 +164,45 @@ function renderUserList(id, users) {
 
 function renderStatsOverview() {
     const container = document.getElementById('statsMainContainer');
+    const summaryContainer = document.getElementById('statsSummaryCards');
     if (!container || !appConfig.data) return;
 
-    // Actualizar contadores de cabecera
-    if (document.getElementById('statsTotalSongs')) document.getElementById('statsTotalSongs').textContent = appConfig.data.songs.length;
-    if (document.getElementById('statsTotalUsers')) document.getElementById('statsTotalUsers').textContent = appConfig.data.users.length;
+    // 1. Renderizar KPIs Rápidos
+    const totalPlays = appConfig.data.songs.reduce((acc, s) => acc + (s.plays || 0), 0);
+    summaryContainer.innerHTML = `
+        <div class="kpi-card">
+            <div class="kpi-icon"><span class="material-icons-round">play_circle</span></div>
+            <div class="kpi-data"><h5>Total Plays</h5><div class="value">${totalPlays}</div></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon"><span class="material-icons-round">library_music</span></div>
+            <div class="kpi-data"><h5>Canciones</h5><div class="value">${appConfig.data.songs.length}</div></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon"><span class="material-icons-round">people</span></div>
+            <div class="kpi-data"><h5>Usuarios</h5><div class="value">${appConfig.data.users.length}</div></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon"><span class="material-icons-round">cloud</span></div>
+            <div class="kpi-data"><h5>Cloud Status</h5><div class="value" id="statsCloudinaryUsageMini">0%</div></div>
+        </div>
+    `;
 
+    // 2. Gráfico de Actividad (Chart.js)
+    initActivityChart();
+
+    // 3. Renderizar Top Listas
     const topSongs = appConfig.stats.topSongs || [];
     const topLikes = appConfig.stats.topLikes || [];
 
     container.innerHTML = `
         <div class="stats-card">
-            <h4><span class="material-icons-round">trending_up</span> Más Escuchadas</h4>
+            <h4><span class="material-icons-round">trending_up</span> Top Canciones</h4>
             ${topSongs.map((s, i) => `
                 <div class="stat-item">
                     <span class="stat-rank">${i + 1}</span>
                     <div class="stat-info">
                         <div>${s.title}</div>
-                        <div style="font-size:0.75rem; color:var(--text-dim)">${s.album}</div>
                     </div>
                     <span class="stat-val">${s.plays} <small>plays</small></span>
                 </div>
@@ -188,19 +210,60 @@ function renderStatsOverview() {
         </div>
 
         <div class="stats-card">
-            <h4><span class="material-icons-round">favorite</span> Más Queridas</h4>
+            <h4><span class="material-icons-round">favorite</span> Más Likes</h4>
             ${topLikes.map((s, i) => `
                 <div class="stat-item">
                     <span class="stat-rank">${i + 1}</span>
                     <div class="stat-info">
                         <div>${s.title}</div>
-                        <div style="font-size:0.75rem; color:var(--text-dim)">${s.album}</div>
                     </div>
                     <span class="stat-val">${s.likeCount} <small>likes</small></span>
                 </div>
             `).join('')}
         </div>
     `;
+    updateCloudinaryUsage();
+}
+
+function initActivityChart() {
+    const ctx = document.getElementById('activityChart');
+    if (!ctx) return;
+
+    const labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    const data = appConfig.data.stats.weeklyData || [0, 0, 0, 0, 0, 0, 0];
+
+    if (activityChart) {
+        activityChart.data.datasets[0].data = data;
+        activityChart.update();
+        return;
+    }
+
+    activityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Reproducciones',
+                data: data,
+                borderColor: '#ffcc00',
+                backgroundColor: 'rgba(255, 204, 0, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#ffcc00',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0b0' } },
+                x: { grid: { display: false }, ticks: { color: '#a0a0b0' } }
+            }
+        }
+    });
 }
 
 function filterSongs(query) {
@@ -253,19 +316,18 @@ function getSongArtForList(song) {
 // Obtener uso de Cloudinary (Simulado/Estimado o vía Proxy si fuera necesario)
 // Dado que Cloudinary Admin API requiere API Secret y no es seguro en Front-end, 
 // calculamos un estimado basado en los archivos o mostramos el nombre de la nube.
-async function updateCloudinaryUsage() {
-    const usageEl = document.getElementById('statsCloudinaryUsage');
-    if (!usageEl) return;
+function updateCloudinaryUsage() {
+    if (!appConfig.data || !appConfig.data.songs) return;
 
-    // En una implementación real, esto consultaría un backend que llame a la Admin API de Cloudinary
-    // Por ahora, mostraremos el nombre de la nube y un % calculado por el peso aproximado de las canciones
-    const totalSongs = appConfig.data.songs.length;
-    const estimatedGB = (totalSongs * 5) / 1024; // 5MB avg per song
-    const percentage = Math.min(((estimatedGB / 25) * 100).toFixed(1), 100);
+    const songCount = appConfig.data.songs.length;
+    const avgSizeMB = 5.5;
+    const totalUsedGB = (songCount * avgSizeMB) / 1024;
+    const freePlanGB = 25;
+    const percentage = Math.min(100, (totalUsedGB / freePlanGB) * 100).toFixed(1);
 
-    usageEl.textContent = `${percentage}%`;
-    const hostingTitle = usageEl.parentElement.querySelector('h3');
-    if (hostingTitle) hostingTitle.textContent = `Cloudinary: dveqs8f3n`;
+    if (document.getElementById('statsCloudinaryUsageMini')) {
+        document.getElementById('statsCloudinaryUsageMini').textContent = `${percentage}%`;
+    }
 }
 
 function getSongArtForPlayer(song) {

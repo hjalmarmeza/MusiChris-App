@@ -836,12 +836,68 @@ header {
     display: block;
 }
 
-/* Premium Stats Grid */
-.stats-premium-grid {
+/* Premium Dashboard Improvements */
+.stats-summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.kpi-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    padding: 20px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.kpi-icon {
+    width: 45px;
+    height: 45px;
+    background: var(--accent-glow);
+    color: var(--accent);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kpi-data h5 {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.kpi-data .value {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.stats-main-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
     gap: 20px;
-    margin-top: 10px;
+}
+
+@media (max-width: 900px) {
+    .stats-main-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chart-container {
+    padding: 24px;
+    height: 350px;
+}
+
+.stats-premium-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .stats-card {
@@ -850,6 +906,7 @@ header {
     border-radius: 24px;
     padding: 20px;
 }
+
 
 .stats-card h4 {
     margin: 0 0 15px 0;
