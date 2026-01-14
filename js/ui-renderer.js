@@ -210,7 +210,7 @@ function getSongArtForList(song) {
     if (song.cover) return song.cover;
     if (song.album && appConfig.data.albums) {
         const alb = appConfig.data.albums.find(a => norm(a.name) === norm(song.album) || norm(a.title) === norm(song.album));
-        if (alb && alb.cover) return alb.cover;
+        if (alb && (alb.cover || alb.coverUrl)) return alb.cover || alb.coverUrl;
     }
     return DEFAULT_COVER;
 }
@@ -238,7 +238,7 @@ function getSongArtForPlayer(song) {
 }
 
 function getArtForAlbum(album) {
-    return album.cover || DEFAULT_COVER;
+    return album.cover || album.coverUrl || DEFAULT_COVER;
 }
 
 function getOptimizedAvatar(url) {
