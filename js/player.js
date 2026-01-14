@@ -28,8 +28,8 @@ function playSong(song) {
     // Audio Control
     if (dom.audioElement && song.url) {
         dom.audioElement.pause();
+        // Detenemos cualquier carga previa
         dom.audioElement.src = song.url;
-        dom.audioElement.load();
 
         dom.audioElement.play()
             .then(() => {
@@ -38,8 +38,12 @@ function playSong(song) {
                 updateWeeklyStats();
             })
             .catch(err => {
-                console.error('Play error:', err);
-                showToast("Error de reproducción", 'error');
+                // AbortError sucede cuando se cancela una carga para empezar otra (ej: click rápido en Next)
+                // No es un error real para el usuario, así que lo ignoramos.
+                if (err.name !== 'AbortError') {
+                    console.error('Play error:', err);
+                    showToast("Error de reproducción", 'error');
+                }
                 togglePlayIcon(false);
             });
     }
@@ -77,7 +81,12 @@ function playSongId(id) {
 function toggle_play() {
     if (!dom.audioElement) return;
     if (dom.audioElement.paused) {
-        dom.audioElement.play().then(() => togglePlayIcon(true));
+        dom.audioElement.play()
+            .then(() => togglePlayIcon(true))
+            .catch(err => {
+                if (err.name !== 'AbortError') showToast("Error al reanudar", 'error');
+                togglePlayIcon(false);
+            });
     } else {
         dom.audioElement.pause();
         togglePlayIcon(false);

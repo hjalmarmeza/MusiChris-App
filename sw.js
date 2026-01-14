@@ -1,17 +1,17 @@
 ﻿// Service Worker MusiChris - Versión Forzada 2.0
-const CACHE_NAME = 'musichris-v30';
+const CACHE_NAME = 'musichris-v31';
 const urlsToCache = [
   './',
-  './index.html?v=30',
-  './css/styles.css?v=30',
+  './index.html?v=31',
+  './css/styles.css?v=31',
   './assets/icon-512.png',
-  './js/config.js?v=30',
-  './js/app.js?v=30',
-  './js/player.js?v=30',
-  './js/ui-renderer.js?v=30',
-  './js/data-manager.js?v=30',
-  './js/modals.js?v=30',
-  './js/pwa-manager.js?v=30'
+  './js/config.js?v=31',
+  './js/app.js?v=31',
+  './js/player.js?v=31',
+  './js/ui-renderer.js?v=31',
+  './js/data-manager.js?v=31',
+  './js/modals.js?v=31',
+  './js/pwa-manager.js?v=31'
 ];
 
 // Forzar activación inmediata
@@ -43,6 +43,11 @@ self.addEventListener('activate', event => {
 // Estrategia: Network First para archivos base, Cache First para el resto
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+
+  // Bypasear audios y peticiones de rango (muy importante para reproductores)
+  if (event.request.headers.get('range') || url.pathname.match(/\.(mp3|wav|ogg|m4a)$/) || url.origin.includes('cloudinary')) {
+    return; // Dejar que el navegador lo maneje directamente
+  }
 
   // Si es el archivo principal o scripts, intentamos red primero
   if (url.origin === location.origin && (url.pathname.endsWith('.html') || url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.pathname === '/')) {
