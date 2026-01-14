@@ -633,19 +633,22 @@ header {
 
 /* Expanded Controls & Progress */
 .progress-bar-area {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: 45px 1fr 45px !important;
     align-items: center !important;
-    gap: 10px !important;
     width: 100% !important;
-    margin: 15px 0 8px 0 !important;
+    gap: 10px !important;
+    margin: 15px 0 10px 0 !important;
 }
 
 .expanded-seek-slider {
-    flex: 1 !important;
+    width: 100% !important;
     height: 6px !important;
     appearance: none !important;
     background: rgba(255, 255, 255, 0.1) !important;
     border-radius: 10px !important;
+    margin: 0 !important;
+    cursor: pointer !important;
 }
 
 .expanded-seek-slider::-webkit-slider-thumb {
