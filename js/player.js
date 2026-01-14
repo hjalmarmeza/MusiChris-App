@@ -75,6 +75,11 @@ function toggle_play() {
 function next() {
     if (appConfig.isGuest) return;
 
+    if (appConfig.repeatMode === 'one') {
+        playSong(appConfig.currentSong);
+        return;
+    }
+
     let nextIdx = appConfig.currentIndex + 1;
     if (appConfig.isShuffle) {
         nextIdx = Math.floor(Math.random() * appConfig.tempPlaylist.length);
@@ -82,8 +87,11 @@ function next() {
 
     if (nextIdx < appConfig.tempPlaylist.length) {
         playSong(appConfig.tempPlaylist[nextIdx]);
-    } else if (appConfig.isRepeat) {
+    } else if (appConfig.repeatMode === 'all') {
         playSong(appConfig.tempPlaylist[0]);
+    } else {
+        // Stop or just pause if end reached and no repeat
+        togglePlayIcon(false);
     }
 }
 
@@ -99,13 +107,65 @@ function updateProgress() {
     if (!au || isNaN(au.duration)) return;
 
     const pct = (au.currentTime / au.duration) * 100;
-    if (document.getElementById('seekSlider')) document.getElementById('seekSlider').value = pct;
 
-    // Update labels if they exist
-    const curTime = document.getElementById('expCurTime');
-    const totTime = document.getElementById('expTotTime');
-    if (curTime) curTime.textContent = formatTime(au.currentTime);
-    if (totTime) totTime.textContent = formatTime(au.duration);
+    // Sync sliders
+    ['seekSlider', 'expandedSeekSlider'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = pct;
+    });
+
+    // Sync timers
+    const timeStr = formatTime(au.currentTime);
+    const totalStr = formatTime(au.duration);
+
+    ['miniCurTime', 'expCurTime'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = timeStr;
+    });
+
+    ['miniTotTime', 'expTotTime'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = totalStr;
+    });
+}
+
+function toggleShuffle(btn) {
+    appConfig.isShuffle = !appConfig.isShuffle;
+    updateControlIcons();
+    showToast(appConfig.isShuffle ? "Aleatorio: ON" : "Aleatorio: OFF");
+}
+
+function toggleRepeat(btn) {
+    // Ciclo: No repeat -> Repeat All -> Repeat One -> No repeat
+    if (!appConfig.repeatMode) appConfig.repeatMode = 'none';
+
+    if (appConfig.repeatMode === 'none') {
+        appConfig.repeatMode = 'all';
+        appConfig.isRepeat = true;
+    } else if (appConfig.repeatMode === 'all') {
+        appConfig.repeatMode = 'one';
+        appConfig.isRepeat = false; // logic changes to manual check in ended event
+    } else {
+        appConfig.repeatMode = 'none';
+        appConfig.isRepeat = false;
+    }
+
+    updateControlIcons();
+    const msgs = { 'none': 'Repetición: OFF', 'all': 'Repetir Todo', 'one': 'Repetir Una' };
+    showToast(msgs[appConfig.repeatMode]);
+}
+
+function updateControlIcons() {
+    const shuffleBtns = document.querySelectorAll('.material-icons-round[onclick*="toggleShuffle"]');
+    shuffleBtns.forEach(btn => {
+        btn.classList.toggle('btn-active', appConfig.isShuffle);
+    });
+
+    const repeatBtns = document.querySelectorAll('.material-icons-round[onclick*="toggleRepeat"]');
+    repeatBtns.forEach(btn => {
+        btn.classList.toggle('btn-active', appConfig.repeatMode !== 'none');
+        btn.textContent = appConfig.repeatMode === 'one' ? 'repeat_one' : 'repeat';
+    });
 }
 
 function formatTime(seconds) {

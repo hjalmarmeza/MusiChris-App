@@ -143,30 +143,39 @@
 
     <!-- REPRODUCTOR INFERIOR -->
     <div id="mainPlayer" class="bottom-player" style="display:none;" onclick="openModal('view-guest-player')">
+        <!-- Izquierda: Info Canción -->
         <div class="player-info">
             <img id="pCoverMini" src="" class="song-cover">
-            <div>
+            <div class="p-text">
                 <h4 id="pTitle">Título</h4>
                 <p id="pArtist">Artista</p>
             </div>
         </div>
 
-        <div class="minimized-player-controls">
-            <span id="iconPlayMin" class="material-icons-round"
-                onclick="event.stopPropagation(); toggle_play()">play_arrow</span>
-            <span class="material-icons-round" onclick="event.stopPropagation(); next()">skip_next</span>
-        </div>
-
+        <!-- Centro: Controles y Slider (Hidden on mobile via CSS) -->
         <div class="player-center-group">
             <div class="controls-row">
+                <span class="material-icons-round" onclick="event.stopPropagation(); toggleShuffle(this)">shuffle</span>
                 <span class="material-icons-round" onclick="event.stopPropagation(); prev()">skip_previous</span>
                 <div class="btn-play-circle" onclick="event.stopPropagation(); toggle_play()">
                     <span id="iconPlay" class="material-icons-round">play_arrow</span>
                 </div>
                 <span class="material-icons-round" onclick="event.stopPropagation(); next()">skip_next</span>
+                <span class="material-icons-round" onclick="event.stopPropagation(); toggleRepeat(this)">repeat</span>
             </div>
-            <input type="range" id="seekSlider" value="0" min="0" max="100" onclick="event.stopPropagation()"
-                oninput="seekAudio(event)">
+            <div class="progress-container">
+                <span class="time-label" id="miniCurTime">0:00</span>
+                <input type="range" id="seekSlider" value="0" min="0" max="100" onclick="event.stopPropagation()"
+                    oninput="seekAudio(event)">
+                <span class="time-label" id="miniTotTime">0:00</span>
+            </div>
+        </div>
+
+        <!-- Derecha: Mini Controles (Mobile only via CSS) -->
+        <div class="minimized-player-controls">
+            <span id="iconPlayMin" class="material-icons-round"
+                onclick="event.stopPropagation(); toggle_play()">play_arrow</span>
+            <span class="material-icons-round" onclick="event.stopPropagation(); next()">skip_next</span>
         </div>
     </div>
 
@@ -204,11 +213,13 @@
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-around; align-items:center; margin-top:40px;">
+                    <span class="material-icons-round secondary-player-btn" onclick="toggleShuffle(this)">shuffle</span>
                     <span class="material-icons-round" style="font-size:2.5rem" onclick="prev()">skip_previous</span>
                     <div class="btn-play-circle" style="width:80px; height:80px;" onclick="toggle_play()">
                         <span id="iconPlayBig" class="material-icons-round" style="font-size:3.5rem">play_arrow</span>
                     </div>
                     <span class="material-icons-round" style="font-size:2.5rem" onclick="next()">skip_next</span>
+                    <span class="material-icons-round secondary-player-btn" onclick="toggleRepeat(this)">repeat</span>
                 </div>
             </div>
         </div>
