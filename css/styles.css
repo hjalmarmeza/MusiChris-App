@@ -584,34 +584,16 @@ header {
     width: 40px;
 }
 
-#seekSlider,
-#expandedSeekSlider {
-    flex: 1;
-    height: 4px;
-    border-radius: 2px;
-    background: var(--glass-border);
-    cursor: pointer;
-    accent-color: var(--accent);
-}
-
-/* Expanded Player Like Button */
-.btn-like-expanded {
-    cursor: pointer;
-    transition: 0.3s;
-    font-size: 2rem !important;
-}
-
 .btn-like-expanded.liked {
     color: var(--danger) !important;
 }
 
 .progress-bar-area {
-    display: grid !important;
-    grid-template-columns: 45px 1fr 45px !important;
-    align-items: center !important;
+    display: flex !important;
+    flex-direction: column !important;
     width: 100% !important;
-    gap: 12px !important;
     margin: 40px 0 10px 0 !important;
+    gap: 10px !important;
 }
 
 .expanded-seek-slider {
@@ -632,21 +614,26 @@ header {
 
 .expanded-seek-slider::-webkit-slider-thumb {
     appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     background: white;
     border-radius: 50%;
-    margin-top: -6px;
+    margin-top: -7px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.time-labels-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
 }
 
 .time-label-fixed {
     color: var(--text-dim) !important;
-    font-size: 0.8rem !important;
-    width: 45px !important;
+    font-size: 0.85rem !important;
+    min-width: 45px !important;
     text-align: center !important;
     font-family: inherit !important;
-    flex-shrink: 0 !important;
 }
 
 .guest-cover-container {
@@ -657,7 +644,7 @@ header {
     border-radius: 30px;
     overflow: hidden;
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-    margin: 20px 0;
+    margin: 15px 0;
     position: relative;
 }
 
@@ -745,7 +732,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 30px;
+    margin-top: 20px;
     width: 100%;
 }
 
@@ -767,7 +754,7 @@ header {
 }
 
 .expanded-controls .control-btn-large {
-    font-size: 3.5rem !important;
+    font-size: 3.2rem !important;
 }
 
 .secondary-player-btn {
