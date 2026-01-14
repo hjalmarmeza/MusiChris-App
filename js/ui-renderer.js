@@ -262,72 +262,51 @@ function initUserActivityChart() {
     const ctx = document.getElementById('activityChart');
     if (!ctx) return;
 
-    // Obtener usuarios para las etiquetas (las 3 primeras letras de sus nombres)
-    const users = (appConfig.data && appConfig.data.users) ? appConfig.data.users : [];
-    let labels = users.map(u => u.name.substring(0, 3).toUpperCase());
+    // Obtener los 5 usuarios para la gráfica
+    const allUsers = (appConfig.data && appConfig.data.users) ? appConfig.data.users : [];
 
-    // Fallback si no hay usuarios
-    if (labels.length === 0) {
-        labels = ['USR', 'Gst', 'Inv'];
-    }
+    // Top 5 Canciones (Los nombres irán en el eje de los números/labels)
+    const topSongs = (appConfig.stats.topSongs || []).slice(0, 5);
+    const labels = topSongs.map(s => s.title.substring(0, 15) + (s.title.length > 15 ? '..' : ''));
 
-    // Obtener los nombres de las top 2 canciones para la leyenda
-    const topSongs = (appConfig.stats.topSongs || []).slice(0, 2);
-    const songName1 = topSongs[0] ? topSongs[0].title : 'Canción A';
-    const songName2 = topSongs[1] ? topSongs[1].title : 'Canción B';
+    const colors = ['#ffcc00', '#00ccff', '#00ff88', '#ff4d4d', '#a29bfe'];
 
-    // Datos: Usamos 0 para usuarios reales (ya que no tenemos historial per-user aún en el bin)
-    // Esto evita que parezca que todos han escuchado lo mismo.
-    const datasets = [
-        {
-            label: songName1,
-            data: labels.map(() => 0), // Inicializado en 0 como pidió el usuario
-            borderColor: '#ffcc00',
-            backgroundColor: 'rgba(255, 204, 0, 0.1)',
-            fill: true,
-            tension: 0.4
-        },
-        {
-            label: songName2,
-            data: labels.map(() => 0), // Inicializado en 0
-            borderColor: '#00ccff',
-            backgroundColor: 'rgba(0, 204, 255, 0.1)',
-            fill: true,
-            tension: 0.4
-        }
-    ];
-
-    // Simular actividad solo si es el admin para que no esté vacío totalmente si desea ver algo
-    if (labels.length > 0) datasets[0].data[0] = topSongs[0] ? topSongs[0].plays : 0;
+    // Dataset por cada usuario: Mostramos su contribución real (si es admin o tiene likes)
+    const datasets = allUsers.slice(0, 5).map((u, i) => {
+        const initials = u.name.substring(0, 3).toUpperCase();
+        return {
+            label: initials,
+            data: topSongs.map(song => {
+                const isLiked = song.likes && song.likes.includes(u.email);
+                if (u.role === 'admin' && i === 0) return Math.max(0, song.plays - (song.likes ? song.likes.length : 0));
+                return isLiked ? 1 : 0; // Datos reales: 1 si le gusta (equivalente a "actividad")
+            }),
+            backgroundColor: colors[i % colors.length],
+            borderRadius: 4
+        };
+    });
 
     if (activityChart) {
         activityChart.destroy();
     }
 
     activityChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: { labels, datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, grid: { display: false }, ticks: { color: '#a0a0b0' } },
+                y: { stacked: true, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0b0', stepSize: 1 } }
+            },
             plugins: {
-                legend: { display: true, labels: { color: '#a0a0b0' } },
+                legend: { display: true, labels: { color: '#a0a0b0', boxWidth: 10 } },
                 tooltip: {
                     callbacks: {
-                        title: (items) => {
-                            const idx = items[0].dataIndex;
-                            return users[idx] ? users[idx].name : (labels[idx] || 'Usuario');
-                        }
+                        title: (items) => topSongs[items[0].dataIndex].title
                     }
                 }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#a0a0b0', stepSize: 1 }
-                },
-                x: { grid: { display: false }, ticks: { color: '#a0a0b0' } }
             }
         }
     });
