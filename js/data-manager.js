@@ -2,12 +2,12 @@
 
 async function loadAppData() {
     try {
-        const res = await fetch(`${API_BASE_URL}${appConfig.BIN_ID}`, {
-            headers: { 'X-Master-Key': appConfig.API_KEY }
-        });
+        const res = await fetch(API_BASE_URL); // El proxy ya gestiona la API Key y el Bin ID
         if (!res.ok) throw new Error("API Error");
         const json = await res.json();
-        appConfig.data = json.record;
+
+        // El proxy devuelve directamente el .record o el objeto completo de JSONBin según cómo se configure
+        appConfig.data = json.record || json;
 
         // Inicializar arrays si no existen
         if (!appConfig.data.songs) appConfig.data.songs = [];
@@ -53,14 +53,12 @@ async function loadAppData() {
 
 async function saveData() {
     try {
-        await fetch(`${API_BASE_URL}${appConfig.BIN_ID}`, {
-            method: 'PUT',
-            headers: {
-                'X-Master-Key': appConfig.API_KEY,
-                'Content-Type': 'application/json'
-            },
+        await fetch(API_BASE_URL, {
+            method: 'POST', // Usamos POST para que el proxy reciba los datos
+            mode: 'no-cors', // Evita problemas de CORS al guardar desde GitHub
             body: JSON.stringify(appConfig.data)
         });
+        showToast("Sincronizando...", 'info');
     } catch (e) {
         console.error('Error al guardar:', e);
         showToast("Error al sincronizar cambios", 'error');

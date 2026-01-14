@@ -182,12 +182,9 @@ function seekAudio(e) {
 
 async function saveDataSilent() {
     try {
-        await fetch(`${API_BASE_URL}${appConfig.BIN_ID}`, {
-            method: 'PUT',
-            headers: {
-                'X-Master-Key': appConfig.API_KEY,
-                'Content-Type': 'application/json'
-            },
+        await fetch(API_BASE_URL, {
+            method: 'POST',
+            mode: 'no-cors',
             body: JSON.stringify(appConfig.data)
         });
     } catch (e) {

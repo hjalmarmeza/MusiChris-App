@@ -1,8 +1,8 @@
 // CONFIGURACIÓN GLOBAL Y ESTADO DE LA APLICACIÓN
-const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
+const API_BASE_URL = "https://script.google.com/macros/s/AKfycbwvmIwpa2ZOVce6igKnCkrgv1PIPq98fdv1sZBAUqZu1gE3kkpiJHqhdUp4iOxDL5hJ/exec";
 const DEFAULT_COVER = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=500&auto=format&fit=crop";
-const PERMANENT_BIN_ID = "69349a76ae596e708f880e31";
-const PERMANENT_API_KEY = "$2a$10$ME7fO8Oqq2iWhHkYQKGQsu0M6PqJ8d1ymFBxHVhhxFJ70BcAg1FZe";
+const PERMANENT_BIN_ID = ""; // Movido al Script de Google por seguridad
+const PERMANENT_API_KEY = ""; // Movido al Script de Google por seguridad
 const ADMIN_AVATAR = "https://api.dicebear.com/7.x/avataaars/svg?seed=Chris";
 const APP_LOGO = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=100&auto=format&fit=crop";
 
