@@ -341,12 +341,10 @@
     <!-- MODAL VISTA DE ÁLBUM (Detalle) -->
     <div id="dom_modal_album_detail" class="modal-overlay">
         <div class="modal-content album-detail-modal">
-            <header class="album-modal-header">
-                <button class="btn-icon" onclick="closeModal('dom_modal_album_detail')">
-                    <span class="material-icons-round">close</span>
-                </button>
-                <h3 id="modalAlbumTitle">Detalle del Álbum</h3>
-            </header>
+            <button class="btn-close-round" onclick="closeModal('dom_modal_album_detail')"
+                style="position: absolute; top: 15px; right: 15px; z-index: 10; background: rgba(0,0,0,0.3); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                <span class="material-icons-round" style="font-weight: 800; font-size: 1.2rem;">close</span>
+            </button>
 
             <div class="album-detail-info">
                 <img id="modalAlbumCover" src="" class="album-large-cover">
@@ -368,13 +366,13 @@
     <div id="customToast" class="customToast">Mensaje</div>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=32"></script>
-    <script src="js/data-manager.js?v=32"></script>
-    <script src="js/ui-renderer.js?v=32"></script>
-    <script src="js/player.js?v=32"></script>
-    <script src="js/pwa-manager.js?v=32"></script>
-    <script src="js/modals.js?v=32"></script>
-    <script src="js/app.js?v=32"></script>
+    <script src="js/config.js?v=33"></script>
+    <script src="js/data-manager.js?v=33"></script>
+    <script src="js/ui-renderer.js?v=33"></script>
+    <script src="js/player.js?v=33"></script>
+    <script src="js/pwa-manager.js?v=33"></script>
+    <script src="js/modals.js?v=33"></script>
+    <script src="js/app.js?v=33"></script>
 
 </body>
 
