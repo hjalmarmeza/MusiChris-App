@@ -1,5 +1,5 @@
 ﻿// Service Worker básico para PWA
-const CACHE_NAME = 'musichris-v5';
+const CACHE_NAME = 'musichris-v6';
 const urlsToCache = [
   './',
   './index.html',

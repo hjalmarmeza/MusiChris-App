@@ -195,6 +195,20 @@ function renderStatsOverview() {
     const topSongs = appConfig.stats.topSongs || [];
     const topLikes = appConfig.stats.topLikes || [];
 
+    // Calcular Top Usuarios (más likes dados)
+    const userLikes = {};
+    appConfig.data.songs.forEach(s => {
+        if (s.likes) {
+            s.likes.forEach(email => {
+                userLikes[email] = (userLikes[email] || 0) + 1;
+            });
+        }
+    });
+    const topUsers = Object.entries(userLikes)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([email, count]) => ({ email, count }));
+
     container.innerHTML = `
         <div class="stats-card">
             <h4><span class="material-icons-round">trending_up</span> Top Canciones</h4>
@@ -218,6 +232,20 @@ function renderStatsOverview() {
                         <div>${s.title}</div>
                     </div>
                     <span class="stat-val">${s.likeCount} <small>likes</small></span>
+                </div>
+            `).join('')}
+        </div>
+
+        <div class="stats-card">
+            <h4><span class="material-icons-round">person</span> Top Usuarios</h4>
+            ${topUsers.map((u, i) => `
+                <div class="stat-item">
+                    <span class="stat-rank">${i + 1}</span>
+                    <div class="stat-info">
+                        <div>${u.email.split('@')[0]}</div>
+                        <div style="font-size:0.7rem; color:var(--text-dim)">${u.email}</div>
+                    </div>
+                    <span class="stat-val">${u.count} <small>likes</small></span>
                 </div>
             `).join('')}
         </div>
@@ -264,6 +292,33 @@ function initActivityChart() {
             }
         }
     });
+}
+
+// --- NOTIFICACIONES ---
+function openNotifications() {
+    openModal('dom_modal_notifications');
+    renderNotifications();
+    // Limpiar badge
+    const badges = document.querySelectorAll('.notification-badge');
+    badges.forEach(b => b.style.display = 'none');
+}
+
+function renderNotifications() {
+    const container = document.getElementById('notificationsList');
+    if (!container) return;
+
+    if (!appConfig.data.notifications || appConfig.data.notifications.length === 0) {
+        container.innerHTML = `<p class="empty-notif">No tienes notificaciones nuevas.</p>`;
+        return;
+    }
+
+    container.innerHTML = appConfig.data.notifications.map(n => `
+        <div class="notif-item">
+            <div style="font-weight:bold; margin-bottom:5px;">${n.title}</div>
+            <div style="font-size:0.85rem; color:var(--text-dim)">${n.text}</div>
+            <div style="font-size:0.7rem; color:var(--accent); margin-top:8px;">${new Date(n.date).toLocaleDateString()}</div>
+        </div>
+    `).join('');
 }
 
 function filterSongs(query) {

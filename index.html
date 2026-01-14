@@ -48,6 +48,9 @@
             <header>
                 <div class="brand">MusiChris <span>Admin</span></div>
                 <div class="header-right">
+                    <button class="btn-icon" onclick="openNotifications()"><span
+                            class="material-icons-round">notifications</span><span class="notification-badge"
+                            style="display:none"></span></button>
                     <button class="btn-icon" onclick="openModal('dom_modal_announcement')"><span
                             class="material-icons-round">campaign</span></button>
                     <button class="btn-icon" onclick="openModal('dom_modal_settings')"><span
@@ -125,6 +128,9 @@
             <header>
                 <div class="brand">Musi<span>Chris</span></div>
                 <div class="header-right">
+                    <button class="btn-icon" onclick="openNotifications()"><span
+                            class="material-icons-round">notifications</span><span class="notification-badge"
+                            style="display:none"></span></button>
                     <div class="user-profile" onclick="openProfile()">
                         <img id="userAvatarImg" src="" class="avatar">
                         <span id="userGreeting">Hola</span>
@@ -201,8 +207,13 @@
                         class="material-icons-round">expand_more</span></button>
                 <div style="font-weight:bold; font-size:0.9rem; letter-spacing:2px; color:var(--text-dim)">REPRODUCIENDO
                 </div>
-                <button class="btn-icon" onclick="openModal('dom_modal_eq')"><span
-                        class="material-icons-round">graphic_eq</span></button>
+                <button class="btn-icon" onclick="openModal('dom_modal_eq')">
+                    <div id="visualizer-mini" class="playing-indicator" style="display:flex;">
+                        <div class="playing-bar" style="height:12px"></div>
+                        <div class="playing-bar" style="height:18px"></div>
+                        <div class="playing-bar" style="height:14px"></div>
+                    </div>
+                </button>
             </header>
 
             <div class="guest-container"
@@ -216,7 +227,7 @@
                 </div>
             </div>
 
-            <div class="player-controls-main" style="padding-bottom:100px;">
+            <div class="player-controls-main" style="width:100%; max-width:500px; margin:0 auto;">
                 <div class="progress-bar-area">
                     <input type="range" id="expandedSeekSlider" value="0" min="0" max="100" oninput="seekAudio(event)">
                     <div
@@ -225,15 +236,30 @@
                         <span id="expTotTime">0:00</span>
                     </div>
                 </div>
-                <div style="display:flex; justify-content:space-around; align-items:center; margin-top:40px;">
+                <div class="expanded-controls">
                     <span class="material-icons-round secondary-player-btn" onclick="toggleShuffle(this)">shuffle</span>
-                    <span class="material-icons-round" style="font-size:2.5rem" onclick="prev()">skip_previous</span>
-                    <div class="btn-play-circle" style="width:80px; height:80px;" onclick="toggle_play()">
-                        <span id="iconPlayBig" class="material-icons-round" style="font-size:3.5rem">play_arrow</span>
+                    <span class="material-icons-round control-btn-large" onclick="prev()">skip_previous</span>
+                    <div class="btn-play-circle-large" onclick="toggle_play()">
+                        <span id="iconPlayBig" class="material-icons-round">play_arrow</span>
                     </div>
-                    <span class="material-icons-round" style="font-size:2.5rem" onclick="next()">skip_next</span>
+                    <span class="material-icons-round control-btn-large" onclick="next()">skip_next</span>
                     <span class="material-icons-round secondary-player-btn" onclick="toggleRepeat(this)">repeat</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOTIFICACIONES -->
+    <div id="dom_modal_notifications" class="modal-overlay">
+        <div class="modal-content notification-modal">
+            <header class="modal-header-simple">
+                <h3>Notificaciones</h3>
+                <button class="btn-icon" onclick="closeModal('dom_modal_notifications')">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </header>
+            <div id="notificationsList" class="notifications-scroll">
+                <p class="empty-notif">No tienes notificaciones nuevas.</p>
             </div>
         </div>
     </div>
