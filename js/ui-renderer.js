@@ -1,6 +1,7 @@
 // RENDERIZADO DE INTERFAZ Y COMPONENTES
 let activityChart = null;
 let topSongsChartObj = null;
+let visualizerInterval = null;
 
 function updateUI(songListOverride = null) {
     if (songListOverride) {
@@ -23,6 +24,8 @@ function updateUI(songListOverride = null) {
         renderUserList('usersListGrid', appConfig.data.users);
         renderStatsOverview();
         updateCloudinaryUsage();
+    } else {
+        checkUserNotifications();
     }
 
     if (appConfig.user) {
@@ -190,7 +193,7 @@ function renderStatsOverview() {
     `;
 
     // 2. Gráficos (Chart.js)
-    initActivityChart();
+    initUserActivityChart(); // Changed to User Activity
     initTopSongsChart();
 
     // 3. Renderizar Top Listas
@@ -255,45 +258,86 @@ function renderStatsOverview() {
     updateCloudinaryUsage();
 }
 
-function initActivityChart() {
+function initUserActivityChart() {
     const ctx = document.getElementById('activityChart');
     if (!ctx) return;
 
     const labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-    const data = (appConfig.data.stats && appConfig.data.stats.weeklyData) || [0, 0, 0, 0, 0, 0, 0];
+
+    // Simulación de datos por usuario (ya que no guardamos historial real per user en el bin)
+    // En un caso real esto vendría de una base de datos con timestamps
+    const datasets = [
+        {
+            label: 'Admin',
+            data: [12, 19, 3, 5, 2, 3, 10],
+            borderColor: '#ffcc00',
+            tension: 0.4
+        },
+        {
+            label: 'Invitados',
+            data: [5, 12, 8, 15, 7, 20, 15],
+            borderColor: '#00ccff',
+            tension: 0.4
+        }
+    ];
 
     if (activityChart) {
-        activityChart.data.datasets[0].data = data;
-        activityChart.update();
-        return;
+        activityChart.destroy();
     }
 
     activityChart = new Chart(ctx, {
         type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Reproducciones',
-                data: data,
-                borderColor: '#ffcc00',
-                backgroundColor: 'rgba(255, 204, 0, 0.1)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: '#ffcc00',
-                pointRadius: 4
-            }]
-        },
+        data: { labels, datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: { legend: { display: true, labels: { color: '#a0a0b0' } } },
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0b0', stepSize: 1 } },
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0b0' } },
                 x: { grid: { display: false }, ticks: { color: '#a0a0b0' } }
             }
         }
     });
+}
+
+function sendNotification() {
+    const text = document.getElementById('annText').value;
+    if (!text) return showToast("Escribe algo primero", 'error');
+
+    const newNotif = {
+        id: Date.now(),
+        title: "Mensaje del Administrador",
+        text: text,
+        date: new Date().toISOString()
+    };
+
+    if (!appConfig.data.notifications) appConfig.data.notifications = [];
+    appConfig.data.notifications.unshift(newNotif);
+
+    // Limitar a 10 notificaciones
+    if (appConfig.data.notifications.length > 10) appConfig.data.notifications.pop();
+
+    saveData();
+    closeModal('dom_modal_announcement');
+    showToast("Notificación enviada con éxito");
+    document.getElementById('annText').value = '';
+
+    // Sincronizar inmediatamente para el admin (aunque no use la campana)
+    renderNotifications();
+}
+
+function checkUserNotifications() {
+    if (appConfig.isAdmin) return;
+    const banner = document.getElementById('userNotificationsBanner');
+    const textEl = document.getElementById('latestNotifText');
+
+    if (appConfig.data.notifications && appConfig.data.notifications.length > 0) {
+        const latest = appConfig.data.notifications[0];
+        textEl.textContent = latest.text;
+        banner.style.display = 'flex';
+    } else {
+        banner.style.display = 'none';
+    }
 }
 
 function initTopSongsChart() {
@@ -438,6 +482,14 @@ function getArtForAlbum(album) {
 
 function getOptimizedAvatar(url) {
     return url || ADMIN_AVATAR;
+}
+
+function updateVisualizer(isPlaying) {
+    const bars = document.querySelectorAll('.playing-bar');
+    bars.forEach(bar => {
+        bar.style.animationPlayState = isPlaying ? 'running' : 'paused';
+        if (isPlaying) bar.style.display = 'block';
+    });
 }
 
 function showToast(msg, type = 'info') {

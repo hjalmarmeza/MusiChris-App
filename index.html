@@ -21,7 +21,7 @@
 
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=25">
+    <link rel="stylesheet" href="css/styles.css?v=30">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -48,16 +48,12 @@
             <header>
                 <div class="brand">MusiChris <span>Admin</span></div>
                 <div class="header-right">
-                    <button class="btn-icon" onclick="openNotifications()"><span
-                            class="material-icons-round">notifications</span><span class="notification-badge"
-                            style="display:none"></span></button>
                     <button class="btn-icon" onclick="openModal('dom_modal_announcement')"><span
                             class="material-icons-round">campaign</span></button>
                     <button class="btn-icon" onclick="openModal('dom_modal_settings')"><span
                             class="material-icons-round">settings</span></button>
                     <div class="user-profile" onclick="openProfile()">
                         <img id="adminAvatar" src="" class="avatar">
-                        <span id="adminNameDisplay">Admin</span>
                     </div>
                     <button class="btn-icon" onclick="app_logout()"><span
                             class="material-icons-round">logout</span></button>
@@ -150,6 +146,13 @@
                 </div>
             </header>
 
+            <div id="userNotificationsBanner" class="notif-banner" style="display:none;">
+                <span class="material-icons-round">campaign</span>
+                <div id="latestNotifText" class="notif-banner-text">¡Mensaje importante!</div>
+                <button class="notif-close-btn" onclick="this.parentElement.style.display='none'"><span
+                        class="material-icons-round">close</span></button>
+            </div>
+
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('user-music', this)">Música</button>
                 <button class="tab-btn" onclick="switchTab('user-playlists', this)">Listas</button>
@@ -211,7 +214,7 @@
     <!-- MODAL REPRODUCTOR FULLSCREEN (Guest Player) -->
     <div id="view-guest-player" class="modal-overlay">
         <div id="guest-full-player"
-            style="width:100%; height:100%; display:flex; flex-direction:column; padding:40px 20px;">
+            style="width:100%; height:100%; display:flex; flex-direction:column; padding:20px 20px;">
             <header>
                 <button class="btn-icon" onclick="closeModal('view-guest-player')"><span
                         class="material-icons-round">expand_more</span></button>
@@ -305,10 +308,16 @@
     <!-- MODAL ANUNCIOS -->
     <div id="dom_modal_announcement" class="modal-overlay">
         <div class="modal-content">
-            <h3>Gestión de Anuncios</h3>
-            <textarea id="annText" class="form-input" style="height:100px;"
+            <h3>Enviar Notificación</h3>
+            <p style="font-size:0.8rem; color:var(--text-dim); margin-bottom:15px;">Este mensaje les aparecerá a todos
+                los usuarios.</p>
+            <textarea id="annText" class="form-input" style="height:100px; padding:15px;"
                 placeholder="Escribe el anuncio..."></textarea>
-            <button class="btn-submit" onclick="closeModal('dom_modal_announcement')">Cerrar</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-submit" style="background:#333;"
+                    onclick="closeModal('dom_modal_announcement')">Cancelar</button>
+                <button class="btn-submit" onclick="sendNotification()">Enviar a todos</button>
+            </div>
         </div>
     </div>
 
@@ -354,13 +363,13 @@
     <div id="customToast" class="customToast">Mensaje</div>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=25"></script>
-    <script src="js/data-manager.js?v=25"></script>
-    <script src="js/ui-renderer.js?v=25"></script>
-    <script src="js/player.js?v=25"></script>
-    <script src="js/pwa-manager.js?v=25"></script>
-    <script src="js/modals.js?v=25"></script>
-    <script src="js/app.js?v=25"></script>
+    <script src="js/config.js?v=30"></script>
+    <script src="js/data-manager.js?v=30"></script>
+    <script src="js/ui-renderer.js?v=30"></script>
+    <script src="js/player.js?v=30"></script>
+    <script src="js/pwa-manager.js?v=30"></script>
+    <script src="js/modals.js?v=30"></script>
+    <script src="js/app.js?v=30"></script>
 
 </body>
 

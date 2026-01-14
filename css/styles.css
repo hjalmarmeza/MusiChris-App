@@ -273,14 +273,23 @@ header {
     margin-bottom: 25px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px;
     }
 
-    .stats-grid .card:last-child {
-        grid-column: span 2;
-        height: 80px;
+    .stats-grid .card {
+        height: 90px;
+        padding: 10px 5px;
+    }
+
+    .stats-grid .card h3 {
+        font-size: 0.55rem;
+    }
+
+    .stats-grid .card .value {
+        font-size: 1.2rem;
     }
 }
 
@@ -592,7 +601,8 @@ header {
     z-index: 5000;
     display: none;
     flex-direction: column;
-    padding: 20px;
+    padding: 15px;
+    /* Reduced for mobile */
     animation: slideUp 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
@@ -639,8 +649,9 @@ header {
 }
 
 .btn-play-circle-large {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    /* Smaller for mobile */
+    height: 70px;
     background: white;
     border-radius: 50%;
     color: black;
@@ -651,7 +662,7 @@ header {
 }
 
 .btn-play-circle-large span {
-    font-size: 4rem;
+    font-size: 3.5rem;
 }
 
 /* Notifications UI */
@@ -696,7 +707,37 @@ header {
     margin-bottom: 10px;
 }
 
-/* Animations for Bars */
+/* Notif Banner */
+.notif-banner {
+    background: linear-gradient(90deg, var(--accent), #ff9900);
+    padding: 12px 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: black;
+    animation: fadeIn 0.5s ease;
+}
+
+.notif-banner-text {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.notif-close-btn {
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
 .playing-indicator {
     display: none;
     align-items: flex-end;

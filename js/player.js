@@ -221,6 +221,9 @@ function updatePlayingIndicators() {
         const songInd = document.getElementById(`playing-indicator-${appConfig.currentSong.id}`);
         if (songInd) songInd.style.display = 'flex';
 
+        const miniVis = document.getElementById('visualizer-mini');
+        if (miniVis) miniVis.style.display = 'flex';
+
         // Indicador de álbum
         if (appConfig.currentSong.album) {
             const albumIdx = appConfig.data.albums.findIndex(a => norm(a.name) === norm(appConfig.currentSong.album));
@@ -239,4 +242,5 @@ function togglePlayIcon(isPlaying) {
         if (el) el.textContent = icon;
     });
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+    if (typeof updateVisualizer === 'function') updateVisualizer(isPlaying);
 }
