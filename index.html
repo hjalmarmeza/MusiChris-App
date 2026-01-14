@@ -21,7 +21,7 @@
 
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=20">
+    <link rel="stylesheet" href="css/styles.css?v=25">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -110,9 +110,19 @@
                     <!-- KPIs rápidos aquí -->
                 </div>
                 <div class="stats-main-row">
-                    <div class="stats-card chart-container">
-                        <h4><span class="material-icons-round">insights</span> Actividad Semanal</h4>
-                        <canvas id="activityChart"></canvas>
+                    <div class="stats-col-left">
+                        <div class="stats-card chart-card">
+                            <h4><span class="material-icons-round">analytics</span> Más Escuchadas</h4>
+                            <div class="chart-wrapper">
+                                <canvas id="topSongsChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="stats-card chart-card">
+                            <h4><span class="material-icons-round">insights</span> Actividad Semanal</h4>
+                            <div class="chart-wrapper">
+                                <canvas id="activityChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                     <div id="statsMainContainer" class="stats-premium-grid">
                         <!-- Top listas aquí -->
@@ -344,13 +354,13 @@
     <div id="customToast" class="customToast">Mensaje</div>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=20"></script>
-    <script src="js/data-manager.js?v=20"></script>
-    <script src="js/ui-renderer.js?v=20"></script>
-    <script src="js/player.js?v=20"></script>
-    <script src="js/pwa-manager.js?v=20"></script>
-    <script src="js/modals.js?v=20"></script>
-    <script src="js/app.js?v=20"></script>
+    <script src="js/config.js?v=25"></script>
+    <script src="js/data-manager.js?v=25"></script>
+    <script src="js/ui-renderer.js?v=25"></script>
+    <script src="js/player.js?v=25"></script>
+    <script src="js/pwa-manager.js?v=25"></script>
+    <script src="js/modals.js?v=25"></script>
+    <script src="js/app.js?v=25"></script>
 
 </body>
 

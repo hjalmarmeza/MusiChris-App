@@ -1,5 +1,6 @@
 // RENDERIZADO DE INTERFAZ Y COMPONENTES
 let activityChart = null;
+let topSongsChartObj = null;
 
 function updateUI(songListOverride = null) {
     if (songListOverride) {
@@ -188,8 +189,9 @@ function renderStatsOverview() {
         </div>
     `;
 
-    // 2. Gráfico de Actividad (Chart.js)
+    // 2. Gráficos (Chart.js)
     initActivityChart();
+    initTopSongsChart();
 
     // 3. Renderizar Top Listas
     const topSongs = appConfig.stats.topSongs || [];
@@ -258,7 +260,7 @@ function initActivityChart() {
     if (!ctx) return;
 
     const labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-    const data = appConfig.data.stats.weeklyData || [0, 0, 0, 0, 0, 0, 0];
+    const data = (appConfig.data.stats && appConfig.data.stats.weeklyData) || [0, 0, 0, 0, 0, 0, 0];
 
     if (activityChart) {
         activityChart.data.datasets[0].data = data;
@@ -287,8 +289,49 @@ function initActivityChart() {
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0b0' } },
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0b0', stepSize: 1 } },
                 x: { grid: { display: false }, ticks: { color: '#a0a0b0' } }
+            }
+        }
+    });
+}
+
+function initTopSongsChart() {
+    const ctx = document.getElementById('topSongsChart');
+    if (!ctx) return;
+
+    const songs = (appConfig.stats.topSongs || []).slice(0, 5);
+    const labels = songs.map(s => s.title.substring(0, 15) + (s.title.length > 15 ? '...' : ''));
+    const data = songs.map(s => s.plays || 0);
+
+    if (topSongsChartObj) {
+        topSongsChartObj.data.labels = labels;
+        topSongsChartObj.data.datasets[0].data = data;
+        topSongsChartObj.update();
+        return;
+    }
+
+    topSongsChartObj = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Reproducciones',
+                data: data,
+                backgroundColor: 'rgba(255, 204, 0, 0.6)',
+                borderColor: '#ffcc00',
+                borderWidth: 1,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0b0', stepSize: 1 } },
+                y: { grid: { display: false }, ticks: { color: '#a0a0b0' } }
             }
         }
     });

@@ -204,7 +204,22 @@ header {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+}
+
+@media (max-width: 500px) {
+    .brand {
+        font-size: 1.2rem;
+    }
+
+    .user-profile span {
+        display: none;
+    }
+
+    /* Hide name on mobile */
+    .user-profile {
+        padding: 5px;
+    }
 }
 
 .btn-icon {
@@ -369,6 +384,8 @@ header {
 .song-info {
     flex: 1;
     min-width: 0;
+    /* Important for truncation */
+    overflow: hidden;
 }
 
 .song-title {
@@ -378,6 +395,7 @@ header {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: block;
 }
 
 .song-artist {
@@ -386,6 +404,7 @@ header {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: block;
 }
 
 /* List Action Buttons */
@@ -393,6 +412,8 @@ header {
     display: flex;
     gap: 8px;
     align-items: center;
+    flex-shrink: 0;
+    /* Don't shrink buttons */
 }
 
 .btn-list-action {
@@ -586,14 +607,14 @@ header {
 }
 
 .guest-cover-container {
-    width: 80vw;
-    height: 80vw;
-    max-width: 380px;
-    max-height: 380px;
+    width: 70vw;
+    height: 70vw;
+    max-width: 320px;
+    max-height: 320px;
     border-radius: 30px;
     overflow: hidden;
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-    margin: 40px 0;
+    margin: 20px 0;
 }
 
 #guestCover {
@@ -608,7 +629,7 @@ header {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    margin-top: 40px;
+    margin-top: 20px;
     width: 100%;
 }
 
@@ -999,19 +1020,31 @@ header {
 
 .stats-main-row {
     display: grid;
-    grid-template-columns: 1.5fr 1fr;
+    grid-template-columns: 1.2fr 0.8fr;
     gap: 20px;
+}
+
+.stats-col-left {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.chart-card {
+    padding: 20px;
+    height: auto !important;
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 250px;
+    width: 100%;
 }
 
 @media (max-width: 900px) {
     .stats-main-row {
         grid-template-columns: 1fr;
     }
-}
-
-.chart-container {
-    padding: 24px;
-    height: 350px;
 }
 
 .stats-premium-grid {
@@ -1023,9 +1056,11 @@ header {
 .stats-card {
     background: var(--glass);
     border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    padding: 20px;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
+
 
 
 .stats-card h4 {
