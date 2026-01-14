@@ -247,15 +247,26 @@ function renderModalSongList(id, songs) {
                 <div class="song-artist">${s.genre || ''}</div>
             </div>
             <div class="song-actions">
-                <button class="btn-list-action" onclick="event.stopPropagation(); appConfig.tempPlaylist = songs; playSongId(${s.id})">
+                <button class="btn-list-action">
                     <span class="material-icons-round">play_arrow</span>
                 </button>
             </div>
         `;
+
+        // Action button click
+        const btn = div.querySelector('.btn-list-action');
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            appConfig.tempPlaylist = songs;
+            playSong(s);
+        };
+
+        // Row click
         div.onclick = () => {
             appConfig.tempPlaylist = songs;
             playSong(s);
         };
+
         c.appendChild(div);
     });
 }
