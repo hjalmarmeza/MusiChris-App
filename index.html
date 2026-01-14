@@ -264,12 +264,30 @@
         </div>
     </div>
 
-    <!-- MODAL EQ -->
-    <div id="dom_modal_eq" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Visualizador / EQ</h3>
-            <p style="color:var(--text-dim)">Próximamente...</p>
-            <button class="btn-submit" onclick="closeModal('dom_modal_eq')">Cerrar</button>
+    <!-- MODAL VISTA DE ÁLBUM (Detalle) -->
+    <div id="dom_modal_album_detail" class="modal-overlay">
+        <div class="modal-content album-detail-modal">
+            <header class="album-modal-header">
+                <button class="btn-icon" onclick="closeModal('dom_modal_album_detail')">
+                    <span class="material-icons-round">close</span>
+                </button>
+                <h3 id="modalAlbumTitle">Detalle del Álbum</h3>
+            </header>
+
+            <div class="album-detail-info">
+                <img id="modalAlbumCover" src="" class="album-large-cover">
+                <div class="album-text-info">
+                    <h2 id="modalAlbumName">Nombre del Álbum</h2>
+                    <p id="modalAlbumArtist">Artista</p>
+                    <button class="btn-play-album" id="btnPlayAllAlbum">
+                        <span class="material-icons-round">play_arrow</span> REPRODUCIR TODO
+                    </button>
+                </div>
+            </div>
+
+            <div id="modalAlbumSongsList" class="album-modal-songs">
+                <!-- Canciones se cargan aquí -->
+            </div>
         </div>
     </div>
 

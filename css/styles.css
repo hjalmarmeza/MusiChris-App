@@ -679,6 +679,79 @@ header {
 }
 
 /* Tab Content Visibility */
+/* Album Detail Modal */
+.album-detail-modal {
+    max-width: 600px;
+    padding: 0;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--secondary) 0%, var(--primary) 100%);
+}
+
+.album-modal-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    gap: 15px;
+}
+
+.album-detail-info {
+    display: flex;
+    padding: 30px;
+    gap: 25px;
+    align-items: center;
+}
+
+.album-large-cover {
+    width: 180px;
+    height: 180px;
+    border-radius: 24px;
+    object-fit: cover;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
+.album-text-info {
+    flex: 1;
+}
+
+.album-text-info h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.album-text-info p {
+    color: var(--accent);
+    font-weight: 600;
+    margin: 5px 0 20px 0;
+}
+
+.btn-play-album {
+    background: var(--accent);
+    color: black;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 5px 15px var(--accent-glow);
+}
+
+.btn-play-album:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+.album-modal-songs {
+    padding: 0 20px 30px 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
 .list-tab-content {
     display: none;
     animation: fadeIn 0.3s ease;

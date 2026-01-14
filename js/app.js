@@ -209,16 +209,50 @@ function openAlbum(index) {
         return;
     }
 
-    // Cambiar a la pestaña de música para ver las canciones del álbum
-    const tabId = appConfig.isAdmin ? 'admin-music' : 'user-music';
-    const tabBtnSelector = appConfig.isAdmin ? '.view-section#view-admin .tab-btn' : '.view-section#view-user .tab-btn';
-    const musicBtn = document.querySelector(`${tabBtnSelector}[onclick*="${tabId}"]`);
+    // Llenar Modal
+    document.getElementById('modalAlbumName').textContent = albumName;
+    document.getElementById('modalAlbumArtist').textContent = album.artist || 'Artista';
+    document.getElementById('modalAlbumCover').src = getArtForAlbum(album);
 
-    if (musicBtn) switchTab(tabId, musicBtn);
+    // Configurar botón "Reproducir Todo"
+    const btnPlayAll = document.getElementById('btnPlayAllAlbum');
+    btnPlayAll.onclick = () => {
+        appConfig.tempPlaylist = albumSongs;
+        playSong(albumSongs[0]);
+        closeModal('dom_modal_album_detail');
+    };
 
-    appConfig.tempPlaylist = albumSongs;
-    updateUI(albumSongs);
-    showToast(`Mostrando: ${albumName}`, 'info');
+    renderModalSongList('modalAlbumSongsList', albumSongs);
+    openModal('dom_modal_album_detail');
+}
+
+function renderModalSongList(id, songs) {
+    const c = document.getElementById(id);
+    if (!c) return;
+    c.innerHTML = '';
+
+    songs.forEach((s) => {
+        const div = document.createElement('div');
+        div.className = 'song-list-item';
+        div.style.background = 'rgba(255,255,255,0.03)';
+
+        div.innerHTML = `
+            <div class="song-info">
+                <div class="song-title">${s.title}</div>
+                <div class="song-artist">${s.genre || ''}</div>
+            </div>
+            <div class="song-actions">
+                <button class="btn-list-action" onclick="event.stopPropagation(); appConfig.tempPlaylist = songs; playSongId(${s.id})">
+                    <span class="material-icons-round">play_arrow</span>
+                </button>
+            </div>
+        `;
+        div.onclick = () => {
+            appConfig.tempPlaylist = songs;
+            playSong(s);
+        };
+        c.appendChild(div);
+    });
 }
 
 function updateLikeIcon() {
