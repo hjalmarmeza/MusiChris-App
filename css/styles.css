@@ -603,8 +603,8 @@ header {
     display: flex !important;
     align-items: center !important;
     width: 100% !important;
-    gap: 12px !important;
-    margin: 40px 0 20px 0 !important;
+    gap: 15px !important;
+    margin: 40px 0 10px 0 !important;
 }
 
 .expanded-seek-slider {
@@ -625,20 +625,22 @@ header {
 
 .expanded-seek-slider::-webkit-slider-thumb {
     appearance: none;
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     background: white;
     border-radius: 50%;
-    margin-top: -5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-top: -7px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: 0.2s;
 }
 
 .time-label-fixed {
     color: var(--text-dim) !important;
-    font-size: 0.9rem !important;
-    min-width: 45px !important;
+    font-size: 0.85rem !important;
+    min-width: 42px !important;
     text-align: center !important;
-    font-family: monospace;
+    font-family: inherit !important;
+    flex-shrink: 0 !important;
 }
 
 .guest-cover-container {
@@ -735,11 +737,26 @@ header {
 /* Expanded Player Controls */
 .expanded-controls {
     display: flex;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;
-    gap: 20px;
-    margin-top: 25px;
+    margin-top: 30px;
     width: 100%;
+    max-width: 450px;
+}
+
+.secondary-player-btn {
+    font-size: 2rem !important;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: 0.2s;
+    user-select: none;
+}
+
+.btn-like-player-exp {
+    font-size: 2.2rem !important;
+    transition: 0.3s;
+    cursor: pointer;
+    color: white;
 }
 
 .expanded-controls .material-icons-round {
