@@ -261,7 +261,7 @@ function updateLikeIcon() {
 
     const isLiked = appConfig.currentSong.likes.includes(appConfig.user.email);
     btn.textContent = isLiked ? 'favorite' : 'favorite_border';
-    btn.style.color = isLiked ? 'var(--accent)' : 'white';
+    btn.style.color = isLiked ? 'var(--danger)' : 'white';
 }
 
 function activateGuestMode() {
@@ -302,6 +302,21 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             document.getElementById('view-login').style.display = 'flex';
         }
+    }
+
+    // Password visibility toggle
+    const togglePass = document.getElementById('btnTogglePass');
+    if (togglePass) {
+        togglePass.addEventListener('click', () => {
+            const passInput = document.getElementById('loginPass');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                togglePass.textContent = 'visibility';
+            } else {
+                passInput.type = 'password';
+                togglePass.textContent = 'visibility_off';
+            }
+        });
     }
 
     setupPWA();

@@ -262,21 +262,31 @@ function initUserActivityChart() {
     const ctx = document.getElementById('activityChart');
     if (!ctx) return;
 
-    const labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    // Obtener usuarios para las etiquetas (las 3 primeras letras de sus nombres)
+    const users = (appConfig.data && appConfig.data.users) ? appConfig.data.users : [];
+    let labels = users.map(u => u.name.substring(0, 3).toUpperCase());
 
-    // Simulación de datos por usuario (ya que no guardamos historial real per user en el bin)
-    // En un caso real esto vendría de una base de datos con timestamps
+    // Fallback si no hay usuarios
+    if (labels.length === 0) {
+        labels = ['User 1', 'User 2', 'User 3'];
+    }
+
+    // Simulamos datos para cada usuario ya que el bin no guarda historial detallado per-user aún
     const datasets = [
         {
             label: 'Admin',
-            data: [12, 19, 3, 5, 2, 3, 10],
+            data: labels.map(() => Math.floor(Math.random() * 15) + 5),
             borderColor: '#ffcc00',
+            backgroundColor: 'rgba(255, 204, 0, 0.1)',
+            fill: true,
             tension: 0.4
         },
         {
             label: 'Invitados',
-            data: [5, 12, 8, 15, 7, 20, 15],
+            data: labels.map(() => Math.floor(Math.random() * 10) + 2),
             borderColor: '#00ccff',
+            backgroundColor: 'rgba(0, 204, 255, 0.1)',
+            fill: true,
             tension: 0.4
         }
     ];
@@ -291,7 +301,17 @@ function initUserActivityChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: true, labels: { color: '#a0a0b0' } } },
+            plugins: {
+                legend: { display: true, labels: { color: '#a0a0b0' } },
+                tooltip: {
+                    callbacks: {
+                        title: (items) => {
+                            const idx = items[0].dataIndex;
+                            return users[idx] ? users[idx].name : labels[idx];
+                        }
+                    }
+                }
+            },
             scales: {
                 y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0b0' } },
                 x: { grid: { display: false }, ticks: { color: '#a0a0b0' } }
