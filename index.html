@@ -246,10 +246,12 @@
 
             <div class="player-controls-main" style="width:100%; max-width:400px; margin:5px auto; padding:0 20px;">
                 <div class="progress-bar-area">
-                    <span id="expCurTime" class="time-label-fixed">0:00</span>
                     <input type="range" id="expandedSeekSlider" class="expanded-seek-slider" value="0" min="0" max="100"
                         oninput="seekAudio(event)">
-                    <span id="expTotTime" class="time-label-fixed">0:00</span>
+                    <div class="time-labels-row">
+                        <span id="expCurTime" class="time-label-fixed">0:00</span>
+                        <span id="expTotTime" class="time-label-fixed">0:00</span>
+                    </div>
                 </div>
 
                 <div class="expanded-controls">
