@@ -233,8 +233,6 @@
                 style="display:flex; flex-direction:column; align-items:center; flex:1; justify-content:center;">
                 <div class="guest-cover-container">
                     <div id="guestCover"></div>
-                    <span id="btnLikePlayer" class="material-icons-round btn-like-on-cover"
-                        onclick="toggleLikeCurrent()">favorite_border</span>
                 </div>
                 <div style="text-align:center;">
                     <h2 id="guestTitle" style="font-size:1.8rem; margin:0;">Título</h2>
@@ -250,7 +248,7 @@
                     <span id="expTotTime" class="time-label-fixed">0:00</span>
                 </div>
 
-                <div class="expanded-controls">
+                <div class="expanded-controls" style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="material-icons-round secondary-player-btn" onclick="toggleShuffle(this)">shuffle</span>
                     <span class="material-icons-round control-btn-large" onclick="prev()">skip_previous</span>
                     <div class="btn-play-circle-large" onclick="toggle_play()">
@@ -258,6 +256,8 @@
                     </div>
                     <span class="material-icons-round control-btn-large" onclick="next()">skip_next</span>
                     <span class="material-icons-round secondary-player-btn" onclick="toggleRepeat(this)">repeat</span>
+                    <span id="btnLikePlayer" class="material-icons-round btn-like-player-exp"
+                        onclick="toggleLikeCurrent()">favorite_border</span>
                 </div>
             </div>
         </div>

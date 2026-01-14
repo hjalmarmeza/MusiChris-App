@@ -262,24 +262,24 @@ function initUserActivityChart() {
     const ctx = document.getElementById('activityChart');
     if (!ctx) return;
 
-    // Obtener los 5 usuarios para la gráfica
-    const allUsers = (appConfig.data && appConfig.data.users) ? appConfig.data.users : [];
-
-    // Top 5 Canciones (Los nombres irán en el eje de los números/labels)
+    // Obtener las 5 canciones más escuchadas para el eje Y
     const topSongs = (appConfig.stats.topSongs || []).slice(0, 5);
-    const labels = topSongs.map(s => s.title.substring(0, 15) + (s.title.length > 15 ? '..' : ''));
+    const labels = topSongs.map(s => s.title.substring(0, 20) + (s.title.length > 20 ? '..' : ''));
 
+    // Obtener los usuarios para los segmentos (leyenda)
+    const allUsers = (appConfig.data && appConfig.data.users) ? appConfig.data.users : [];
     const colors = ['#ffcc00', '#00ccff', '#00ff88', '#ff4d4d', '#a29bfe'];
 
-    // Dataset por cada usuario: Mostramos su contribución real (si es admin o tiene likes)
+    // Dataset por cada usuario: Mostramos su contribución real
     const datasets = allUsers.slice(0, 5).map((u, i) => {
         const initials = u.name.substring(0, 3).toUpperCase();
         return {
             label: initials,
             data: topSongs.map(song => {
                 const isLiked = song.likes && song.likes.includes(u.email);
+                // Si es admin, mostramos plays menos likes para dar contexto, o 1 si tiene like
                 if (u.role === 'admin' && i === 0) return Math.max(0, song.plays - (song.likes ? song.likes.length : 0));
-                return isLiked ? 1 : 0; // Datos reales: 1 si le gusta (equivalente a "actividad")
+                return isLiked ? 1 : 0; // Contribución real basada en likes
             }),
             backgroundColor: colors[i % colors.length],
             borderRadius: 4
@@ -294,14 +294,28 @@ function initUserActivityChart() {
         type: 'bar',
         data: { labels, datasets },
         options: {
+            indexAxis: 'y', // Hacemos la gráfica horizontal: Nombres en el eje Y
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                x: { stacked: true, grid: { display: false }, ticks: { color: '#a0a0b0' } },
-                y: { stacked: true, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0b0', stepSize: 1 } }
+                x: {
+                    stacked: true,
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#a0a0b0', stepSize: 1 }
+                },
+                y: {
+                    stacked: true,
+                    grid: { display: false },
+                    ticks: { color: '#a0a0b0', font: { size: 10 } }
+                }
             },
             plugins: {
-                legend: { display: true, labels: { color: '#a0a0b0', boxWidth: 10 } },
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: { color: '#a0a0b0', boxWidth: 10, font: { size: 10 } }
+                },
                 tooltip: {
                     callbacks: {
                         title: (items) => topSongs[items[0].dataIndex].title
