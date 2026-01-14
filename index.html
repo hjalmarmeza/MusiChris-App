@@ -244,25 +244,25 @@
                 </div>
             </div>
 
-            <div class="player-controls-main" style="width:100%; max-width:500px; margin:30px auto;">
-                <div class="exp-progress-container">
-                    <input type="range" id="expandedSeekSlider" class="expanded-seek-slider" value="0" min="0" max="100"
+            <div class="v5-player-area">
+                <div class="v5-progress-section">
+                    <input type="range" id="expandedSeekSlider" class="v5-slider" value="0" min="0" max="100"
                         oninput="seekAudio(event)">
-                    <div class="exp-time-row">
-                        <span id="expCurTime" class="time-label-fixed">0:00</span>
-                        <span id="expTotTime" class="time-label-fixed">0:00</span>
+                    <div class="v5-time-row">
+                        <span id="expCurTime" class="v5-time">0:00</span>
+                        <span id="expTotTime" class="v5-time">0:00</span>
                     </div>
                 </div>
 
-                <div class="expanded-controls">
-                    <span class="material-icons-round secondary-player-btn" onclick="toggleShuffle(this)">shuffle</span>
-                    <span class="material-icons-round control-btn-large" onclick="prev()">skip_previous</span>
-                    <div class="btn-play-circle-large" onclick="toggle_play()">
+                <div class="v5-controls-row">
+                    <span class="material-icons-round v5-btn-small" onclick="toggleShuffle(this)">shuffle</span>
+                    <span class="material-icons-round v5-btn-med" onclick="prev()">skip_previous</span>
+                    <div class="v5-play-wrap" onclick="toggle_play()">
                         <span id="iconPlayBig" class="material-icons-round">play_arrow</span>
                     </div>
-                    <span class="material-icons-round control-btn-large" onclick="next()">skip_next</span>
-                    <span class="material-icons-round secondary-player-btn" onclick="toggleRepeat(this)">repeat</span>
-                    <span id="btnLikePlayer" class="material-icons-round btn-like-player-exp"
+                    <span class="material-icons-round v5-btn-med" onclick="next()">skip_next</span>
+                    <span class="material-icons-round v5-btn-small" onclick="toggleRepeat(this)">repeat</span>
+                    <span id="btnLikePlayer" class="material-icons-round v5-btn-like"
                         onclick="toggleLikeCurrent()">favorite_border</span>
                 </div>
             </div>
