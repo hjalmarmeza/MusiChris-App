@@ -675,15 +675,16 @@ header {
 
 .expanded-controls {
     display: flex !important;
-    justify-content: space-around !important;
+    justify-content: center !important;
     align-items: center !important;
     width: 100% !important;
-    margin: 15px 0 5px 0 !important;
-    padding: 0 10px !important;
+    gap: 15px !important;
+    margin: 20px 0 5px 0 !important;
+    padding: 0 !important;
 }
 
 .expanded-controls .material-icons-round {
-    font-size: 2.1rem !important;
+    font-size: 1.8rem !important;
     cursor: pointer !important;
     user-select: none !important;
     color: var(--text-dim) !important;
@@ -691,14 +692,17 @@ header {
 }
 
 .expanded-controls .control-btn-large {
-    font-size: 3.2rem !important;
+    font-size: 2.8rem !important;
     color: white !important;
     flex-shrink: 0 !important;
 }
 
 .btn-play-circle-large {
-    width: 72px !important;
-    height: 72px !important;
+    width: 75px !important;
+    height: 75px !important;
+    min-width: 75px !important;
+    min-height: 75px !important;
+    aspect-ratio: 1 / 1 !important;
     background: white !important;
     border-radius: 50% !important;
     display: flex !important;
@@ -706,7 +710,7 @@ header {
     justify-content: center !important;
     cursor: pointer !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15) !important;
 }
 
 .btn-play-circle-large span {
