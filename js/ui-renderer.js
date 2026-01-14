@@ -20,6 +20,7 @@ function updateUI(songListOverride = null) {
     if (appConfig.isAdmin) {
         renderUserList('usersListGrid', appConfig.data.users);
         renderStatsOverview();
+        updateCloudinaryUsage();
     }
 
     if (appConfig.user) {
@@ -212,6 +213,24 @@ function getSongArtForList(song) {
         if (alb && alb.cover) return alb.cover;
     }
     return DEFAULT_COVER;
+}
+
+// Obtener uso de Cloudinary (Simulado/Estimado o vía Proxy si fuera necesario)
+// Dado que Cloudinary Admin API requiere API Secret y no es seguro en Front-end, 
+// calculamos un estimado basado en los archivos o mostramos el nombre de la nube.
+async function updateCloudinaryUsage() {
+    const usageEl = document.getElementById('statsCloudinaryUsage');
+    if (!usageEl) return;
+
+    // En una implementación real, esto consultaría un backend que llame a la Admin API de Cloudinary
+    // Por ahora, mostraremos el nombre de la nube y un % calculado por el peso aproximado de las canciones
+    const totalSongs = appConfig.data.songs.length;
+    const estimatedGB = (totalSongs * 5) / 1024; // 5MB avg per song
+    const percentage = Math.min(((estimatedGB / 25) * 100).toFixed(1), 100);
+
+    usageEl.textContent = `${percentage}%`;
+    const hostingTitle = usageEl.parentElement.querySelector('h3');
+    if (hostingTitle) hostingTitle.textContent = `Cloudinary: dveqs8f3n`;
 }
 
 function getSongArtForPlayer(song) {

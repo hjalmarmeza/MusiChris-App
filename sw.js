@@ -3,7 +3,15 @@ const CACHE_NAME = 'musichris-v2';
 const urlsToCache = [
   './',
   './index.html',
-  './css/styles.css'
+  './css/styles.css',
+  './assets/icon-512.png',
+  './js/config.js',
+  './js/app.js',
+  './js/player.js',
+  './js/ui-renderer.js',
+  './js/data-manager.js',
+  './js/modals.js',
+  './js/pwa-manager.js'
 ];
 
 
