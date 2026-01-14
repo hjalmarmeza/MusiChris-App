@@ -588,104 +588,115 @@ header {
     color: var(--danger) !important;
 }
 
-/* V5 PLAYER SYSTEM - UNIFIED EXPANDED PLAYER STYLES */
-.v5-player-area {
-    width: 100% !important;
-    max-width: 500px !important;
-    margin: 10px auto !important;
-    padding: 0 15px !important;
-    box-sizing: border-box !important;
+/* Full Screen Guest Player */
+#view-guest-player {
+    background: linear-gradient(180deg, #1a1a2b 0%, #0f0f1a 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5000;
+    display: none;
+    flex-direction: column;
+    padding: 30px;
+    animation: slideUp 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-.v5-progress-section {
-    width: 100% !important;
-    margin: 25px 0 15px 0 !important;
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.guest-cover-container {
+    width: 75vw;
+    height: 75vw;
+    max-width: 320px;
+    max-height: 320px;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    margin: 20px 0;
+}
+
+#guestCover {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Expanded Controls & Progress */
+.progress-bar-area {
     display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
+    align-items: center !important;
+    gap: 15px !important;
+    width: 100% !important;
+    margin: 40px 0 !important;
 }
 
-.v5-slider {
-    width: 100% !important;
-    display: block !important;
+.expanded-seek-slider {
+    flex: 1 !important;
     height: 6px !important;
     appearance: none !important;
-    background: rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
     border-radius: 10px !important;
-    outline: none !important;
-    margin: 0 !important;
-    cursor: pointer !important;
 }
 
-.v5-slider::-webkit-slider-thumb {
+.expanded-seek-slider::-webkit-slider-thumb {
     appearance: none !important;
     width: 20px !important;
     height: 20px !important;
     background: white !important;
     border-radius: 50% !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important;
-    cursor: pointer !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
 }
 
-.v5-time-row {
-    display: flex !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    padding: 0 2px !important;
-}
-
-.v5-time {
+.time-label-fixed {
     color: var(--text-dim) !important;
-    font-size: 0.8rem !important;
-    font-family: monospace !important;
+    font-size: 0.85rem !important;
+    min-width: 45px !important;
+    text-align: center !important;
 }
 
-.v5-controls-row {
+.expanded-controls {
     display: flex !important;
-    justify-content: space-between !important;
+    justify-content: space-evenly !important;
     align-items: center !important;
     width: 100% !important;
-    margin-top: 10px !important;
+    margin-top: 20px !important;
 }
 
-.v5-btn-small {
-    font-size: 1.7rem !important;
+.expanded-controls .material-icons-round {
+    font-size: 2.22rem !important;
+    cursor: pointer !important;
+    user-select: none !important;
     color: var(--text-dim) !important;
-    cursor: pointer !important;
-    transition: 0.2s !important;
 }
 
-.v5-btn-med {
-    font-size: 2.3rem !important;
+.expanded-controls .control-btn-large {
+    font-size: 3.5rem !important;
     color: white !important;
-    cursor: pointer !important;
 }
 
-.v5-btn-like {
-    font-size: 2.1rem !important;
-    color: white !important;
-    cursor: pointer !important;
-    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-}
-
-.v5-btn-like.liked {
-    color: var(--danger) !important;
-}
-
-.v5-play-wrap {
-    width: 62px !important;
-    height: 62px !important;
+.btn-play-circle-large {
+    width: 70px !important;
+    height: 70px !important;
     background: white !important;
     border-radius: 50% !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1) !important;
 }
 
-.v5-play-wrap span {
-    font-size: 2.8rem !important;
+.btn-play-circle-large span {
+    font-size: 3.5rem !important;
     color: #0f0f1a !important;
 }
 
