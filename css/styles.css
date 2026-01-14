@@ -588,17 +588,17 @@ header {
     color: var(--danger) !important;
 }
 
-.progress-bar-area {
+.exp-progress-container {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    margin: 40px 0 10px 0 !important;
-    gap: 10px !important;
+    margin: 25px 0 10px 0 !important;
+    gap: 6px !important;
 }
 
 .expanded-seek-slider {
     width: 100% !important;
-    height: 8px !important;
+    height: 6px !important;
     margin: 0 !important;
     cursor: pointer !important;
     appearance: none !important;
@@ -608,32 +608,32 @@ header {
 }
 
 .expanded-seek-slider::-webkit-slider-runnable-track {
-    height: 8px;
-    border-radius: 10px;
+    height: 6px !important;
+    border-radius: 10px !important;
 }
 
 .expanded-seek-slider::-webkit-slider-thumb {
-    appearance: none;
-    width: 22px;
-    height: 22px;
-    background: white;
-    border-radius: 50%;
-    margin-top: -7px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    appearance: none !important;
+    width: 20px !important;
+    height: 20px !important;
+    background: white !important;
+    border-radius: 50% !important;
+    margin-top: -7px !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
 }
 
-.time-labels-row {
+.exp-time-row {
     display: flex !important;
     justify-content: space-between !important;
     width: 100% !important;
+    padding: 0 4px !important;
 }
 
 .time-label-fixed {
     color: var(--text-dim) !important;
-    font-size: 0.85rem !important;
-    min-width: 45px !important;
-    text-align: center !important;
-    font-family: inherit !important;
+    font-size: 0.75rem !important;
+    font-family: monospace !important;
+    letter-spacing: 0.5px !important;
 }
 
 .guest-cover-container {
@@ -729,32 +729,51 @@ header {
 
 /* Expanded Player Controls */
 .expanded-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 20px;
-    width: 100%;
+    display: flex !important;
+    justify-content: space-evenly !important;
+    /* Changed from between to evenly for better centering */
+    align-items: center !important;
+    margin-top: 15px !important;
+    width: 100% !important;
+    gap: 0 !important;
+    flex-wrap: nowrap !important;
 }
 
 .expanded-controls .material-icons-round {
-    font-size: 2.2rem;
-    cursor: pointer;
-    user-select: none;
-}
-
-.btn-like-player-exp {
-    font-size: 2.2rem !important;
-    color: white;
-    transition: 0.3s;
-}
-
-.expanded-controls .material-icons-round {
-    font-size: 2.2rem;
-    /* Adjusted for better visibility */
+    font-size: 1.7rem !important;
+    /* Slightly smaller to fit 6 buttons */
+    cursor: pointer !important;
+    user-select: none !important;
+    color: var(--text-dim) !important;
 }
 
 .expanded-controls .control-btn-large {
-    font-size: 3.2rem !important;
+    font-size: 2.22rem !important;
+    color: white !important;
+}
+
+.btn-play-circle-large {
+    width: 52px !important;
+    height: 52px !important;
+    background: white !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.btn-play-circle-large span {
+    font-size: 2.1rem !important;
+    color: #0f0f1a !important;
+}
+
+.btn-like-player-exp {
+    color: white !important;
+    transition: 0.3s !important;
+}
+
+.btn-like-player-exp.liked {
+    color: var(--danger) !important;
 }
 
 .secondary-player-btn {
