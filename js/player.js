@@ -48,6 +48,18 @@ function playSong(song) {
     const songInMemory = appConfig.data.songs.find(s => s.id === song.id);
     if (songInMemory) {
         songInMemory.plays = (songInMemory.plays || 0) + 1;
+
+        // Registrar historial en Google Sheets
+        fetch(API_BASE_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                action: 'log_play',
+                song: song.title,
+                user: appConfig.user ? appConfig.user.email : 'invitado'
+            })
+        }).catch(e => console.log('Log error:', e));
+
         saveDataSilent();
         calculateStats();
         if (appConfig.isAdmin) renderStatsOverview();
