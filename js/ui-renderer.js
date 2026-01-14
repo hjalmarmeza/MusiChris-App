@@ -270,16 +270,14 @@ function initUserActivityChart() {
     const allUsers = (appConfig.data && appConfig.data.users) ? appConfig.data.users : [];
     const colors = ['#ffcc00', '#00ccff', '#00ff88', '#ff4d4d', '#a29bfe'];
 
-    // Dataset por cada usuario: Mostramos su contribución real
+    // Dataset por cada usuario: Mostramos su contribución real (SOLO LIKES)
     const datasets = allUsers.slice(0, 5).map((u, i) => {
         const initials = u.name.substring(0, 3).toUpperCase();
         return {
             label: initials,
             data: topSongs.map(song => {
                 const isLiked = song.likes && song.likes.includes(u.email);
-                // Si es admin, mostramos plays menos likes para dar contexto, o 1 si tiene like
-                if (u.role === 'admin' && i === 0) return Math.max(0, song.plays - (song.likes ? song.likes.length : 0));
-                return isLiked ? 1 : 0; // Contribución real basada en likes
+                return isLiked ? 1 : 0; // Mostramos 1 si el usuario le dio Like. 
             }),
             backgroundColor: colors[i % colors.length],
             borderRadius: 4
