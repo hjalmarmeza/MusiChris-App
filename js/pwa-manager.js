@@ -5,8 +5,31 @@ function setupPWA() {
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('✅ SW registrado:', reg.scope))
+            .then(reg => {
+                console.log('✅ SW registrado:', reg.scope);
+
+                // Detectar actualización
+                reg.onupdatefound = () => {
+                    const installingWorker = reg.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('✨ Nueva versión detectada, recargando...');
+                            showToast("Actualizando aplicación...", 'info');
+                            setTimeout(() => window.location.reload(), 1500);
+                        }
+                    };
+                };
+            })
             .catch(err => console.log('❌ SW error:', err));
+
+        // Evento cuando un nuevo SW toma el control
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+                refreshing = true;
+                window.location.reload();
+            }
+        });
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
