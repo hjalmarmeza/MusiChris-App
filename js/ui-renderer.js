@@ -51,10 +51,10 @@ function renderSongList(id, songs) {
         if (appConfig.isAdmin) {
             adminBtns = `
                 <button class="btn-list-action" onclick="event.stopPropagation(); editSong(event,${s.id})">
-                    <span class="material-icons-round" style="font-size:1rem">edit</span>
+                    <span class="material-icons-round">edit</span>
                 </button>
                 <button class="btn-list-action" style="background:var(--danger)" onclick="event.stopPropagation(); deleteSong(event,${s.id})">
-                    <span class="material-icons-round" style="font-size:1rem">delete</span>
+                    <span class="material-icons-round">delete</span>
                 </button>
             `;
         }
@@ -149,23 +149,58 @@ function renderUserList(id, users) {
 
     c.innerHTML = users.map(u => `
         <div class="user-list-item">
-            <img src="${getOptimizedAvatar(u.avatar)}" class="avatar" style="width:40px; height:40px;">
+            <img src="${getOptimizedAvatar(u.avatar)}" class="avatar">
             <div style="flex:1; margin-left:12px;">
                 <div style="font-weight:bold">${u.name}</div>
                 <div style="font-size:0.8rem; color:var(--text-dim)">${u.email}</div>
             </div>
             <button class="btn-list-action" style="background:var(--danger)" onclick="deleteUser('${u.email}')">
-                <span class="material-icons-round" style="font-size:1rem">delete</span>
+                <span class="material-icons-round">delete</span>
             </button>
         </div>
     `).join('');
 }
 
 function renderStatsOverview() {
-    // Implementación básica de estadísticas
-    if (document.getElementById('statsTotalSongs')) {
-        document.getElementById('statsTotalSongs').textContent = appConfig.data.songs.length;
-    }
+    const container = document.getElementById('statsMainContainer');
+    if (!container || !appConfig.data) return;
+
+    // Actualizar contadores de cabecera
+    if (document.getElementById('statsTotalSongs')) document.getElementById('statsTotalSongs').textContent = appConfig.data.songs.length;
+    if (document.getElementById('statsTotalUsers')) document.getElementById('statsTotalUsers').textContent = appConfig.data.users.length;
+
+    const topSongs = appConfig.stats.topSongs || [];
+    const topLikes = appConfig.stats.topLikes || [];
+
+    container.innerHTML = `
+        <div class="stats-card">
+            <h4><span class="material-icons-round">trending_up</span> Más Escuchadas</h4>
+            ${topSongs.map((s, i) => `
+                <div class="stat-item">
+                    <span class="stat-rank">${i + 1}</span>
+                    <div class="stat-info">
+                        <div>${s.title}</div>
+                        <div style="font-size:0.75rem; color:var(--text-dim)">${s.album}</div>
+                    </div>
+                    <span class="stat-val">${s.plays} <small>plays</small></span>
+                </div>
+            `).join('')}
+        </div>
+
+        <div class="stats-card">
+            <h4><span class="material-icons-round">favorite</span> Más Queridas</h4>
+            ${topLikes.map((s, i) => `
+                <div class="stat-item">
+                    <span class="stat-rank">${i + 1}</span>
+                    <div class="stat-info">
+                        <div>${s.title}</div>
+                        <div style="font-size:0.75rem; color:var(--text-dim)">${s.album}</div>
+                    </div>
+                    <span class="stat-val">${s.likeCount} <small>likes</small></span>
+                </div>
+            `).join('')}
+        </div>
+    `;
 }
 
 function filterSongs(query) {

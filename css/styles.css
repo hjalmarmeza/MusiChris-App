@@ -371,6 +371,47 @@ header {
     color: var(--text-dim);
 }
 
+/* List Action Buttons */
+.song-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-list-action {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-list-action:hover {
+    background: var(--glass-border);
+    transform: scale(1.08);
+}
+
+.btn-list-action span {
+    font-size: 1.2rem;
+}
+
+.btn-list-action[style*="var(--danger)"] {
+    background: rgba(255, 77, 77, 0.1) !important;
+    border-color: rgba(255, 77, 77, 0.2) !important;
+    color: var(--danger) !important;
+}
+
+.btn-list-action[style*="var(--danger)"]:hover {
+    background: var(--danger) !important;
+    color: white !important;
+}
+
 /* Bottom Player */
 .bottom-player {
     position: fixed;
@@ -606,12 +647,13 @@ header {
     border: 1px solid var(--glass-border);
     animation: slideUp 0.3s ease;
 }
+
 /* Forms */
 .form-input {
     width: 100%;
     padding: 14px;
     margin: 10px 0;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
     color: white;
@@ -644,4 +686,55 @@ header {
 
 .list-tab-content.active {
     display: block;
+}
+
+/* Premium Stats Grid */
+.stats-premium-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.stats-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 20px;
+}
+
+.stats-card h4 {
+    margin: 0 0 15px 0;
+    font-size: 1.1rem;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-rank {
+    font-weight: 800;
+    color: var(--text-dim);
+    width: 20px;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-val {
+    font-weight: 600;
+    color: var(--accent);
 }
