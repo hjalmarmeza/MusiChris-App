@@ -258,6 +258,17 @@ header {
     margin-bottom: 25px;
 }
 
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stats-grid .card:last-child {
+        grid-column: span 2;
+        height: 80px;
+    }
+}
+
 .card {
     background: var(--glass);
     padding: 15px;
@@ -334,7 +345,7 @@ header {
     border: 1px solid var(--glass-border);
     cursor: pointer;
     position: relative;
-    height: 75px;
+    min-height: 80px;
     transition: 0.2s;
 }
 
@@ -364,11 +375,17 @@ header {
     font-weight: 600;
     font-size: 1rem;
     margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .song-artist {
     font-size: 0.85rem;
     color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* List Action Buttons */
