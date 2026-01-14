@@ -133,18 +133,21 @@ input[type="file"] {
 .password-wrapper {
     position: relative;
     width: 100%;
-    display: flex;
-    align-items: center;
-    margin: 10px 0;
+    margin: 15px 0;
+    display: block;
+    /* Change from flex to see if it fixes centering */
 }
 
 .pass-toggle {
     position: absolute;
     right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--text-dim);
     cursor: pointer;
     z-index: 10;
     transition: 0.2s;
+    user-select: none;
 }
 
 .pass-toggle:hover {
@@ -154,7 +157,7 @@ input[type="file"] {
 .login-input {
     width: 100%;
     padding: 16px;
-    padding-right: 45px;
+    padding-right: 50px;
     /* Space for the eye icon */
     border-radius: 14px;
     border: 1px solid var(--glass-border);
@@ -597,23 +600,24 @@ header {
 }
 
 .progress-bar-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
     width: 100%;
-    margin: 20px 0;
+    margin: 25px 0;
 }
 
 .expanded-seek-slider {
-    width: 100% !important;
-    margin: 0 !important;
+    flex: 1;
     height: 6px !important;
+    margin: 0 !important;
 }
 
-.progress-time-wrapper {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin-top: 10px;
+.time-label-fixed {
     font-size: 0.85rem;
     color: var(--text-dim);
+    min-width: 45px;
+    font-variant-numeric: tabular-nums;
 }
 
 .btn-play-circle {

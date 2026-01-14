@@ -268,28 +268,37 @@ function initUserActivityChart() {
 
     // Fallback si no hay usuarios
     if (labels.length === 0) {
-        labels = ['User 1', 'User 2', 'User 3'];
+        labels = ['USR', 'Gst', 'Inv'];
     }
 
-    // Simulamos datos para cada usuario ya que el bin no guarda historial detallado per-user aún
+    // Obtener los nombres de las top 2 canciones para la leyenda
+    const topSongs = (appConfig.stats.topSongs || []).slice(0, 2);
+    const songName1 = topSongs[0] ? topSongs[0].title : 'Canción A';
+    const songName2 = topSongs[1] ? topSongs[1].title : 'Canción B';
+
+    // Datos: Usamos 0 para usuarios reales (ya que no tenemos historial per-user aún en el bin)
+    // Esto evita que parezca que todos han escuchado lo mismo.
     const datasets = [
         {
-            label: 'Admin',
-            data: labels.map(() => Math.floor(Math.random() * 15) + 5),
+            label: songName1,
+            data: labels.map(() => 0), // Inicializado en 0 como pidió el usuario
             borderColor: '#ffcc00',
             backgroundColor: 'rgba(255, 204, 0, 0.1)',
             fill: true,
             tension: 0.4
         },
         {
-            label: 'Invitados',
-            data: labels.map(() => Math.floor(Math.random() * 10) + 2),
+            label: songName2,
+            data: labels.map(() => 0), // Inicializado en 0
             borderColor: '#00ccff',
             backgroundColor: 'rgba(0, 204, 255, 0.1)',
             fill: true,
             tension: 0.4
         }
     ];
+
+    // Simular actividad solo si es el admin para que no esté vacío totalmente si desea ver algo
+    if (labels.length > 0) datasets[0].data[0] = topSongs[0] ? topSongs[0].plays : 0;
 
     if (activityChart) {
         activityChart.destroy();
@@ -307,13 +316,17 @@ function initUserActivityChart() {
                     callbacks: {
                         title: (items) => {
                             const idx = items[0].dataIndex;
-                            return users[idx] ? users[idx].name : labels[idx];
+                            return users[idx] ? users[idx].name : (labels[idx] || 'Usuario');
                         }
                     }
                 }
             },
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0b0' } },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#a0a0b0', stepSize: 1 }
+                },
                 x: { grid: { display: false }, ticks: { color: '#a0a0b0' } }
             }
         }
