@@ -294,9 +294,15 @@ header {
 /* Stats Dashboard */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
     margin-bottom: 25px;
+}
+
+@media (min-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 
 @media (max-width: 768px) {
@@ -600,15 +606,16 @@ header {
 }
 
 .progress-bar-area {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: 45px 1fr 45px !important;
     align-items: center !important;
     width: 100% !important;
-    gap: 15px !important;
+    gap: 12px !important;
     margin: 40px 0 10px 0 !important;
 }
 
 .expanded-seek-slider {
-    flex: 1 !important;
+    width: 100% !important;
     height: 8px !important;
     margin: 0 !important;
     cursor: pointer !important;
@@ -625,19 +632,18 @@ header {
 
 .expanded-seek-slider::-webkit-slider-thumb {
     appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     background: white;
     border-radius: 50%;
-    margin-top: -7px;
+    margin-top: -6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    transition: 0.2s;
 }
 
 .time-label-fixed {
     color: var(--text-dim) !important;
-    font-size: 0.85rem !important;
-    min-width: 42px !important;
+    font-size: 0.8rem !important;
+    width: 45px !important;
     text-align: center !important;
     font-family: inherit !important;
     flex-shrink: 0 !important;
@@ -737,26 +743,22 @@ header {
 /* Expanded Player Controls */
 .expanded-controls {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: center;
     margin-top: 30px;
     width: 100%;
-    max-width: 450px;
 }
 
-.secondary-player-btn {
-    font-size: 2rem !important;
-    color: var(--text-dim);
+.expanded-controls .material-icons-round {
+    font-size: 2.2rem;
     cursor: pointer;
-    transition: 0.2s;
     user-select: none;
 }
 
 .btn-like-player-exp {
     font-size: 2.2rem !important;
-    transition: 0.3s;
-    cursor: pointer;
     color: white;
+    transition: 0.3s;
 }
 
 .expanded-controls .material-icons-round {

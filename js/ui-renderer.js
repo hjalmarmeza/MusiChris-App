@@ -485,14 +485,28 @@ function getSongArtForList(song) {
 function updateCloudinaryUsage() {
     if (!appConfig.data || !appConfig.data.songs) return;
 
+    // Cálculo estimado (5.5MB por canción)
     const songCount = appConfig.data.songs.length;
     const avgSizeMB = 5.5;
     const totalUsedGB = (songCount * avgSizeMB) / 1024;
-    const freePlanGB = 25;
+    const freePlanGB = 25; // Cloudinary Free Tier es de ~25 Credits/GB
     const percentage = Math.min(100, (totalUsedGB / freePlanGB) * 100).toFixed(1);
 
-    if (document.getElementById('statsCloudinaryUsageMini')) {
-        document.getElementById('statsCloudinaryUsageMini').textContent = `${percentage}%`;
+    if (document.getElementById('statsCloudinaryUsage')) {
+        document.getElementById('statsCloudinaryUsage').textContent = `${percentage}%`;
+    }
+
+    // Estado del Servidor (Google Apps Script + JSONBin)
+    if (document.getElementById('statsCloudStatus')) {
+        const lastSync = appConfig.stats.lastSync || Date.now();
+        const diff = (Date.now() - lastSync) / 1000;
+        if (diff < 300) { // Sincronizado hace menos de 5 mins
+            document.getElementById('statsCloudStatus').textContent = 'Activo';
+            document.getElementById('statsCloudStatus').style.color = 'var(--accent)';
+        } else {
+            document.getElementById('statsCloudStatus').textContent = 'Conectado';
+            document.getElementById('statsCloudStatus').style.color = '#888';
+        }
     }
 }
 

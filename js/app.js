@@ -68,6 +68,11 @@ function switchTab(id, btn) {
         appConfig.currentFilter = null;
         updateUI();
     }
+
+    // Refresco automático al entrar a estadísticas
+    if (id === 'admin-stats') {
+        loadAppData();
+    }
 }
 
 
