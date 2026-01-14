@@ -217,8 +217,8 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding-top: 15px;
+    margin-bottom: 20px;
+    padding-top: 10px;
 }
 
 .brand {
@@ -614,14 +614,14 @@ header {
 }
 
 .guest-cover-container {
-    width: 75vw;
-    height: 75vw;
-    max-width: 320px;
-    max-height: 320px;
-    border-radius: 30px;
+    width: 50vw;
+    height: 50vw;
+    max-width: 220px;
+    max-height: 220px;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-    margin: 20px 0;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+    margin: 5px 0;
 }
 
 #guestCover {
@@ -635,9 +635,9 @@ header {
 .progress-bar-area {
     display: flex !important;
     align-items: center !important;
-    gap: 15px !important;
+    gap: 10px !important;
     width: 100% !important;
-    margin: 40px 0 !important;
+    margin: 15px 0 8px 0 !important;
 }
 
 .expanded-seek-slider {
@@ -659,17 +659,18 @@ header {
 
 .time-label-fixed {
     color: var(--text-dim) !important;
-    font-size: 0.85rem !important;
-    min-width: 45px !important;
+    font-size: 0.8rem !important;
+    min-width: 48px !important;
     text-align: center !important;
+    font-variant-numeric: tabular-nums !important;
 }
 
 .expanded-controls {
     display: flex !important;
-    justify-content: space-evenly !important;
+    justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
-    margin-top: 20px !important;
+    margin: 5px 0 !important;
 }
 
 .expanded-controls .material-icons-round {
@@ -685,8 +686,8 @@ header {
 }
 
 .btn-play-circle-large {
-    width: 70px !important;
-    height: 70px !important;
+    width: 65px !important;
+    height: 65px !important;
     background: white !important;
     border-radius: 50% !important;
     display: flex !important;
@@ -696,7 +697,7 @@ header {
 }
 
 .btn-play-circle-large span {
-    font-size: 3.5rem !important;
+    font-size: 3rem !important;
     color: #0f0f1a !important;
 }
 
