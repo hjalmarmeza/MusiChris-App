@@ -675,33 +675,38 @@ header {
 
 .expanded-controls {
     display: flex !important;
-    justify-content: space-between !important;
+    justify-content: space-around !important;
     align-items: center !important;
     width: 100% !important;
-    margin: 5px 0 !important;
+    margin: 15px 0 5px 0 !important;
+    padding: 0 10px !important;
 }
 
 .expanded-controls .material-icons-round {
-    font-size: 2.22rem !important;
+    font-size: 2.1rem !important;
     cursor: pointer !important;
     user-select: none !important;
     color: var(--text-dim) !important;
+    flex-shrink: 0 !important;
 }
 
 .expanded-controls .control-btn-large {
-    font-size: 3.5rem !important;
+    font-size: 3.2rem !important;
     color: white !important;
+    flex-shrink: 0 !important;
 }
 
 .btn-play-circle-large {
-    width: 65px !important;
-    height: 65px !important;
+    width: 72px !important;
+    height: 72px !important;
     background: white !important;
     border-radius: 50% !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1) !important;
 }
 
 .btn-play-circle-large span {
