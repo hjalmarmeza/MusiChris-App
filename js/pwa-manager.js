@@ -3,7 +3,9 @@
 function setupPWA() {
     console.log('🔧 Configurando PWA...');
 
-    if ('serviceWorker' in navigator) {
+    const isLocalFile = window.location.protocol === 'file:';
+
+    if ('serviceWorker' in navigator && !isLocalFile) {
         navigator.serviceWorker.register('sw.js?v=34')
             .then(reg => {
                 console.log('✅ SW registrado:', reg.scope);

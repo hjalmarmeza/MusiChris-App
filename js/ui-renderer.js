@@ -8,14 +8,20 @@ function updateUI(songListOverride = null) {
         appConfig.currentFilter = songListOverride;
     }
 
-    if (document.getElementById('statsTotalSongs') && appConfig.data) {
-        document.getElementById('statsTotalSongs').textContent = appConfig.data.songs.length;
-    }
-    if (document.getElementById('statsTotalUsers') && appConfig.data) {
-        document.getElementById('statsTotalUsers').textContent = appConfig.data.users.length;
+    if (!appConfig.data) {
+        appConfig.data = { songs: [], users: [], albums: [], playlists: [], stats: {} };
     }
 
-    const songs = appConfig.currentFilter || appConfig.data.songs;
+    console.log(`📊 Actualizando UI - Canciones: ${(appConfig.data.songs || []).length}, Usuarios: ${(appConfig.data.users || []).length}`);
+
+    if (document.getElementById('statsTotalSongs')) {
+        document.getElementById('statsTotalSongs').textContent = (appConfig.data.songs || []).length;
+    }
+    if (document.getElementById('statsTotalUsers')) {
+        document.getElementById('statsTotalUsers').textContent = (appConfig.data.users || []).length;
+    }
+
+    const songs = appConfig.currentFilter || appConfig.data.songs || [];
     renderSongList(appConfig.isAdmin ? 'adminSongList' : 'userSongList', songs);
     renderAlbumGrid(appConfig.isAdmin ? 'adminAlbumGrid' : 'userAlbumGrid', appConfig.data.albums);
     renderSmartPlaylists(appConfig.isAdmin ? 'adminPlaylistGrid' : 'userPlaylistGrid');
@@ -46,40 +52,59 @@ function renderSongList(id, songs) {
 
     songs.forEach((s) => {
         const div = document.createElement('div');
-        div.className = 'song-list-item';
-        div.id = `song-item-${s.id}`;
-
         const art = getSongArtForList(s);
         const artist = s.genre || s.artist || 'Artista Desconocido';
 
-        let adminBtns = '';
-        if (appConfig.isAdmin) {
-            adminBtns = `
-                <button class="btn-list-action" onclick="event.stopPropagation(); editSong(event,${s.id})">
-                    <span class="material-icons-round">edit</span>
-                </button>
-                <button class="btn-list-action" style="background:var(--danger)" onclick="event.stopPropagation(); deleteSong(event,${s.id})">
-                    <span class="material-icons-round">delete</span>
+        if (id === 'userSongList') {
+            div.className = "flex items-center gap-4 bg-white/5 p-2 rounded-xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group active:scale-95";
+            div.innerHTML = `
+                <div class="size-14 rounded-lg overflow-hidden shadow-lg shrink-0">
+                    <img src="${art}" loading="lazy" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold text-sm truncate text-white">${s.title}</p>
+                    <p class="text-xs text-white/50 truncate">${artist}</p>
+                </div>
+                <div class="playing-indicator" id="playing-indicator-${s.id}" style="display:none">
+                    <div class="playing-bar" style="height:10px"></div>
+                    <div class="playing-bar" style="height:16px"></div>
+                    <div class="playing-bar" style="height:12px"></div>
+                </div>
+                <button class="size-10 bg-white/5 rounded-full flex items-center justify-center text-white/40 group-hover:text-white group-hover:bg-primary/20 transition-all" onclick="event.stopPropagation(); playSongId(${s.id})">
+                    <span class="material-symbols-outlined text-[20px]" id="list-play-icon-${s.id}">play_arrow</span>
                 </button>
             `;
+        } else {
+            div.className = 'song-list-item';
+            div.id = `song-item-${s.id}`;
+            let adminBtns = '';
+            if (appConfig.isAdmin) {
+                adminBtns = `
+                    <button class="btn-list-action" onclick="event.stopPropagation(); editSong(event,${s.id})">
+                        <span class="material-icons-round">edit</span>
+                    </button>
+                    <button class="btn-list-action" style="background:var(--danger)" onclick="event.stopPropagation(); deleteSong(event,${s.id})">
+                        <span class="material-icons-round">delete</span>
+                    </button>
+                `;
+            }
+            div.innerHTML = `
+                <div class="song-cover" style="background-image:url('${art}')"></div>
+                <div class="song-info">
+                    <div class="song-title">${s.title}</div>
+                    <div class="song-artist">${artist}</div>
+                </div>
+                <div class="song-actions">
+                    <button class="btn-list-action" onclick="event.stopPropagation(); playSongId(${s.id})">
+                        <span class="material-icons-round" id="list-play-icon-admin-${s.id}">play_arrow</span>
+                    </button>
+                    ${adminBtns}
+                </div>
+                <div class="playing-indicator" id="playing-indicator-${s.id}">
+                    <div class="playing-bar"></div><div class="playing-bar"></div><div class="playing-bar"></div>
+                </div>
+            `;
         }
-
-        div.innerHTML = `
-            <div class="song-cover" style="background-image:url('${art}')"></div>
-            <div class="song-info">
-                <div class="song-title">${s.title}</div>
-                <div class="song-artist">${artist}</div>
-            </div>
-            <div class="song-actions">
-                <button class="btn-list-action" onclick="event.stopPropagation(); playSongId(${s.id})">
-                    <span class="material-icons-round">play_arrow</span>
-                </button>
-                ${adminBtns}
-            </div>
-            <div class="playing-indicator" id="playing-indicator-${s.id}">
-                <div class="playing-bar"></div><div class="playing-bar"></div><div class="playing-bar"></div>
-            </div>
-        `;
 
         div.onclick = () => playSong(s);
         c.appendChild(div);
@@ -94,33 +119,48 @@ function renderAlbumGrid(id, albums) {
 
     albums.forEach((a, index) => {
         const div = document.createElement('div');
-        div.className = 'collection-card';
         const art = getArtForAlbum(a);
 
-        let adminBtns = '';
+        // Premium Carousel Design for both User and Admin
+        div.className = "flex flex-col gap-3 min-w-[180px] snap-start group cursor-pointer active:scale-95 transition-transform relative";
+
+        let adminOverlay = '';
         if (appConfig.isAdmin) {
-            adminBtns = `
-                <div class="album-admin-tools">
-                    <button class="btn-alb-tool" style="background:#333" onclick="event.stopPropagation(); editAlbum(event,${index})">
-                        <span class="material-icons-round" style="font-size:1rem">edit</span>
+            adminOverlay = `
+                <div class="absolute top-2 left-2 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="size-8 bg-black/60 backdrop-blur-md text-white rounded-lg flex items-center justify-center hover:bg-primary transition-colors" onclick="event.stopPropagation(); editAlbum(event, ${index})">
+                        <span class="material-symbols-outlined text-sm">edit</span>
                     </button>
-                    <button class="btn-alb-tool" style="background:var(--danger)" onclick="event.stopPropagation(); deleteAlbum(event,${index})">
-                        <span class="material-icons-round" style="font-size:1rem">delete</span>
+                    <button class="size-8 bg-red-600/60 backdrop-blur-md text-white rounded-lg flex items-center justify-center hover:bg-red-600 transition-colors" onclick="event.stopPropagation(); deleteAlbum(event, ${index})">
+                        <span class="material-symbols-outlined text-sm">delete</span>
                     </button>
                 </div>
             `;
         }
 
         div.innerHTML = `
-            <div class="collection-cover" style="background-image:url('${art}')">
-                <div class="album-playing-indicator" id="album-indicator-${index}">
-                    <div class="playing-bar"></div><div class="playing-bar"></div><div class="playing-bar"></div>
+            <div class="relative">
+                ${adminOverlay}
+                <div class="w-full aspect-square overflow-hidden rounded-[24px] shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]">
+                    <img src="${art}" loading="lazy" class="w-full h-full object-cover">
+                </div>
+                <!-- Play button overlay -->
+                <div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-[24px]">
+                    <div class="size-12 bg-white text-background-dark rounded-full flex items-center justify-center shadow-xl transform scale-90 group-hover:scale-100 transition-transform">
+                        <span class="material-symbols-outlined fill-1 text-[28px]">play_arrow</span>
+                    </div>
+                </div>
+                <!-- Mini playing indicator -->
+                <div class="album-playing-indicator absolute top-3 right-3 bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/10" id="album-indicator-${index}" style="display:none">
+                     <div class="playing-bar" style="height:10px; background:white"></div>
+                     <div class="playing-bar" style="height:15px; background:white"></div>
+                     <div class="playing-bar" style="height:12px; background:white"></div>
                 </div>
             </div>
-            <h4>${a.name || a.title || 'Sin Título'}</h4>
-            <p style="color:#888; font-size:0.85rem; margin:0;">${a.artist}</p>
-
-            ${adminBtns}
+            <div class="px-1">
+                <p class="text-white text-sm font-bold leading-tight truncate px-1">${a.name || a.title || 'Sin Título'}</p>
+                <p class="text-white/50 text-[11px] font-medium truncate px-1">${a.artist || 'Artista'}</p>
+            </div>
         `;
 
         div.onclick = () => openAlbum(index);
@@ -132,20 +172,32 @@ function renderSmartPlaylists(id) {
     const c = document.getElementById(id);
     if (!c) return;
 
-    // Solo renderizamos Favoritos y Recientes por ahora
     const smarts = [
-        { name: 'Favoritos', icon: 'favorite', action: 'openFavorites()' },
-        { name: 'Recientes', icon: 'history', action: 'openRecent()' }
+        { name: 'Favoritos', icon: 'favorite', action: 'openFavorites()', color: 'from-primary/80 to-red-900/80', img: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=400&auto=format&fit=crop' },
+        { name: 'Recientes', icon: 'history', action: 'openRecent()', color: 'from-blue-600/80 to-indigo-900/80', img: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=400&auto=format&fit=crop' }
     ];
 
-    c.innerHTML = smarts.map(s => `
-        <div class="collection-card smart-card" onclick="${s.action}">
-            <div class="collection-cover" style="background: linear-gradient(135deg, var(--accent), var(--secondary)); display:flex; align-items:center; justify-content:center;">
-                <span class="material-icons-round" style="font-size:3rem; color:white;">${s.icon}</span>
+    if (id === 'userPlaylistGrid') {
+        c.innerHTML = smarts.map(s => `
+            <div class="relative group aspect-video rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-all border border-white/10" onclick="${s.action}">
+                <img src="${s.img}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-br ${s.color} backdrop-blur-[2px]"></div>
+                <div class="absolute inset-0 p-4 flex flex-col justify-end">
+                    <span class="material-symbols-outlined text-3xl mb-1">${s.icon}</span>
+                    <h4 class="font-bold text-lg">${s.name}</h4>
+                </div>
             </div>
-            <h4>${s.name}</h4>
-        </div>
-    `).join('');
+        `).join('');
+    } else {
+        c.innerHTML = smarts.map(s => `
+            <div class="collection-card smart-card" onclick="${s.action}">
+                <div class="collection-cover" style="background: linear-gradient(135deg, var(--accent), var(--secondary)); display:flex; align-items:center; justify-content:center;">
+                    <span class="material-icons-round" style="font-size:3rem; color:white;">${s.icon}</span>
+                </div>
+                <h4>${s.name}</h4>
+            </div>
+        `).join('');
+    }
 }
 
 function renderUserList(id, users) {
@@ -168,46 +220,42 @@ function renderUserList(id, users) {
 
 function renderStatsOverview() {
     const container = document.getElementById('statsMainContainer');
-    const summaryContainer = document.getElementById('statsSummaryCards');
+    const liveActivity = document.getElementById('liveActivityList');
     if (!container || !appConfig.data) return;
 
-    // 1. Renderizar KPIs Rápidos
-    const totalPlays = appConfig.data.songs.reduce((acc, s) => acc + (s.plays || 0), 0);
-    summaryContainer.innerHTML = `
-        <div class="kpi-card">
-            <div class="kpi-icon"><span class="material-icons-round">play_circle</span></div>
-            <div class="kpi-data"><h5>Total Plays</h5><div class="value">${totalPlays}</div></div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-icon"><span class="material-icons-round">library_music</span></div>
-            <div class="kpi-data"><h5>Canciones</h5><div class="value">${appConfig.data.songs.length}</div></div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-icon"><span class="material-icons-round">people</span></div>
-            <div class="kpi-data"><h5>Usuarios</h5><div class="value">${appConfig.data.users.length}</div></div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-icon"><span class="material-icons-round">cloud</span></div>
-            <div class="kpi-data"><h5>Cloud Status</h5><div class="value" id="statsCloudinaryUsageMini">0%</div></div>
-        </div>
-    `;
+    // 1. Gráficos (Chart.js)
+    if (typeof initUserActivityChart === 'function') initUserActivityChart();
+    if (typeof initTopSongsChart === 'function') initTopSongsChart();
 
-    // 2. Gráficos (Chart.js)
-    initUserActivityChart(); // Changed to User Activity
-    initTopSongsChart();
+    // 2. Renderizar Actividad en Vivo (Simulada si no hay logs reales aún)
+    if (liveActivity) {
+        const logs = appConfig.data.logs || [
+            { fecha: 'Hoy', email: 'admin@musichris.com', accion: 'LOGIN', titulo: 'Inicio Centro Control' }
+        ];
 
-    // 3. Renderizar Top Listas
+        liveActivity.innerHTML = logs.slice(-5).reverse().map(log => {
+            const pillClass = `pill-${log.accion.toLowerCase()}`;
+            return `
+                <div class="activity-row">
+                    <span class="action-pill ${pillClass}">${log.accion}</span>
+                    <div class="flex-1">
+                        <p class="text-[11px] font-bold text-white/90 leading-tight">${log.titulo}</p>
+                        <p class="text-[9px] text-white/40">${log.email.split('@')[0]} • ${log.fecha}</p>
+                    </div>
+                    ${log.tiempo && log.tiempo !== '0' ? `<span class="text-[9px] font-mono text-white/30">${log.tiempo}</span>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 3. Renderizar KPIs y Rankings Modernos
     const topSongs = appConfig.stats.topSongs || [];
     const topLikes = appConfig.stats.topLikes || [];
 
-    // Calcular Top Usuarios (más likes dados)
+    // Calcular Top Usuarios
     const userLikes = {};
     appConfig.data.songs.forEach(s => {
-        if (s.likes) {
-            s.likes.forEach(email => {
-                userLikes[email] = (userLikes[email] || 0) + 1;
-            });
-        }
+        if (s.likes) s.likes.forEach(email => userLikes[email] = (userLikes[email] || 0) + 1);
     });
     const topUsers = Object.entries(userLikes)
         .sort((a, b) => b[1] - a[1])
@@ -215,44 +263,52 @@ function renderStatsOverview() {
         .map(([email, count]) => ({ email, count }));
 
     container.innerHTML = `
-        <div class="stats-card">
-            <h4><span class="material-icons-round">trending_up</span> Top Canciones</h4>
-            ${topSongs.map((s, i) => `
-                <div class="stat-item">
-                    <span class="stat-rank">${i + 1}</span>
-                    <div class="stat-info">
-                        <div>${s.title}</div>
+        <div class="stats-card-modern">
+            <h4>🔥 Top Canciones</h4>
+            <div class="space-y-4">
+                ${topSongs.slice(0, 5).map((s, i) => `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs font-black text-white/20">${i + 1}</span>
+                            <div class="text-[11px] font-bold text-white">${s.title}</div>
+                        </div>
+                        <span class="text-[10px] font-black tabular-nums text-primary">${s.plays} <small class="text-white/30">PLAYS</small></span>
                     </div>
-                    <span class="stat-val">${s.plays} <small>plays</small></span>
-                </div>
-            `).join('')}
+                `).join('')}
+            </div>
         </div>
 
-        <div class="stats-card">
-            <h4><span class="material-icons-round">favorite</span> Más Likes</h4>
-            ${topLikes.map((s, i) => `
-                <div class="stat-item">
-                    <span class="stat-rank">${i + 1}</span>
-                    <div class="stat-info">
-                        <div>${s.title}</div>
+        <div class="stats-card-modern">
+            <h4>❤️ Más Amadas</h4>
+            <div class="space-y-4">
+                ${topLikes.slice(0, 5).map((s, i) => `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs font-black text-white/20">${i + 1}</span>
+                            <div class="text-[11px] font-bold text-white">${s.title}</div>
+                        </div>
+                        <span class="text-[10px] font-black tabular-nums text-green-500">${s.likeCount} <small class="text-white/30">LIKES</small></span>
                     </div>
-                    <span class="stat-val">${s.likeCount} <small>likes</small></span>
-                </div>
-            `).join('')}
+                `).join('')}
+            </div>
         </div>
 
-        <div class="stats-card">
-            <h4><span class="material-icons-round">person</span> Top Usuarios</h4>
-            ${topUsers.map((u, i) => `
-                <div class="stat-item">
-                    <span class="stat-rank">${i + 1}</span>
-                    <div class="stat-info">
-                        <div>${u.email.split('@')[0]}</div>
-                        <div style="font-size:0.7rem; color:var(--text-dim)">${u.email}</div>
+        <div class="stats-card-modern">
+            <h4>👤 Usuarios Top</h4>
+            <div class="space-y-4">
+                ${topUsers.map((u, i) => `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${u.email}" class="size-6 rounded-full bg-white/5">
+                            <div>
+                                <div class="text-[11px] font-bold text-white">${u.email.split('@')[0]}</div>
+                                <div class="text-[8px] text-white/30 tracking-tight">${u.email}</div>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-black text-white/60">${u.count} <small class="text-white/20">ACCIONES</small></span>
                     </div>
-                    <span class="stat-val">${u.count} <small>likes</small></span>
-                </div>
-            `).join('')}
+                `).join('')}
+            </div>
         </div>
     `;
     updateCloudinaryUsage();
@@ -432,12 +488,20 @@ function renderNotifications() {
     `).join('');
 }
 
+let searchLogTimeout = null;
 function filterSongs(query) {
     const q = norm(query);
     if (!q) {
         updateUI();
         return;
     }
+
+    // Debounce para no loguear cada letra
+    clearTimeout(searchLogTimeout);
+    searchLogTimeout = setTimeout(() => {
+        logActivity('SEARCH', null, query);
+    }, 1500);
+
     const filtered = appConfig.data.songs.filter(s =>
         norm(s.title).includes(q) || norm(s.genre).includes(q) || norm(s.album).includes(q)
     );
@@ -469,61 +533,103 @@ function openRecent() {
     updateUI(recent);
 }
 
-// Helpers para Imágenes
-function getSongArtForList(song) {
-    if (song.cover) return song.cover;
-    if (song.album && appConfig.data.albums) {
-        const alb = appConfig.data.albums.find(a => norm(a.name) === norm(song.album) || norm(a.title) === norm(song.album));
-        if (alb && (alb.cover || alb.coverUrl)) return alb.cover || alb.coverUrl;
+// Helpers para Imágenes y Optimización
+// 🎯 PROTECCIÓN DE CUOTA CLOUDINARY
+// Esta función optimiza URLs de Cloudinary para minimizar:
+// - Transformaciones (25,000/mes en cuenta gratuita)
+// - Ancho de banda (25 GB/mes en cuenta gratuita)
+function optimizeCloudinaryUrl(url, width = null) {
+    if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return url;
+
+    // Si ya tiene transformaciones, no añadimos más para no romper la URL
+    if (url.includes('/upload/v') || url.includes('/upload/f_')) {
+        // Estrategia de optimización agresiva:
+        // - f_auto: Formato automático (WebP en navegadores compatibles, reduce 30-50% el tamaño)
+        // - q_auto:low: Calidad automática baja (suficiente para miniaturas, reduce 50-70% el tamaño)
+        // - w_X,c_limit: Limitar ancho (reduce resolución innecesaria)
+        // - dpr_auto: Pixel ratio automático (optimiza para pantallas Retina sin duplicar tamaño)
+
+        let transform = 'f_auto,q_auto:low,dpr_auto';
+        if (width) {
+            transform += `,w_${width},c_limit`;
+        }
+
+        // Reemplazar transformaciones existentes o agregar nuevas
+        if (url.includes('/upload/f_')) {
+            // Ya tiene transformaciones, reemplazarlas
+            return url.replace(/\/upload\/[^\/]+\//, `/upload/${transform}/`);
+        } else {
+            // No tiene transformaciones, agregarlas
+            return url.replace('/upload/', `/upload/${transform}/`);
+        }
     }
-    return DEFAULT_COVER;
+    return url;
 }
 
-// Obtener uso de Cloudinary (Simulado/Estimado o vía Proxy si fuera necesario)
-// Dado que Cloudinary Admin API requiere API Secret y no es seguro en Front-end, 
-// calculamos un estimado basado en los archivos o mostramos el nombre de la nube.
+function getSongArtForList(song) {
+    let rawCover = song.cover;
+    if (!rawCover && song.album && appConfig.data.albums) {
+        const alb = appConfig.data.albums.find(a => norm(a.name) === norm(song.album) || norm(a.title) === norm(song.album));
+        if (alb && (alb.cover || alb.coverUrl)) rawCover = alb.cover || alb.coverUrl;
+    }
+    return optimizeCloudinaryUrl(rawCover || DEFAULT_COVER, 150);
+}
+
 function updateCloudinaryUsage() {
-    if (!appConfig.data || !appConfig.data.songs) return;
+    const usageEl = document.getElementById('statsCloudinaryUsage');
+    if (!usageEl) return;
+
+    if (!appConfig.data || !appConfig.data.songs) {
+        usageEl.textContent = "Cargando...";
+        return;
+    }
 
     // Cálculo estimado (5.5MB por canción)
     const songCount = appConfig.data.songs.length;
     const avgSizeMB = 5.5;
-    const totalUsedGB = (songCount * avgSizeMB) / 1024;
-    const freePlanGB = 25; // Cloudinary Free Tier es de ~25 Credits/GB
+    const totalUsedMB = (songCount * avgSizeMB);
+    const totalUsedGB = totalUsedMB / 1024;
+    const freePlanGB = 25;
     const percentage = Math.min(100, (totalUsedGB / freePlanGB) * 100).toFixed(1);
 
-    if (document.getElementById('statsCloudinaryUsage')) {
-        document.getElementById('statsCloudinaryUsage').textContent = `${percentage}%`;
-    }
+    usageEl.textContent = `${percentage}%`;
 
-    // Estado del Servidor (Google Apps Script + JSONBin)
+    // Si queremos ver el detalle al hacer hover o algo similar, pero por ahora directo
+    const fullInfo = `${percentage}% (${totalUsedMB.toFixed(0)}MB)`;
+    usageEl.setAttribute('title', fullInfo);
+
+    // Estado del Servidor Moderno
     if (document.getElementById('statsCloudStatus')) {
         const lastSync = appConfig.stats.lastSync || Date.now();
         const diff = (Date.now() - lastSync) / 1000;
-        if (diff < 300) { // Sincronizado hace menos de 5 mins
-            document.getElementById('statsCloudStatus').textContent = 'Activo';
-            document.getElementById('statsCloudStatus').style.color = 'var(--accent)';
+        const statusEl = document.getElementById('statsCloudStatus');
+
+        if (diff < 300) {
+            statusEl.textContent = 'ONLINE';
+            statusEl.style.color = '#22c55e';
         } else {
-            document.getElementById('statsCloudStatus').textContent = 'Conectado';
-            document.getElementById('statsCloudStatus').style.color = '#888';
+            statusEl.textContent = 'STABLE';
+            statusEl.style.color = 'var(--accent)';
         }
     }
 }
 
 function getSongArtForPlayer(song) {
-    return getSongArtForList(song);
+    return optimizeCloudinaryUrl(getSongArtForList(song).replace(/w_150,c_limit\//, ''), 600);
 }
 
 function getArtForAlbum(album) {
-    return album.cover || album.coverUrl || DEFAULT_COVER;
+    const rawCover = album.cover || album.coverUrl || DEFAULT_COVER;
+    return optimizeCloudinaryUrl(rawCover, 400);
 }
 
 function getOptimizedAvatar(url) {
-    return url || ADMIN_AVATAR;
+    const rawAvatar = url || ADMIN_AVATAR;
+    return optimizeCloudinaryUrl(rawAvatar, 100);
 }
 
 function updateVisualizer(isPlaying) {
-    const bars = document.querySelectorAll('.playing-bar');
+    const bars = document.querySelectorAll('.playing-bar, .visualizer-bar-red, .horizontal-bar');
     bars.forEach(bar => {
         bar.style.animationPlayState = isPlaying ? 'running' : 'paused';
         if (isPlaying) bar.style.display = 'block';

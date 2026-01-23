@@ -1,17 +1,17 @@
 ﻿// Service Worker MusiChris - Versión Forzada 2.0
-const CACHE_NAME = 'musichris-v35';
+const CACHE_NAME = 'musichris-v41';
 const urlsToCache = [
   './',
-  './index.html?v=35',
-  './css/styles.css?v=35',
+  './index.html?v=41',
+  './css/styles.css?v=41',
   './assets/icon-512.png',
-  './js/config.js?v=35',
-  './js/app.js?v=35',
-  './js/player.js?v=35',
-  './js/ui-renderer.js?v=35',
-  './js/data-manager.js?v=35',
-  './js/modals.js?v=35',
-  './js/pwa-manager.js?v=35'
+  './js/config.js?v=41',
+  './js/app.js?v=41',
+  './js/player.js?v=41',
+  './js/ui-renderer.js?v=41',
+  './js/data-manager.js?v=41',
+  './js/modals.js?v=41',
+  './js/pwa-manager.js?v=41'
 ];
 
 // Forzar activación inmediata
@@ -40,13 +40,44 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Estrategia: Network First para archivos base, Cache First para el resto
+// Estrategia: Network First para archivos base, Cache First AGRESIVO para Cloudinary
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Bypasear audios y peticiones de rango (muy importante para reproductores)
-  if (event.request.headers.get('range') || url.pathname.match(/\.(mp3|wav|ogg|m4a)$/) || url.origin.includes('cloudinary')) {
-    return; // Dejar que el navegador lo maneje directamente
+  // 🎯 PROTECCIÓN DE CUOTA CLOUDINARY: Cache First AGRESIVO
+  // Cloudinary tiene límites estrictos en cuenta gratuita:
+  // - 25,000 transformaciones/mes
+  // - 25 GB ancho de banda/mes
+  if (url.hostname.includes('cloudinary.com') || url.hostname.includes('res.cloudinary.com')) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(cache => {
+        return cache.match(event.request).then(cachedResponse => {
+          if (cachedResponse) {
+            // ✅ Imagen en caché - NO consume cuota de Cloudinary
+            return cachedResponse;
+          }
+
+          // ⚠️ Primera vez - Descargar y cachear permanentemente
+          return fetch(event.request).then(response => {
+            // Solo cachear respuestas exitosas
+            if (response && response.status === 200) {
+              cache.put(event.request, response.clone());
+            }
+            return response;
+          }).catch(error => {
+            console.warn('❌ Error cargando imagen de Cloudinary:', error);
+            // Retornar imagen por defecto si falla
+            return new Response('', { status: 404 });
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // BYPASS: Dejar que el navegador maneje APIs externas (JSONBin, Google Apps Script)
+  if (!url.origin.includes(location.origin)) {
+    return;
   }
 
   // Si es el archivo principal o scripts, intentamos red primero
@@ -61,7 +92,7 @@ self.addEventListener('fetch', event => {
         .catch(() => caches.match(event.request))
     );
   } else {
-    // Para imágenes y otros, caché primero
+    // Para otros recursos locales, caché primero
     event.respondWith(
       caches.match(event.request).then(response => response || fetch(event.request))
     );

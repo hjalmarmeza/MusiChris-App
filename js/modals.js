@@ -24,6 +24,28 @@ function openProfile() {
     openModal('dom_modal_profile');
 }
 
+function saveProfileChanges() {
+    const newName = document.getElementById('profileName').value.trim();
+    if (!newName) {
+        showToast("El nombre no puede estar vacío", "error");
+        return;
+    }
+
+    appConfig.user.name = newName;
+    localStorage.setItem('appConfig', JSON.stringify(appConfig));
+    showToast("Perfil actualizado correctamente");
+
+    // Si hay elementos que muestran el nombre en la interfaz, actualizarlos si es necesario
+    if (appConfig.isAdmin) {
+        // En el admin suele usarse el logo, pero si hubiera nombre se actualizaría aquí
+    } else {
+        const greeting = document.getElementById('userGreeting');
+        if (greeting) greeting.textContent = `Hola de nuevo, ${newName.split(' ')[0]}`;
+    }
+
+    closeModal('dom_modal_profile');
+}
+
 function openUpload() {
     document.getElementById('modalUploadTitle').textContent = "Subir Canción";
     document.getElementById('upTitle').value = "";

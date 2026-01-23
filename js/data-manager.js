@@ -1,47 +1,87 @@
 // MANEJADOR DE DATOS (API Y PERSISTENCIA)
 
 async function loadAppData() {
+    // 0. Inicializar estructura mínima si es NULL
+    if (!appConfig.data) {
+        appConfig.data = { songs: [], users: [], albums: [], playlists: [], stats: {} };
+    }
+
     // 1. Cargar desde LocalStorage inmediatamente para velocidad
     const cachedData = localStorage.getItem('musichris_db_cache');
     if (cachedData) {
         try {
-            appConfig.data = JSON.parse(cachedData);
-            validateAndInitData();
-            updateUI();
-            console.log("⚡ Carga instantánea desde caché local");
+            const parsed = JSON.parse(cachedData);
+            if (parsed && (parsed.songs || parsed.users)) {
+                appConfig.data = parsed;
+                validateAndInitData();
+                updateUI();
+                console.log("⚡ Carga instantánea desde caché local");
+            }
         } catch (e) { console.error("Error cache:", e); }
     }
 
-    // 2. Sincronizar con la API en segundo plano
+    // 2. Sincronizar con JSONBin.io
     try {
-        const res = await fetch(API_BASE_URL);
-        if (!res.ok) throw new Error("API Error");
+        console.log("☁️ Sincronizando con la nube...");
+        console.log("📍 URL:", `${API_BASE_URL}${PERMANENT_BIN_ID}`);
+        console.log("🔑 API Key presente:", PERMANENT_API_KEY ? "Sí" : "No");
+
+        const res = await fetch(`${API_BASE_URL}${PERMANENT_BIN_ID}`, {
+            method: 'GET',
+            headers: {
+                'X-Master-Key': PERMANENT_API_KEY
+            },
+            mode: 'cors',
+            cache: 'no-cache'
+        });
+
+        console.log("📡 Respuesta HTTP:", res.status, res.statusText);
+
+        if (!res.ok) {
+            throw new Error(`API Error: ${res.status} ${res.statusText}`);
+        }
+
         const json = await res.json();
+        console.log("📦 Datos recibidos:", json);
+        const freshData = json.record;
 
-        const freshData = json.record || json;
-
-        // Solo actualizar si hay cambios reales para evitar parpadeos
-        if (JSON.stringify(appConfig.data) !== JSON.stringify(freshData)) {
+        // Verificar que tenemos datos válidos
+        if (freshData && freshData.songs && Array.isArray(freshData.songs)) {
+            console.log(`💿 Base de datos recuperada (${freshData.songs.length} canciones).`);
             appConfig.data = freshData;
             validateAndInitData();
-
-            // Guardar en caché local para la próxima vez
             localStorage.setItem('musichris_db_cache', JSON.stringify(appConfig.data));
-
-            if (appConfig.isGuest && appConfig.pendingSongId) {
-                activateGuestMode();
-            } else {
-                updateUI();
-            }
+            updateUI();
             showToast("Datos sincronizados", 'success');
-        }
-    } catch (e) {
-        console.error("Error al sincronizar datos:", e);
-        if (!appConfig.data) {
-            showToast("Modo Offline - Sin datos", 'error');
-            appConfig.data = { songs: [], users: [], albums: [], playlists: [], stats: {} };
+        } else {
+            console.warn("⚠️ No se encontraron canciones en la respuesta del servidor.");
+            console.log("🔍 Estructura recibida:", Object.keys(freshData || {}));
+            // Si no hay datos en la nube pero sí en caché, mantener el caché
+            if (appConfig.data && appConfig.data.songs && appConfig.data.songs.length > 0) {
+                console.log("✅ Manteniendo datos locales del caché.");
+                showToast("Usando copia local", 'info');
+            } else {
+                showToast("No hay datos disponibles", 'warning');
+            }
             updateUI();
         }
+
+    } catch (e) {
+        console.error("❌ Error de red durante la sincronización:", e);
+        console.error("📋 Detalles del error:", e.message);
+        console.error("📋 Stack trace:", e.stack);
+
+        // Si hay error pero tenemos caché, usar el caché
+        if (appConfig.data && appConfig.data.songs && appConfig.data.songs.length > 0) {
+            console.log("✅ Usando caché local (", appConfig.data.songs.length, "canciones)");
+            validateAndInitData();
+            updateUI();
+            showToast("Modo offline - Usando caché", 'info');
+        } else {
+            console.warn("⚠️ No hay caché disponible");
+            showToast("Error de conexión - Sin datos", 'error');
+        }
+        updateUI();
     }
 }
 
@@ -63,13 +103,24 @@ function validateAndInitData() {
 }
 
 async function saveData() {
+    // Sanity check: No guardar si la base de datos parece vacía o corrupta
+    if (!appConfig.data || (!appConfig.data.songs.length && !appConfig.data.users.length)) {
+        console.warn("⚠️ Intento de guardado de base de datos vacía cancelado para evitar corrupción.");
+        return;
+    }
+
     try {
-        await fetch(API_BASE_URL, {
-            method: 'POST', // Usamos POST para que el proxy reciba los datos
-            mode: 'no-cors', // Evita problemas de CORS al guardar desde GitHub
+        await fetch(`${API_BASE_URL}${PERMANENT_BIN_ID}`, {
+            method: 'PUT',
+            headers: {
+                'X-Master-Key': PERMANENT_API_KEY,
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(appConfig.data)
         });
-        showToast("Sincronizando...", 'info');
+        // Actualizar caché local también
+        localStorage.setItem('musichris_db_cache', JSON.stringify(appConfig.data));
+        console.log("✅ Datos guardados correctamente");
     } catch (e) {
         console.error('Error al guardar:', e);
         showToast("Error al sincronizar cambios", 'error');
@@ -106,4 +157,87 @@ function calculateStats() {
         .sort((a, b) => b.addedDate - a.addedDate);
 
     appConfig.stats.lastSync = now;
+}
+
+// ========================================================================
+// FUNCIONES DE GOOGLE APPS SCRIPT - ESTADÍSTICAS Y EXPORTACIÓN
+// ========================================================================
+
+/**
+ * Registra la actividad del usuario en Google Sheets (Hoja 1)
+ * Campos: Fecha y Hora | Email del Usuario | Tipo de Acción | Título de la Canción | Álbum / Artista | Dispositivo | Tiempo de Escucha
+ */
+async function logActivity(action, song = null, extra = "") {
+    if (!appConfig.user) return;
+
+    // PROTECCIÓN: No enviar logs si la base de datos está en estado corrupto o vacío
+    if (!appConfig.data || !appConfig.data.songs || appConfig.data.songs.length === 0) {
+        if (action !== 'LOGIN') {
+            console.warn(`🚫 Log ${action} cancelado: Base de datos no inicializada.`);
+            return;
+        }
+    }
+
+    const logData = {
+        action: "log", // Indica que es un log de actividad
+        data: {
+            fecha: new Date().toLocaleString('es-ES'),
+            email: appConfig.user.email,
+            accion: action,
+            titulo: song ? song.title : (extra || "N/A"),
+            artista: song ? (song.artist || song.album || song.genre || "N/A") : "N/A",
+            dispositivo: isIOS ? "iOS" : (isAndroid ? "Android" : "PC/Web"),
+            tiempo: extra && action === 'SONG_END' ? extra : "0"
+        }
+    };
+
+    try {
+        fetch(`${GOOGLE_APPS_SCRIPT_URL}`, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(logData)
+        });
+        console.log(`📊 Log enviado: ${action}`);
+    } catch (e) {
+        console.error("Error al enviar Log:", e);
+    }
+}
+
+/**
+ * Exporta toda la biblioteca de canciones a Google Sheets (Hoja 2)
+ * Campos: NOMBRE DE ALBUM | URL IMAGEN | TÍTULO DE CANCIÓN | URL CANCIÓN
+ */
+async function exportLibraryToSheet() {
+    if (!appConfig.data || !appConfig.data.songs) return;
+
+    // Mapear al formato plano solicitado
+    const flatData = appConfig.data.songs.map(song => {
+        const album = appConfig.data.albums?.find(a => norm(a.name || a.title) === norm(song.album)) || {};
+        return {
+            album_nombre: song.album || "Sin Álbum",
+            album_cover: album.cover || album.coverUrl || album.img || DEFAULT_COVER,
+            song_titulo: song.title,
+            song_url: song.url
+        };
+    });
+
+    const exportData = {
+        action: "export_library",
+        data: flatData
+    };
+
+    try {
+        await fetch(`${GOOGLE_APPS_SCRIPT_URL}`, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(exportData)
+        });
+        showToast("📦 Biblioteca exportada al Sheet", 'success');
+        console.log("🚀 Exportación enviada:", flatData.length, "ítems");
+    } catch (e) {
+        console.error("Error al exportar:", e);
+        showToast("Error al exportar la lista", 'error');
+    }
 }

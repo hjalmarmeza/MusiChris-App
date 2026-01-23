@@ -5,11 +5,20 @@ function playSong(song) {
     console.log('🎵 Reproduciendo:', song.title);
 
     appConfig.currentSong = song;
-    // Si no hay una playlist temporal activa, usamos todas las canciones
-    if (!appConfig.tempPlaylist || appConfig.tempPlaylist.length === 0) {
-        appConfig.tempPlaylist = appConfig.data.songs;
+
+    // Sincronización inteligente de playlist
+    let songIndex = -1;
+    if (appConfig.tempPlaylist && appConfig.tempPlaylist.length > 0) {
+        songIndex = appConfig.tempPlaylist.findIndex(s => s.id == song.id);
     }
-    appConfig.currentIndex = appConfig.tempPlaylist.findIndex(s => s.id === song.id);
+
+    if (songIndex === -1) {
+        // Si la canción no está en la temporal, usamos el filtro actual o todas las canciones
+        appConfig.tempPlaylist = appConfig.currentFilter || (appConfig.data ? appConfig.data.songs : []);
+        songIndex = appConfig.tempPlaylist.findIndex(s => s.id == song.id);
+    }
+
+    appConfig.currentIndex = songIndex;
 
     // UI del Reproductor
     const mainPlayer = document.getElementById('mainPlayer');
@@ -53,16 +62,8 @@ function playSong(song) {
     if (songInMemory) {
         songInMemory.plays = (songInMemory.plays || 0) + 1;
 
-        // Registrar historial en Google Sheets
-        fetch(API_BASE_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({
-                action: 'log_play',
-                song: song.title,
-                user: appConfig.user ? appConfig.user.email : 'invitado'
-            })
-        }).catch(e => console.log('Log error:', e));
+        // Registrar historial en Google Sheets con el nuevo sistema
+        logActivity('PLAY', songInMemory);
 
         saveDataSilent();
         calculateStats();
@@ -75,7 +76,13 @@ function playSong(song) {
 
 function playSongId(id) {
     const song = appConfig.data.songs.find(s => s.id === id);
-    if (song) playSong(song);
+    if (song) {
+        if (appConfig.currentSong && appConfig.currentSong.id === song.id) {
+            toggle_play();
+        } else {
+            playSong(song);
+        }
+    }
 }
 
 function toggle_play() {
@@ -94,33 +101,49 @@ function toggle_play() {
 }
 
 function next() {
-    if (appConfig.isGuest) return;
+    if (!appConfig.tempPlaylist || appConfig.tempPlaylist.length === 0) {
+        appConfig.tempPlaylist = appConfig.data ? appConfig.data.songs : [];
+    }
+    if (appConfig.tempPlaylist.length === 0) return;
 
-    if (appConfig.repeatMode === 'one') {
+    if (appConfig.repeatMode === 'one' && dom.audioElement && dom.audioElement.ended) {
         playSong(appConfig.currentSong);
         return;
     }
 
-    let nextIdx = appConfig.currentIndex + 1;
+    let nextIdx;
     if (appConfig.isShuffle) {
         nextIdx = Math.floor(Math.random() * appConfig.tempPlaylist.length);
+        // Evitar repetir la misma si hay más de una canción
+        if (nextIdx === appConfig.currentIndex && appConfig.tempPlaylist.length > 1) {
+            nextIdx = (nextIdx + 1) % appConfig.tempPlaylist.length;
+        }
+    } else {
+        nextIdx = appConfig.currentIndex + 1;
     }
 
     if (nextIdx < appConfig.tempPlaylist.length) {
         playSong(appConfig.tempPlaylist[nextIdx]);
-    } else if (appConfig.repeatMode === 'all') {
+    } else if (appConfig.repeatMode === 'all' || !dom.audioElement || !dom.audioElement.ended) {
+        // Si pulsamos el botón NEXT manualmente al final, vamos al principio
         playSong(appConfig.tempPlaylist[0]);
     } else {
-        // Stop or just pause if end reached and no repeat
         togglePlayIcon(false);
     }
 }
 
 function prev() {
-    if (appConfig.isGuest) return;
-    if (appConfig.currentIndex > 0) {
-        playSong(appConfig.tempPlaylist[appConfig.currentIndex - 1]);
+    if (!appConfig.tempPlaylist || appConfig.tempPlaylist.length === 0) {
+        appConfig.tempPlaylist = appConfig.data ? appConfig.data.songs : [];
     }
+    if (appConfig.tempPlaylist.length === 0) return;
+
+    let prevIdx = appConfig.currentIndex - 1;
+    if (prevIdx < 0) {
+        prevIdx = appConfig.tempPlaylist.length - 1; // Circular
+    }
+
+    playSong(appConfig.tempPlaylist[prevIdx]);
 }
 
 function updateProgress() {
@@ -129,11 +152,15 @@ function updateProgress() {
 
     const pct = (au.currentTime / au.duration) * 100;
 
-    // Sync sliders
-    ['seekSlider', 'expandedSeekSlider'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = pct;
-    });
+    // Update Mini Slider (div based)
+    const miniSlider = document.getElementById('seekSliderMini');
+    if (miniSlider) miniSlider.style.width = pct + '%';
+
+    // Update Expanded Slider (custom div based)
+    const expSlider = document.getElementById('expandedSeekSlider');
+    const expKnob = document.getElementById('seekKnob');
+    if (expSlider) expSlider.style.width = pct + '%';
+    if (expKnob) expKnob.style.left = pct + '%';
 
     // Sync timers
     const timeStr = formatTime(au.currentTime);
@@ -177,15 +204,34 @@ function toggleRepeat(btn) {
 }
 
 function updateControlIcons() {
-    const shuffleBtns = document.querySelectorAll('.material-icons-round[onclick*="toggleShuffle"]');
-    shuffleBtns.forEach(btn => {
-        btn.classList.toggle('btn-active', appConfig.isShuffle);
+    // Mini player often uses material-icons-round or specific IDs like miniShuffleIcon
+    const shuffleIcons = document.querySelectorAll('.material-icons-round[onclick*="toggleShuffle"], .material-symbols-outlined#shuffleIcon, .material-symbols-outlined#miniShuffleIcon');
+    shuffleIcons.forEach(icon => {
+        const isSymbols = icon.classList.contains('material-symbols-outlined');
+        if (isSymbols) {
+            icon.classList.toggle('text-primary', appConfig.isShuffle);
+            icon.classList.toggle('fill-1', appConfig.isShuffle);
+            icon.classList.toggle('text-white/40', !appConfig.isShuffle);
+        } else {
+            icon.classList.toggle('btn-active', appConfig.isShuffle);
+        }
     });
 
-    const repeatBtns = document.querySelectorAll('.material-icons-round[onclick*="toggleRepeat"]');
-    repeatBtns.forEach(btn => {
-        btn.classList.toggle('btn-active', appConfig.repeatMode !== 'none');
-        btn.textContent = appConfig.repeatMode === 'one' ? 'repeat_one' : 'repeat';
+    const repeatIcons = document.querySelectorAll('.material-icons-round[onclick*="toggleRepeat"], .material-symbols-outlined#repeatIcon, .material-symbols-outlined#miniRepeatIcon');
+    repeatIcons.forEach(icon => {
+        const isSymbols = icon.classList.contains('material-symbols-outlined');
+        const isOne = appConfig.repeatMode === 'one';
+        const isNone = appConfig.repeatMode === 'none';
+
+        if (isSymbols) {
+            icon.textContent = isOne ? 'repeat_one' : 'repeat';
+            icon.classList.toggle('text-primary', !isNone);
+            icon.classList.toggle('fill-1', !isNone);
+            icon.classList.toggle('text-white/40', isNone);
+        } else {
+            icon.classList.toggle('btn-active', !isNone);
+            icon.textContent = isOne ? 'repeat_one' : 'repeat';
+        }
     });
 }
 
@@ -200,12 +246,18 @@ function formatTime(seconds) {
 
 function seekAudio(e) {
     if (!dom.audioElement || !dom.audioElement.duration) return;
-    dom.audioElement.currentTime = dom.audioElement.duration * (e.target.value / 100);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const pct = Math.max(0, Math.min(1, x / rect.width));
+    dom.audioElement.currentTime = dom.audioElement.duration * pct;
+    updateProgress();
 }
 
 async function saveDataSilent() {
+    if (!appConfig.data || (!appConfig.data.songs.length && !appConfig.data.users.length)) return;
+
     try {
-        await fetch(API_BASE_URL, {
+        await fetch(`${API_BASE_URL}?action=save`, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify(appConfig.data)
@@ -227,10 +279,20 @@ function updateWeeklyStats() {
 
 function updatePlayingIndicators() {
     document.querySelectorAll('.playing-indicator, .album-playing-indicator').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('[id^="list-play-icon-"]').forEach(el => el.textContent = 'play_arrow');
 
     if (appConfig.currentSong) {
         const songInd = document.getElementById(`playing-indicator-${appConfig.currentSong.id}`);
         if (songInd) songInd.style.display = 'flex';
+
+        const isPlaying = dom.audioElement && !dom.audioElement.paused;
+        const icon = isPlaying ? 'pause' : 'play_arrow';
+
+        const listIcon = document.getElementById(`list-play-icon-${appConfig.currentSong.id}`);
+        if (listIcon) listIcon.textContent = icon;
+
+        const adminListIcon = document.getElementById(`list-play-icon-admin-${appConfig.currentSong.id}`);
+        if (adminListIcon) adminListIcon.textContent = icon;
 
         const miniVis = document.getElementById('visualizer-mini');
         if (miniVis) miniVis.style.display = 'flex';
@@ -252,6 +314,15 @@ function togglePlayIcon(isPlaying) {
         const el = document.getElementById(id);
         if (el) el.textContent = icon;
     });
+
+    if (appConfig.currentSong) {
+        const listIcon = document.getElementById(`list-play-icon-${appConfig.currentSong.id}`);
+        if (listIcon) listIcon.textContent = icon;
+
+        const adminListIcon = document.getElementById(`list-play-icon-admin-${appConfig.currentSong.id}`);
+        if (adminListIcon) adminListIcon.textContent = icon;
+    }
+
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
     if (typeof updateVisualizer === 'function') updateVisualizer(isPlaying);
 }
