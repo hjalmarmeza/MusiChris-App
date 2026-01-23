@@ -29,13 +29,21 @@ async function doLogin(user) {
         isLoggedIn: true,
         isAdmin: appConfig.isAdmin
     }));
+
+    // Esperamos a que los datos se carguen antes de verificar mantenimiento
+    await loadAppData();
+
+    // 🔧 VERIFICAR MODO MANTENIMIENTO (solo para usuarios regulares)
+    if (!appConfig.isAdmin && appConfig.data && appConfig.data.maintenanceMode === true) {
+        // Usuario regular intentando entrar durante mantenimiento
+        showMaintenanceScreen();
+        return; // Detener el login
+    }
+
+    // Continuar con el login normal
     document.getElementById('view-login').style.display = 'none';
     const mainView = appConfig.isAdmin ? 'view-admin' : 'view-user';
     showView(mainView);
-
-    // Esperamos a que los datos se carguen antes de enviar el log de entrada
-    // para evitar colisiones en el servidor de Google Scripts
-    await loadAppData();
 
     // Log de inicio de sesión solo si la carga fue exitosa
     if (appConfig.data && appConfig.data.songs && appConfig.data.songs.length > 0) {
@@ -55,6 +63,68 @@ function app_logout() {
     if (dom.audioElement) dom.audioElement.pause();
     localStorage.removeItem('appConfig');
     location.reload();
+}
+
+function showMaintenanceScreen() {
+    // Ocultar todas las vistas
+    document.querySelectorAll('.view-section, #view-login, #view-maintenance').forEach(v => {
+        v.style.display = 'none';
+    });
+
+    // Mostrar pantalla de mantenimiento
+    document.getElementById('view-maintenance').style.display = 'flex';
+
+    // Limpiar sesión parcialmente (mantener que intentó entrar)
+    appConfig.isLoggedIn = false;
+    appConfig.user = null;
+}
+
+// --- MODO MANTENIMIENTO ---
+async function toggleMaintenanceMode(isActive) {
+    if (!appConfig.isAdmin) {
+        showToast("Solo el administrador puede cambiar este modo", 'error');
+        return;
+    }
+
+    // Actualizar en la estructura de datos
+    if (!appConfig.data) appConfig.data = {};
+    appConfig.data.maintenanceMode = isActive;
+
+    // Guardar en JSONBin
+    await saveData();
+
+    // Actualizar UI del toggle
+    updateMaintenanceUI();
+
+    // Mostrar confirmación
+    const message = isActive
+        ? "🔧 Modo mantenimiento ACTIVADO - Los usuarios no podrán acceder"
+        : "✅ Modo mantenimiento DESACTIVADO - Los usuarios pueden acceder normalmente";
+    showToast(message, isActive ? 'warning' : 'success');
+}
+
+function updateMaintenanceUI() {
+    const toggle = document.getElementById('maintenanceModeToggle');
+    const statusText = document.getElementById('maintenanceStatusText');
+    const banner = document.getElementById('maintenanceBanner');
+
+    if (!toggle || !statusText) return;
+
+    const isActive = appConfig.data && appConfig.data.maintenanceMode === true;
+
+    // Actualizar toggle
+    toggle.checked = isActive;
+
+    // Actualizar texto de estado
+    statusText.textContent = isActive ? 'ACTIVADO' : 'Desactivado';
+    statusText.className = isActive
+        ? 'text-xs font-bold text-orange-400 uppercase tracking-widest'
+        : 'text-xs font-bold text-white/40 uppercase tracking-widest';
+
+    // Mostrar/ocultar banner de advertencia
+    if (banner) {
+        banner.style.display = isActive ? 'flex' : 'none';
+    }
 }
 
 // --- NAVEGACIÓN ---

@@ -1,17 +1,17 @@
 ﻿// Service Worker MusiChris - Versión Forzada 2.0
-const CACHE_NAME = 'musichris-v41';
+const CACHE_NAME = 'musichris-v42';
 const urlsToCache = [
   './',
-  './index.html?v=41',
-  './css/styles.css?v=41',
+  './index.html?v=42',
+  './css/styles.css?v=42',
   './assets/icon-512.png',
-  './js/config.js?v=41',
-  './js/app.js?v=41',
-  './js/player.js?v=41',
-  './js/ui-renderer.js?v=41',
-  './js/data-manager.js?v=41',
-  './js/modals.js?v=41',
-  './js/pwa-manager.js?v=41'
+  './js/config.js?v=42',
+  './js/app.js?v=42',
+  './js/player.js?v=42',
+  './js/ui-renderer.js?v=42',
+  './js/data-manager.js?v=42',
+  './js/modals.js?v=42',
+  './js/pwa-manager.js?v=42'
 ];
 
 // Forzar activación inmediata

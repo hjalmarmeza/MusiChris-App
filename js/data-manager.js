@@ -3,7 +3,14 @@
 async function loadAppData() {
     // 0. Inicializar estructura mínima si es NULL
     if (!appConfig.data) {
-        appConfig.data = { songs: [], users: [], albums: [], playlists: [], stats: {} };
+        appConfig.data = {
+            songs: [],
+            users: [],
+            albums: [],
+            playlists: [],
+            stats: {},
+            maintenanceMode: false  // Control de modo mantenimiento
+        };
     }
 
     // 1. Cargar desde LocalStorage inmediatamente para velocidad

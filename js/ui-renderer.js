@@ -30,6 +30,7 @@ function updateUI(songListOverride = null) {
         renderUserList('usersListGrid', appConfig.data.users);
         renderStatsOverview();
         updateCloudinaryUsage();
+        updateMaintenanceUI(); // Actualizar estado del toggle de mantenimiento
     } else {
         checkUserNotifications();
     }
