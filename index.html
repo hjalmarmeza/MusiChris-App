@@ -252,18 +252,7 @@
             </nav>
         </div>
 
-        <!-- Section: Admin Albums (Carousel) -->
-        <div class="mt-8">
-            <div class="flex items-center justify-between px-4 mb-4">
-                <h2 class="text-white text-[22px] font-bold leading-tight tracking-tight">Álbumes Gestionados</h2>
-                <button class="text-primary text-sm font-semibold flex items-center gap-1" onclick="createAlbum()">
-                    <span class="material-symbols-outlined text-sm">add</span> Nuevo
-                </button>
-            </div>
-            <div id="adminAlbumGrid" class="flex overflow-x-auto gap-4 px-4 pb-4 snap-x snap-mandatory scrollbar-hide">
-                <!-- Álbumes admin se cargarán aquí -->
-            </div>
-        </div>
+
 
         <!-- Search Bar -->
         <div class="px-4 mt-6">
@@ -279,6 +268,22 @@
         <div class="flex-1 space-y-8 mt-8 pb-10">
             <!-- Music Section -->
             <div id="admin-music" class="list-tab-content active px-4">
+
+                <!-- Section: Admin Albums (Carousel) - MOVIDO AQUÍ -->
+                <div class="mb-8 -mx-4">
+                    <div class="flex items-center justify-between px-4 mb-4">
+                        <h2 class="text-white text-[22px] font-bold leading-tight tracking-tight">Álbumes Gestionados
+                        </h2>
+                        <button class="text-primary text-sm font-semibold flex items-center gap-1"
+                            onclick="createAlbum()">
+                            <span class="material-symbols-outlined text-sm">add</span> Nuevo
+                        </button>
+                    </div>
+                    <div id="adminAlbumGrid"
+                        class="flex overflow-x-auto gap-4 px-4 pb-4 snap-x snap-mandatory scrollbar-hide">
+                        <!-- Álbumes admin se cargarán aquí -->
+                    </div>
+                </div>
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-white text-[22px] font-bold leading-tight tracking-tight">Biblioteca Completa
                     </h2>
@@ -301,15 +306,25 @@
 
             <!-- Playlists Section -->
             <div id="admin-playlists" class="list-tab-content px-4">
-                <h2 class="text-white text-[22px] font-bold leading-tight tracking-tight mb-4">Listas del Sistema
-                </h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-white text-[22px] font-bold leading-tight tracking-tight">Listas del Sistema</h2>
+                    <button class="text-primary text-sm font-semibold flex items-center gap-1"
+                        onclick="createPlaylist()">
+                        <span class="material-symbols-outlined text-sm">add</span> Nuevo
+                    </button>
+                </div>
                 <div id="adminPlaylistGrid" class="grid grid-cols-2 gap-4"></div>
             </div>
 
             <!-- Users Section -->
             <div id="admin-users" class="list-tab-content px-4">
-                <h2 class="text-white text-[22px] font-bold leading-tight tracking-tight mb-4">Gestión de Usuarios
-                </h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-white text-[22px] font-bold leading-tight tracking-tight">Gestión de Usuarios</h2>
+                    <button class="text-primary text-sm font-semibold flex items-center gap-1"
+                        onclick="do_create_user_modal()">
+                        <span class="material-symbols-outlined text-sm">add</span> Nuevo
+                    </button>
+                </div>
                 <div id="usersListGrid" class="grid grid-cols-1 gap-3"></div>
             </div>
 
@@ -720,6 +735,22 @@
         </div>
     </div>
 
+    <!-- MODAL AGREGAR A PLAYLIST -->
+    <div id="dom_modal_add_to_playlist" class="modal-overlay">
+        <div class="modal-content glass-card-futuristic !p-6">
+            <h3 class="text-xl font-bold mb-4 tracking-tight">Agregar a Playlist</h3>
+            <div id="addToPlaylistList" class="flex flex-col gap-2 max-h-[300px] overflow-y-auto mb-4">
+                <!-- Se llenará dinámicamente -->
+            </div>
+            <button
+                class="w-full bg-white/10 hover:bg-white/20 p-3 rounded-xl flex items-center justify-center gap-2 mb-4 transition-all"
+                onclick="createPlaylistInModal()">
+                <span class="material-symbols-outlined">add</span> Nueva Playlist
+            </button>
+            <button class="btn-submit bg-white/10" onclick="closeModal('dom_modal_add_to_playlist')">Cancelar</button>
+        </div>
+    </div>
+
     <!-- MODAL PERFIL (Rediseñado) -->
     <div id="dom_modal_profile" class="modal-overlay">
         <div class="modal-content glass-card-futuristic !p-8 flex flex-col items-center">
@@ -856,13 +887,13 @@
     <div id="customToast" class="customToast">Mensaje</div>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=42"></script>
-    <script src="js/data-manager.js?v=42"></script>
-    <script src="js/ui-renderer.js?v=42"></script>
-    <script src="js/player.js?v=42"></script>
-    <script src="js/pwa-manager.js?v=42"></script>
-    <script src="js/modals.js?v=42"></script>
-    <script src="js/app.js?v=42"></script>
+    <script src="js/config.js?v=43"></script>
+    <script src="js/data-manager.js?v=43"></script>
+    <script src="js/ui-renderer.js?v=43"></script>
+    <script src="js/player.js?v=43"></script>
+    <script src="js/pwa-manager.js?v=43"></script>
+    <script src="js/modals.js?v=43"></script>
+    <script src="js/app.js?v=43"></script>
 
 </body>
 

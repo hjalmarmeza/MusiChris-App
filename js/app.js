@@ -486,6 +486,142 @@ function activateGuestMode() {
 }
 
 // --- INICIALIZACIÓN ---
+// --- GESTIÓN DE PLAYLISTS Y USUARIOS ---
+let pendingPlaylistSongId = null;
+
+async function createPlaylist() {
+    const name = prompt("Nombre de la nueva lista:");
+    if (!name) return;
+
+    if (!appConfig.data.playlists) appConfig.data.playlists = [];
+
+    appConfig.data.playlists.push({
+        id: Date.now(),
+        name: name,
+        songs: [],
+        createdBy: appConfig.user.email,
+        isPublic: appConfig.isAdmin
+    });
+
+    await saveData();
+    updateUI();
+    showToast("Lista creada", 'success');
+}
+
+async function do_create_user_modal() {
+    const name = prompt("Nombre del usuario:");
+    if (!name) return;
+    const email = prompt("Email del usuario:");
+    if (!email) return;
+    const pass = prompt("Contraseña temporal:");
+    if (!pass) return;
+
+    if (!appConfig.data.users) appConfig.data.users = [];
+
+    // Verificar duplicados
+    if (appConfig.data.users.find(u => u.email === email)) {
+        showToast("El email ya existe", 'error');
+        return;
+    }
+
+    appConfig.data.users.push({
+        name,
+        email,
+        password: pass,
+        role: 'user',
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+        favorites: []
+    });
+
+    await saveData();
+    updateUI();
+    showToast("Usuario creado", 'success');
+}
+
+function openAddToPlaylistModal(songId) {
+    pendingPlaylistSongId = songId;
+    const listContainer = document.getElementById('addToPlaylistList');
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
+
+    let playlists = [];
+    if (!appConfig.data.playlists) appConfig.data.playlists = [];
+
+    // Admin ve todas, Usuario ve suyas
+    if (appConfig.isAdmin) {
+        playlists = appConfig.data.playlists;
+    } else {
+        playlists = appConfig.data.playlists.filter(p => p.createdBy === appConfig.user.email);
+    }
+
+    if (playlists.length === 0) {
+        listContainer.innerHTML = '<div class="text-white/50 text-center text-sm p-4">No tienes listas creadas</div>';
+    } else {
+        playlists.forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = "w-full text-left p-3 rounded-xl bg-white/5 hover:bg-white/10 flex items-center gap-3 transition-all mb-1";
+
+            const exists = p.songs.includes(songId);
+            const icon = exists ? 'check_circle' : 'playlist_add';
+            const color = exists ? 'text-primary' : 'text-white/60';
+
+            btn.innerHTML = `
+                <span class="material-symbols-outlined ${color}">${icon}</span>
+                <span class="text-white font-medium truncate flex-1">${p.name}</span>
+                <span class="text-xs text-white/30">${p.songs.length} canciones</span>
+            `;
+
+            if (!exists) {
+                btn.onclick = () => addToPlaylist(p.id);
+            } else {
+                btn.onclick = () => showToast("Ya está en esta lista", 'info');
+                btn.style.opacity = "0.5";
+            }
+            listContainer.appendChild(btn);
+        });
+    }
+
+    openModal('dom_modal_add_to_playlist');
+}
+
+async function createPlaylistInModal() {
+    const name = prompt("Nombre de la nueva lista:");
+    if (!name) return;
+
+    // Asegurar estructura
+    if (!appConfig.data.playlists) appConfig.data.playlists = [];
+
+    const newPlaylist = {
+        id: Date.now(),
+        name: name,
+        songs: [],
+        createdBy: appConfig.user.email,
+        isPublic: appConfig.isAdmin
+    };
+
+    appConfig.data.playlists.push(newPlaylist);
+    await saveData();
+
+    // Recargar la lista del modal
+    openAddToPlaylistModal(pendingPlaylistSongId);
+    showToast("Lista creada", 'success');
+}
+
+async function addToPlaylist(playlistId) {
+    if (!pendingPlaylistSongId) return;
+
+    const playlist = appConfig.data.playlists.find(p => p.id === playlistId);
+    if (playlist) {
+        if (!playlist.songs.includes(pendingPlaylistSongId)) {
+            playlist.songs.push(pendingPlaylistSongId);
+            await saveData();
+            showToast(`Añadida a ${playlist.name}`, 'success');
+            closeModal('dom_modal_add_to_playlist');
+        }
+    }
+}
+
+// --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
     // Audio Setup
     dom.audioElement = document.createElement('audio');

@@ -71,6 +71,9 @@ function renderSongList(id, songs) {
                     <div class="playing-bar" style="height:16px"></div>
                     <div class="playing-bar" style="height:12px"></div>
                 </div>
+                <button class="size-10 bg-white/5 rounded-full flex items-center justify-center text-white/40 group-hover:text-white group-hover:bg-primary/20 transition-all mr-2" onclick="event.stopPropagation(); openAddToPlaylistModal(${s.id})">
+                    <span class="material-symbols-outlined text-[20px]">playlist_add</span>
+                </button>
                 <button class="size-10 bg-white/5 rounded-full flex items-center justify-center text-white/40 group-hover:text-white group-hover:bg-primary/20 transition-all" onclick="event.stopPropagation(); playSongId(${s.id})">
                     <span class="material-symbols-outlined text-[20px]" id="list-play-icon-${s.id}">play_arrow</span>
                 </button>
@@ -96,6 +99,9 @@ function renderSongList(id, songs) {
                     <div class="song-artist">${artist}</div>
                 </div>
                 <div class="song-actions">
+                    <button class="btn-list-action" onclick="event.stopPropagation(); openAddToPlaylistModal(${s.id})">
+                        <span class="material-icons-round">playlist_add</span>
+                    </button>
                     <button class="btn-list-action" onclick="event.stopPropagation(); playSongId(${s.id})">
                         <span class="material-icons-round" id="list-play-icon-admin-${s.id}">play_arrow</span>
                     </button>
