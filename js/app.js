@@ -74,6 +74,12 @@ function showMaintenanceScreen() {
     // Mostrar pantalla de mantenimiento
     document.getElementById('view-maintenance').style.display = 'flex';
 
+    // Ocultar reproductor minimizado
+    const mainPlayer = document.getElementById('mainPlayer');
+    if (mainPlayer) {
+        mainPlayer.style.display = 'none';
+    }
+
     // Limpiar sesión parcialmente (mantener que intentó entrar)
     appConfig.isLoggedIn = false;
     appConfig.user = null;

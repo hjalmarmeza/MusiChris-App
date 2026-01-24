@@ -327,6 +327,8 @@ input[type="file"] {
     align-items: stretch;
     justify-content: stretch;
     padding: 0;
+    background: transparent;
+    backdrop-filter: none;
 }
 
 #view-guest-player>div:first-child {
