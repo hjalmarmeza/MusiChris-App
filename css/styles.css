@@ -1012,7 +1012,8 @@ header {
     color: var(--danger) !important;
 }
 
-/* Full Screen Guest Player */
+/* Full Screen Guest Player - DISABLED (using new styles above) */
+/* 
 #view-guest-player {
     background: linear-gradient(180deg, #1a1a2b 0%, #0f0f1a 100%);
     position: fixed;
@@ -1026,6 +1027,7 @@ header {
     padding: 30px;
     animation: slideUp 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
+*/
 
 @keyframes slideUp {
     from {
