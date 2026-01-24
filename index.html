@@ -106,7 +106,7 @@
 
     <!-- VISTA MANTENIMIENTO -->
     <div id="view-maintenance" style="display: none;"
-        class="mesh-gradient min-h-screen flex items-center justify-center p-6 text-white font-display">
+        class="mesh-gradient min-h-screen flex items-center justify-center p-6 text-white font-display fixed inset-0 z-[9999]">
         <div
             class="glass max-w-lg w-full p-12 rounded-[40px] shadow-2xl border-white/10 text-center relative overflow-hidden">
             <!-- Decorative animated lights -->
@@ -585,7 +585,7 @@
         <div
             class="relative flex h-full w-full flex-col mesh-gradient-blue font-vibe text-white selection:bg-primary/30 overflow-hidden">
             <!-- Header -->
-            <div class="flex items-center p-6 justify-between z-10 shrink-0">
+            <div class="flex items-center p-4 justify-between z-10 shrink-0">
                 <div class="flex size-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 cursor-pointer"
                     onclick="closeModal('view-guest-player')">
                     <span class="material-symbols-outlined text-white">keyboard_arrow_down</span>
@@ -606,8 +606,8 @@
             </div>
 
             <!-- Cover (Responsive & shrinking) -->
-            <div class="flex-1 min-h-0 w-full flex items-center justify-center px-6 py-4">
-                <div class="relative aspect-square w-full max-w-[340px] max-h-full shadow-2xl rounded-3xl group">
+            <div class="flex-1 min-h-0 w-full flex items-center justify-center px-4 py-2">
+                <div class="relative aspect-square w-full max-w-[380px] max-h-full shadow-2xl rounded-3xl group">
                     <div
                         class="absolute inset-0 bg-accent-blue/20 blur-3xl rounded-xl scale-90 group-hover:scale-100 transition-transform duration-500">
                     </div>
@@ -619,7 +619,7 @@
             </div>
 
             <!-- Controls Info -->
-            <div class="px-8 pb-safe pt-4 shrink-0">
+            <div class="px-4 sm:px-6 pb-safe pt-2 shrink-0">
                 <div class="flex justify-between items-end mb-4">
                     <div class="min-w-0 flex-1 pr-4">
                         <h1 id="guestTitle" class="text-white tracking-tight text-2xl font-bold leading-tight truncate">
