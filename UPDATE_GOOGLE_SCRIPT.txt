@@ -1,0 +1,88 @@
+// =============================================================
+// CÓDIGO ACTUALIZADO PARA GOOGLE APPS SCRIPT
+// Copia y pega ESTE código en tu editor de Google Apps Script
+// (Extensiones > Apps Script en tu Hoja de Cálculo)
+// Asegúrate de guardar y desplegar como NUEVA VERSIÓN
+// =============================================================
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+
+  try {
+    var doc = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // Asegúrate de que tus hojas se llamen así o cambia el nombre aquí
+    var sheetLog = doc.getSheetByName("Hoja 1"); // Para Logs de actividad
+    var sheetLib = doc.getSheetByName("Hoja 2"); // Para Biblioteca de canciones
+    
+    if (!sheetLog) sheetLog = doc.insertSheet("Hoja 1");
+    if (!sheetLib) sheetLib = doc.insertSheet("Hoja 2");
+
+    var request = JSON.parse(e.postData.contents);
+    var action = request.action;
+    var data = request.data; // Los datos enviados desde la App
+
+    // -----------------------------------------------------------------
+    // CASO 1: LOG DE ACTIVIDAD (Hoja 1)
+    // -----------------------------------------------------------------
+    if (action == "log") {
+      sheetLog.appendRow([
+        data.fecha, 
+        data.email, 
+        data.accion, 
+        data.titulo, 
+        data.artista, 
+        data.dispositivo, 
+        data.tiempo
+      ]);
+      
+      return ContentService.createTextOutput(JSON.stringify({"result":"success", "type": "log"}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // -----------------------------------------------------------------
+    // CASO 2: EXPORTAR BIBLIOTECA (Hoja 2)
+    // -----------------------------------------------------------------
+    else if (action == "export_library") {
+      // 1. Limpiar contenido anterior (excepto encabezados si existen)
+      var lastRow = sheetLib.getLastRow();
+      if (lastRow > 1) {
+        // Limpiar desde fila 2 hasta el final, columnas A a D
+        sheetLib.getRange(2, 1, lastRow - 1, 4).clearContent();
+      } else if (lastRow === 0 || (lastRow === 1 && sheetLib.getRange(1,1).getValue() === "")) {
+         // Si está vacía poner encabezados
+         sheetLib.appendRow(["Album", "Cover URL", "Canción", "MP3 URL"]);
+      }
+      
+      // 2. Preparar nuevas filas
+      if (data && data.length > 0) {
+        var exportRows = [];
+        
+        for (var i = 0; i < data.length; i++) {
+          exportRows.push([
+            data[i].album_nombre,
+            data[i].album_cover,
+            data[i].song_titulo,
+            data[i].song_url
+          ]);
+        }
+        
+        // 3. Escribir datos en bloque (Batch write para velocidad)
+        if (exportRows.length > 0) {
+            sheetLib.getRange(2, 1, exportRows.length, 4).setValues(exportRows);
+        }
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({"result":"success", "type": "export", "count": data.length}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+  } catch (e) {
+    return ContentService.createTextOutput(JSON.stringify({"result":"error", "error": e.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+    
+  } finally {
+    lock.releaseLock();
+  }
+}

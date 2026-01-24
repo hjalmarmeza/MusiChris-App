@@ -218,14 +218,25 @@ async function logActivity(action, song = null, extra = "") {
 async function exportLibraryToSheet() {
     if (!appConfig.data || !appConfig.data.songs) return;
 
+    // Solo permitir si hay canciones
+    if (appConfig.data.songs.length === 0) {
+        showToast("No hay canciones para exportar", 'warning');
+        return;
+    }
+
+    showToast("📤 Iniciando exportación a Sheet...", 'info');
+
     // Mapear al formato plano solicitado
     const flatData = appConfig.data.songs.map(song => {
         const album = appConfig.data.albums?.find(a => norm(a.name || a.title) === norm(song.album)) || {};
+        // Asegurar que cover tenga valor válido
+        const coverUrl = album.cover || album.coverUrl || album.img || DEFAULT_COVER;
+
         return {
             album_nombre: song.album || "Sin Álbum",
-            album_cover: album.cover || album.coverUrl || album.img || DEFAULT_COVER,
+            album_cover: coverUrl,
             song_titulo: song.title,
-            song_url: song.url
+            song_url: song.url || ""
         };
     });
 
@@ -234,17 +245,23 @@ async function exportLibraryToSheet() {
         data: flatData
     };
 
+    console.log("📤 Enviando datos a Apps Script:", flatData.length, "items");
+
     try {
+        // Usamos no-cors, por lo que la respuesta es opaca.
+        // Asumimos éxito si no hay error de red.
         await fetch(`${GOOGLE_APPS_SCRIPT_URL}`, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(exportData)
         });
-        showToast("📦 Biblioteca exportada al Sheet", 'success');
-        console.log("🚀 Exportación enviada:", flatData.length, "ítems");
+
+        showToast("✅ Petición de exportación enviada", 'success');
+        console.log("🚀 Petición finalizada (Modo no-cors - Verifica tu Google Sheet)");
+
     } catch (e) {
-        console.error("Error al exportar:", e);
-        showToast("Error al exportar la lista", 'error');
+        console.error("❌ Error al exportar:", e);
+        showToast("Error de conexión con Google Sheet", 'error');
     }
 }
