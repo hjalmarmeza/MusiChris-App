@@ -581,12 +581,12 @@
     </div>
 
     <!-- MODAL REPRODUCTOR FULLSCREEN (Guest Player) -->
-    <div id="view-guest-player" class="modal-overlay">
+    <div id="view-guest-player" class="modal-overlay" style="display: none !important;">
         <div
-            class="relative flex h-full w-full flex-col mesh-gradient-blue font-vibe text-white selection:bg-primary/30 overflow-hidden">
+            class="relative flex h-full w-full flex-col mesh-gradient-blue font-vibe text-white selection:bg-primary/30 overflow-hidden z-[7000] pointer-events-auto">
             <!-- Header -->
-            <div class="flex items-center p-4 justify-between z-10 shrink-0">
-                <div class="flex size-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 cursor-pointer"
+            <div class="flex items-center p-4 justify-between z-10 shrink-0 pointer-events-auto">
+                <div class="flex size-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 cursor-pointer pointer-events-auto"
                     onclick="closeModal('view-guest-player')">
                     <span class="material-symbols-outlined text-white">keyboard_arrow_down</span>
                 </div>
@@ -654,7 +654,7 @@
                 </div>
 
                 <!-- Main Controls -->
-                <div class="flex items-center justify-between mb-safe gap-2">
+                <div class="flex items-center justify-between mb-safe gap-2 relative z-[7001] pointer-events-auto">
                     <button class="text-white/40 hover:text-white transition-colors shrink-0 p-2"
                         onclick="toggleShuffle(this)">
                         <span class="material-symbols-outlined text-xl sm:text-2xl" id="shuffleIcon">shuffle</span>
