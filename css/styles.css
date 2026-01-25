@@ -324,8 +324,7 @@ input[type="file"] {
 
 /* Guest Player Modal - Full Screen Override */
 #view-guest-player {
-    display: block !important;
-    /* Override flex from modal-overlay if needed */
+    /* display controlled by JS (none/flex) */
     padding: 0 !important;
     background: transparent !important;
     width: 100vw !important;

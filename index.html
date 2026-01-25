@@ -654,42 +654,51 @@
                 </div>
 
                 <!-- Main Controls -->
-                <div class="flex items-center justify-between mb-8 gap-2">
-                    <button class="text-white/40 hover:text-white transition-colors shrink-0"
+                <div class="flex items-center justify-between mb-safe gap-2">
+                    <button class="text-white/40 hover:text-white transition-colors shrink-0 p-2"
                         onclick="toggleShuffle(this)">
                         <span class="material-symbols-outlined text-xl sm:text-2xl" id="shuffleIcon">shuffle</span>
                     </button>
-                    <div class="flex items-center gap-4 sm:gap-8">
-                        <button class="text-white hover:scale-110 transition-transform active:scale-95 shrink-0"
+                    <div class="flex items-center gap-4 sm:gap-8 justify-center flex-1">
+                        <button
+                            class="text-white hover:scale-110 transition-transform active:scale-95 shrink-0 flex items-center justify-center p-2"
                             onclick="prev()">
-                            <span class="material-symbols-outlined text-3xl sm:text-4xl"
+                            <span class="material-symbols-outlined text-4xl sm:text-5xl"
                                 style="font-variation-settings: 'FILL' 1">skip_previous</span>
                         </button>
                         <button
-                            class="flex size-14 sm:size-16 items-center justify-center rounded-full bg-white text-background-dark shadow-xl hover:scale-105 active:scale-95 transition-all shrink-0"
+                            class="flex size-16 sm:size-20 items-center justify-center rounded-full bg-white text-background-dark shadow-xl hover:scale-105 active:scale-95 transition-all shrink-0"
                             onclick="toggle_play()">
-                            <span id="iconPlayBig" class="material-symbols-outlined text-3xl sm:text-4xl"
+                            <span id="iconPlayBig" class="material-symbols-outlined text-4xl sm:text-5xl"
                                 style="font-variation-settings: 'FILL' 1">play_arrow</span>
                         </button>
-                        <button class="text-white hover:scale-110 transition-transform active:scale-95 shrink-0"
+                        <button
+                            class="text-white hover:scale-110 transition-transform active:scale-95 shrink-0 flex items-center justify-center p-2"
                             onclick="next()">
-                            <span class="material-symbols-outlined text-3xl sm:text-4xl"
+                            <span class="material-symbols-outlined text-4xl sm:text-5xl"
                                 style="font-variation-settings: 'FILL' 1">skip_next</span>
                         </button>
                     </div>
-                    <button class="text-white/40 hover:text-white transition-colors shrink-0"
+                    <button class="text-white/40 hover:text-white transition-colors shrink-0 p-2"
                         onclick="toggleRepeat(this)">
                         <span class="material-symbols-outlined text-xl sm:text-2xl" id="repeatIcon">repeat</span>
                     </button>
                 </div>
-            </div>
 
-            <style>
-                .pb-safe {
-                    padding-bottom: max(2rem, env(safe-area-inset-bottom));
-                }
-            </style>
+                <style>
+                    .mb-safe {
+                        margin-bottom: max(2rem, env(safe-area-inset-bottom));
+                    }
+                </style>
+            </div>
         </div>
+
+        <style>
+            .pb-safe {
+                padding-bottom: max(2rem, env(safe-area-inset-bottom));
+            }
+        </style>
+    </div>
     </div>
 
     <!-- MODAL NOTIFICACIONES -->
