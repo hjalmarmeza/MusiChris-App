@@ -6,7 +6,7 @@ function setupPWA() {
     const isLocalFile = window.location.protocol === 'file:';
 
     if ('serviceWorker' in navigator && !isLocalFile) {
-        navigator.serviceWorker.register('sw.js?v=34')
+        navigator.serviceWorker.register('sw.js?v=47')
             .then(reg => {
                 console.log('✅ SW registrado:', reg.scope);
 
