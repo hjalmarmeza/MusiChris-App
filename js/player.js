@@ -72,6 +72,7 @@ function playSong(song) {
 
     updatePlayingIndicators();
     updateGuestPlayerUI();
+    setTimeout(adjustTitleSize, 50); // Small delay to ensure DOM update
 }
 
 function playSongId(id) {
@@ -326,3 +327,29 @@ function togglePlayIcon(isPlaying) {
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
     if (typeof updateVisualizer === 'function') updateVisualizer(isPlaying);
 }
+
+function adjustTitleSize() {
+    const title = document.getElementById('guestTitle');
+    if (!title) return;
+
+    // Reset base style
+    title.style.fontSize = '';
+    title.classList.remove('text-lg', 'text-xl', 'text-2xl');
+    title.classList.add('text-2xl'); // Start big
+
+    const parent = title.parentElement;
+    if (!parent) return;
+
+    // Medición y ajuste
+    let size = 24; // text-2xl aprox 24px
+    const minSize = 14;
+
+    // Mientras el contenido sea más ancho que el contenedor
+    while (title.scrollWidth > parent.clientWidth && size > minSize) {
+        size -= 1;
+        title.style.fontSize = `${size}px`;
+    }
+}
+
+// Escuchar cambios de tamaño de ventana para reajustar
+window.addEventListener('resize', adjustTitleSize);
