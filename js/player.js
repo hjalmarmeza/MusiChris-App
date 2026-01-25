@@ -332,24 +332,27 @@ function adjustTitleSize() {
     const title = document.getElementById('guestTitle');
     if (!title) return;
 
-    // Reset base style
-    title.style.fontSize = '';
-    title.classList.remove('text-lg', 'text-xl', 'text-2xl');
-    title.classList.add('text-2xl'); // Start big
+    // Asegurar visibilidad
+    title.style.opacity = '1';
+    title.style.visibility = 'visible';
 
     const parent = title.parentElement;
-    if (!parent) return;
+    if (!parent || parent.clientWidth === 0) return; // Si no es visible aún
 
-    // Medición y ajuste
-    let size = 24; // text-2xl aprox 24px
-    const minSize = 14;
+    // Empezar tamaño base
+    let currentSize = 24; // text-2xl
+    title.style.fontSize = `${currentSize}px`;
+    title.style.whiteSpace = 'nowrap';
+    title.style.overflow = 'hidden';
 
-    // Mientras el contenido sea más ancho que el contenedor
-    while (title.scrollWidth > parent.clientWidth && size > minSize) {
-        size -= 1;
-        title.style.fontSize = `${size}px`;
+    // Bucle de ajuste seguro
+    while (title.scrollWidth > parent.clientWidth && currentSize > 14) {
+        currentSize--;
+        title.style.fontSize = `${currentSize}px`;
     }
 }
 
 // Escuchar cambios de tamaño de ventana para reajustar
-window.addEventListener('resize', adjustTitleSize);
+window.addEventListener('resize', () => {
+    requestAnimationFrame(adjustTitleSize);
+});
