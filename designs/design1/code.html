@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MusiChris Web Dashboard Premium</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec1313",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#0a0505",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .mesh-gradient {
+            background: radial-gradient(at 0% 0%, #221010 0%, transparent 50%),
+                        radial-gradient(at 100% 0%, #3a0a0a 0%, transparent 50%),
+                        radial-gradient(at 100% 100%, #1a0505 0%, transparent 50%),
+                        radial-gradient(at 0% 100%, #4c0808 0%, transparent 50%),
+                        #0a0505;
+        }
+        .glass {
+            background: rgba(34, 16, 16, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white selection:bg-primary/30">
+<!-- Background Mesh Layer -->
+<div class="fixed inset-0 mesh-gradient -z-10"></div>
+<div class="relative flex min-h-screen w-full flex-col pb-40">
+<!-- TopAppBar -->
+<div class="sticky top-0 z-50 flex items-center bg-transparent backdrop-blur-md p-4 pb-2 justify-between">
+<div class="flex size-12 shrink-0 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="User profile avatar with red glowing border" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCnWxkpDjckPzc75AT_s6sIKcXlQRfgKRZNOCD_I7ygVl88I8AYTQvA_aAp3ZiRxNZ4QvkBLo0AiHeE7o-kfkYVlkRKQEgcP1cADFGKBjYw5ewtcP_uAe3jSf9ei8kWoz26GV3BueFamzF-pwFZkq2qF50hvquJ7sRqnAGQCLjqH6WxTAZKlFidd2HmMnOzAlKo152jEtnUK_j8jKuBKYcRTRt5bYdFYUaBVvwDpYnBbrPVLYraIxbTL656DxUy8GH7vR-zWCpoITo");'>
+</div>
+</div>
+<div class="flex-1 px-3">
+<h2 class="text-white text-lg font-bold leading-tight tracking-tight">MusiChris</h2>
+<p class="text-[10px] text-primary font-bold uppercase tracking-widest">Premium</p>
+</div>
+<div class="flex gap-2 items-center">
+<button class="flex size-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">search</span>
+</button>
+<button class="flex size-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">notifications</span>
+</button>
+</div>
+</div>
+<!-- HeadlineText -->
+<div class="px-4 pt-8">
+<h1 class="text-white tracking-tight text-[36px] font-bold leading-tight">Hola de nuevo</h1>
+<p class="text-white/50 text-sm mt-1">Tu mezcla diaria está lista.</p>
+</div>
+<!-- Section: Recently Played (Carousel) -->
+<div class="mt-6">
+<div class="flex items-center justify-between px-4 pb-4">
+<h2 class="text-white text-[22px] font-bold leading-tight tracking-tight">Escuchado recientemente</h2>
+<span class="text-primary text-sm font-semibold">Ver todo</span>
+</div>
+<div class="flex overflow-x-auto gap-4 px-4 pb-4 snap-x snap-mandatory">
+<!-- Card 1 -->
+<div class="flex flex-col gap-3 min-w-[200px] snap-start">
+<div class="relative group">
+<div class="w-full aspect-square bg-cover rounded-xl shadow-2xl transition-transform duration-300 group-active:scale-95" data-alt="Album cover for After Hours by The Weeknd" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDcOeA4E_YFDbDLAHH4zvAxIJIUh3Eb17-PZTSa3xYZbGlba4EZR74c4B9YO9XSK29cRbgxw2ApJye_Wptiwv_-IIdbV1aYVim1ghYW-W6CgBryUirKCdePk5soRJIMc995lJlaNlzFIlEZvE9PtGok9YoVU2RmR0SN1-BhKn9efDgePjr9v7L4oyTirFwjJ9hMcKIz5YB-HUka_jttMv5oNtqo_UbROicHu7gsD1aTJ4PD2O0u15PmWiOQuZpcUn2UBsYgcd6jbjU");'>
+</div>
+<div class="absolute bottom-2 right-2 size-10 bg-primary rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined fill-1">play_arrow</span>
+</div>
+</div>
+<div>
+<p class="text-white text-base font-bold leading-tight">After Hours</p>
+<p class="text-white/60 text-sm font-medium">The Weeknd</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="flex flex-col gap-3 min-w-[200px] snap-start">
+<div class="relative group">
+<div class="w-full aspect-square bg-cover rounded-xl shadow-2xl transition-transform duration-300 group-active:scale-95" data-alt="Album cover for Midnights by Taylor Swift" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBJEzqfcoUlKfX5RU-BpnAyrhulqJ1EVmrUZ6fpXhgsGl6Q1SC2_DYiyZYbn0poHXMiBtmyOw2BoKJzi7hSKrkXOomNlG7sST8okJEOi8zduQpxbbcR5zDKBlwZ_yuX4zKv1rx9NUtWdwfgO9XgfnmHkurXi6SZjbwrp9bWX_hW2L8CYfFqlAWcyZmg8tDZFn7kxreyXw8wEhUSoH6UW0ZF50cjtPYW6h-knfYCmBsKiBiw1xcii6KnuZa3IZMiFFD_RBcHcKZPFmM");'>
+</div>
+<div class="absolute bottom-2 right-2 size-10 bg-primary rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined fill-1">play_arrow</span>
+</div>
+</div>
+<div>
+<p class="text-white text-base font-bold leading-tight">Midnights</p>
+<p class="text-white/60 text-sm font-medium">Taylor Swift</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="flex flex-col gap-3 min-w-[200px] snap-start">
+<div class="relative group">
+<div class="w-full aspect-square bg-cover rounded-xl shadow-2xl transition-transform duration-300 group-active:scale-95" data-alt="Album cover for Starboy by The Weeknd" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCLDYQqL9G6NXehC6jFsUQ_8ya07OMWrf7qbgH_aXSE1PkJN_VfUWTjgQPqMCZjpgq3TLRj84Q0TopgVgaJaLTWKyxWiV1rHsevnGWDULwt9CFUmeK2CYNuAb14eVQhT--pORAl-VKq6Ak7HvuEupWbN6iwtCwTW1hMmtw9gmgavdH7iG-2TPfC67j-PsIWlwCXL6pP3pPyz8jK6fcY_PK1YJmNl6cHLY-zP633v8xl3zBjHt9jEkP6o7CnbwjfxfKXLT9sDTywCC4");'>
+</div>
+<div class="absolute bottom-2 right-2 size-10 bg-primary rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined fill-1">play_arrow</span>
+</div>
+</div>
+<div>
+<p class="text-white text-base font-bold leading-tight">Starboy</p>
+<p class="text-white/60 text-sm font-medium">The Weeknd</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Made For You (Grid Style) -->
+<div class="mt-8 px-4">
+<h2 class="text-white text-[22px] font-bold leading-tight tracking-tight pb-4">Hecho para ti</h2>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-white/5 p-3 rounded-2xl border border-white/10 flex flex-col gap-3">
+<div class="w-full aspect-video bg-cover rounded-lg" data-alt="Abstract daily mix cover with red and purple swirls" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCIFIg9vjV8DIO_fmNMcyVQvlSUmb5BI5YFYSwG4VQO9ao5hsOR_j2sX9g3_-GJlMsmMJ8dtoNciT01qNWZA9fwiECjqvR2Y4arzPt99GlW9G85jqkER53x1FBXgfb7134dNOUBLxKatLry-3o5B511pltrOKREmJLm2c7BSsFyuRv6uH4FKiRQMUCCvBBOHjc5x9um3yV_sk14bEUCfEcsygVcmsH8YHfFudOs1zcGRyrGHGnSYUfldr-yWP_IqliCLZI0sG0QgEg");'></div>
+<p class="font-bold text-sm">Daily Mix 1</p>
+</div>
+<div class="bg-white/5 p-3 rounded-2xl border border-white/10 flex flex-col gap-3">
+<div class="w-full aspect-video bg-cover rounded-lg" data-alt="Abstract daily mix cover with dark blue and red" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBBWxUjbmJKhhFx0wX5FM1nEFAUrZ8Ajt8BUElnAI-xTGSphCN5tFSsDP4elabFIsL8PVJwz2NRrdYm1kcARiIcY9d3ybD5_I6vhVB8al_lGmkmgoS0b3XWjnwXcyUR5sW2wJhuOYCzmwLrmiboD_17_hv-d3vmjlQS0oy9MUZ1rVsBdc7lYTxpldqXEeGcJGVCVKyzN2-puGQqUPrdNLVsfjdso6FexbI3gcdL2PcY8aiwdVUi0A-3OaObO3IP-TryG6uMkvHEdLo");'></div>
+<p class="font-bold text-sm">Daily Mix 2</p>
+</div>
+</div>
+</div>
+<!-- Section: New Releases -->
+<div class="mt-8 px-4">
+<h2 class="text-white text-[22px] font-bold leading-tight tracking-tight pb-4">Novedades populares</h2>
+<div class="flex flex-col gap-4">
+<!-- Song Row -->
+<div class="flex items-center gap-4 bg-white/5 p-2 rounded-xl border border-white/5">
+<div class="size-14 rounded-lg bg-cover" data-alt="Single cover art with neon lights" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCa5Zxost7-rvPUx2LK2gBXnyt07EVWPDNhe6u3AFY1revWz1Rb9RNziSHs1baEKu3R9DsrnziGLIEp21eJoiGUSrsvro6p8FXsnpKH2CYsz4OwWenOMbCDEZck53AaqIH2vcX1CUaUQ2SH7QUzjNIZz1tr2aOeb4kKTF9ndWEIDKgRV1cnRF__NYAbdqQzz5OUAkM21J0-MG-vN-r__cxGCseMKzT5B3zLhIeCIQp4mZF077FQSDcEYS6vrE8XEt9EKy-v-c_em24");'></div>
+<div class="flex-1">
+<p class="font-bold text-sm">Blinding Lights</p>
+<p class="text-xs text-white/50">The Weeknd</p>
+</div>
+<button class="text-white/40">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="flex items-center gap-4 bg-white/5 p-2 rounded-xl border border-white/5">
+<div class="size-14 rounded-lg bg-cover" data-alt="Single cover art with minimalist design" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDuNvcq--12TFn5FmcdvNdi6fJ_ewaz6B_O_TKevc6-8DvjZs-vFfsJ4JLg94Z_n8Hhz3aXaZ2lMVw75MFlrvX8rz5BLOK2qJcGPDlYu64hCk-E4nhwdH0JkgFzu0w3T8AOtiMCswvPHg0UFHasLEw66z6ApTg_ktyT9nGm_CZ8cLdjctAiuYvaNRJNb9I07QYrGqVC1IT3ofrQwl5heBjttdU3KZv4HhDEBjoy1p_Zu4zPlzMTSmIGu7N6_uNBPUXOS-S9NDmxxdA");'></div>
+<div class="flex-1">
+<p class="font-bold text-sm">Anti-Hero</p>
+<p class="text-xs text-white/50">Taylor Swift</p>
+</div>
+<button class="text-white/40">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Player Bar & Navigation -->
+<div class="fixed bottom-0 left-0 right-0 z-[60] px-4 pb-6 flex flex-col gap-2">
+<!-- Player Bar -->
+<div class="glass rounded-2xl p-3 flex flex-col shadow-2xl border-white/20">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-cover shadow-lg" data-alt="Currently playing track thumbnail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB8cK-hmBcGZCYABeMw1Bo64b7W0UY7y_sd_PeDiyxl-9dbtA-5vADaIi_l18IUJ514OqwFsgeLgieWS62cMKSmeHZmFrOo1PsnxWsIY988wCzqU39whYn6ryQaUuMKmMH6C8414OuoyTT_1s9Xq8vDrWIyWWuOJaSOw3eNQ-kVmBGjqgH6g4cXa5LzJriftwFUz-uBHVcyX_CZiqCEx4J5kUxDssJvfzPZzqHmhM3aG5tLbsutDCSQqnAN46sGzBFU2_XlYaTVZWw");'></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold truncate">Save Your Tears</p>
+<p class="text-[10px] text-white/60 truncate">The Weeknd • After Hours</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-white">
+<span class="material-symbols-outlined text-[28px]">skip_previous</span>
+</button>
+<button class="size-10 bg-white text-background-dark rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined fill-1">pause</span>
+</button>
+<button class="text-white">
+<span class="material-symbols-outlined text-[28px]">skip_next</span>
+</button>
+</div>
+</div>
+<!-- Progress Bar -->
+<div class="mt-3 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+<div class="w-[65%] h-full bg-primary rounded-full relative">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 size-2 bg-white rounded-full shadow-lg"></div>
+</div>
+</div>
+</div>
+<!-- Navigation Bar -->
+<nav class="glass rounded-full px-8 py-3 flex items-center justify-between border-white/10">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[28px] fill-1">home</span>
+<span class="text-[10px] font-bold">Inicio</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-white/40 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[28px]">explore</span>
+<span class="text-[10px] font-bold">Explorar</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-white/40 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[28px]">library_music</span>
+<span class="text-[10px] font-bold">Biblioteca</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-white/40 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[28px]">person</span>
+<span class="text-[10px] font-bold">Perfil</span>
+</button>
+</nav>
+</div>
+</body></html>
