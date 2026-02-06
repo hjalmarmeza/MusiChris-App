@@ -105,11 +105,12 @@ function validateAndInitData() {
         if (!s.plays) s.plays = 0;
         if (!s.superLikes) s.superLikes = [];
         if (!s.addedDate) s.addedDate = s.id || Date.now();
+        if (!s.lastPlayed) s.lastPlayed = 0;
     });
     calculateStats();
 }
 
-async function saveData() {
+async function saveData(silent = false) {
     // Sanity check: No guardar si la base de datos parece vacía o corrupta
     if (!appConfig.data || (!appConfig.data.songs.length && !appConfig.data.users.length)) {
         console.warn("⚠️ Intento de guardado de base de datos vacía cancelado para evitar corrupción.");
@@ -127,10 +128,13 @@ async function saveData() {
         });
         // Actualizar caché local también
         localStorage.setItem('musichris_db_cache', JSON.stringify(appConfig.data));
-        console.log("✅ Datos guardados correctamente");
+        if (!silent) {
+            console.log("✅ Datos guardados correctamente");
+            showToast("Cambios sincronizados", 'success');
+        }
     } catch (e) {
         console.error('Error al guardar:', e);
-        showToast("Error al sincronizar cambios", 'error');
+        if (!silent) showToast("Error al sincronizar cambios", 'error');
     }
 }
 

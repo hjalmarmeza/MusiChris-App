@@ -61,11 +61,12 @@ function playSong(song) {
     const songInMemory = appConfig.data.songs.find(s => s.id === song.id);
     if (songInMemory) {
         songInMemory.plays = (songInMemory.plays || 0) + 1;
+        songInMemory.lastPlayed = Date.now(); // Actualizar fecha de última reproducción
 
         // Registrar historial en Google Sheets con el nuevo sistema
         logActivity('PLAY', songInMemory);
 
-        saveDataSilent();
+        saveData(true); // Usar la función global de guardado en modo silencioso
         calculateStats();
         if (appConfig.isAdmin) renderStatsOverview();
     }
@@ -254,18 +255,10 @@ function seekAudio(e) {
     updateProgress();
 }
 
-async function saveDataSilent() {
-    if (!appConfig.data || (!appConfig.data.songs.length && !appConfig.data.users.length)) return;
-
-    try {
-        await fetch(`${API_BASE_URL}?action=save`, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(appConfig.data)
-        });
-    } catch (e) {
-        console.error('Silent save failed:', e);
-    }
+// Esta función ya no es necesaria pues usamos saveData(true), 
+// pero la mantenemos vacía por compatibilidad si se llama en otro sitio
+function saveDataSilent() {
+    saveData(true);
 }
 
 

@@ -528,16 +528,46 @@ function updateGuestPlayerUI() {
 
 function openFavorites() {
     if (!appConfig.user) return showToast("Inicia sesión para ver tus favoritos");
-    const favs = appConfig.data.songs.filter(s => s.likes.includes(appConfig.user.email));
-    if (favs.length === 0) return showToast("No tienes favoritos aún");
+    const email = appConfig.user.email.toLowerCase();
+    const favs = appConfig.data.songs.filter(s => s.likes && s.likes.some(e => e.toLowerCase() === email));
+
+    if (favs.length === 0) return showToast("No tienes favoritos aún", 'info');
+
     appConfig.tempPlaylist = favs;
     updateUI(favs);
+
+    // Desplazamiento automático a la lista
+    const target = document.getElementById('userSongList');
+    if (target) {
+        const header = target.previousElementSibling;
+        if (header) header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        else target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 function openRecent() {
-    const recent = [...appConfig.data.songs].sort((a, b) => b.addedDate - a.addedDate).slice(0, 20);
+    // Ordenar por última reproducción, y si no ha sido reproducida, por fecha de subida
+    const recent = [...appConfig.data.songs]
+        .filter(s => s.lastPlayed > 0 || s.addedDate > 0)
+        .sort((a, b) => {
+            const timeA = a.lastPlayed || a.addedDate || 0;
+            const timeB = b.lastPlayed || b.addedDate || 0;
+            return timeB - timeA;
+        })
+        .slice(0, 20);
+
+    if (recent.length === 0) return showToast("Aún no hay actividad reciente", 'info');
+
     appConfig.tempPlaylist = recent;
     updateUI(recent);
+
+    // Desplazamiento automático a la lista
+    const target = document.getElementById('userSongList');
+    if (target) {
+        const header = target.previousElementSibling;
+        if (header) header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        else target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 // Helpers para Imágenes y Optimización
