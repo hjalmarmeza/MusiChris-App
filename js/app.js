@@ -175,16 +175,6 @@ function switchTab(id, btn) {
             else target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
-    // Navigation logic for User Dashboard: Scroll to section
-    if (parent.id === 'userNavBar') {
-        const targetId = id === 'user-music' ? 'userSongList' : (id === 'user-playlists' ? 'userPlaylistGrid' : 'userAlbumGrid');
-        const target = document.getElementById(targetId);
-        if (target) {
-            const header = target.previousElementSibling;
-            if (header) header.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            else target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    }
     // Admin & General logic
     else {
         const container = id.startsWith('admin') ? document.getElementById('view-admin') : document.getElementById('view-user');

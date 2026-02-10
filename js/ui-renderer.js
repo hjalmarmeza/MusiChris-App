@@ -347,6 +347,11 @@ function initUserActivityChart() {
         };
     });
 
+    if (typeof Chart === 'undefined') {
+        console.warn("⚠️ Chart.js no está cargado. Saltando gráfico de actividad.");
+        return;
+    }
+
     if (activityChart) {
         activityChart.destroy();
     }
@@ -439,6 +444,11 @@ function initTopSongsChart() {
         topSongsChartObj.data.labels = labels;
         topSongsChartObj.data.datasets[0].data = data;
         topSongsChartObj.update();
+        return;
+    }
+
+    if (typeof Chart === 'undefined') {
+        console.warn("⚠️ Chart.js no está cargado. Saltando gráfico de top canciones.");
         return;
     }
 
