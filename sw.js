@@ -1,17 +1,17 @@
 ﻿// Service Worker MusiChris - Versión Forzada 3.0
-const CACHE_NAME = 'musichris-v60';
+const CACHE_NAME = 'musichris-v61';
 const urlsToCache = [
   './',
-  './index.html?v=60',
-  './css/styles.css?v=60',
+  './index.html?v=61',
+  './css/styles.css?v=61',
   './assets/icon-512.png',
-  './js/config.js?v=60',
-  './js/app.js?v=60',
-  './js/player.js?v=60',
-  './js/ui-renderer.js?v=60',
-  './js/data-manager.js?v=60',
-  './js/modals.js?v=60',
-  './js/pwa-manager.js?v=60'
+  './js/config.js?v=61',
+  './js/app.js?v=61',
+  './js/player.js?v=61',
+  './js/ui-renderer.js?v=61',
+  './js/data-manager.js?v=61',
+  './js/modals.js?v=61',
+  './js/pwa-manager.js?v=61'
 ];
 
 // Forzar activación inmediata
@@ -19,7 +19,7 @@ self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('📦 Cacheando recursos principales v60');
+      console.log('📦 Cacheando recursos principales v61');
       return cache.addAll(urlsToCache);
     })
   );
@@ -46,6 +46,12 @@ self.addEventListener('activate', event => {
 // Estrategia: Network First para archivos base, Cache First AGRESIVO para Cloudinary
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+
+  // 🚫 BLOQUEAR ARCHIVOS .map DE CHART.JS PARA EVITAR ERRORES 404 EN CONSOLA
+  if (url.pathname.endsWith('.map') && url.pathname.includes('chart')) {
+    event.respondWith(new Response('', { status: 200, statusText: 'OK' }));
+    return;
+  }
 
   // 🎯 PROTECCIÓN DE CUOTA CLOUDINARY: Cache First AGRESIVO
   if (url.hostname.includes('cloudinary.com') || url.hostname.includes('res.cloudinary.com')) {

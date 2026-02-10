@@ -6,9 +6,9 @@ function setupPWA() {
     const isLocalFile = window.location.protocol === 'file:';
 
     if ('serviceWorker' in navigator && !isLocalFile) {
-        navigator.serviceWorker.register('sw.js?v=60')
+        navigator.serviceWorker.register('sw.js?v=61')
             .then(reg => {
-                console.log('✅ SW v60 registrado:', reg.scope);
+                console.log('✅ SW v61 registrado:', reg.scope);
 
                 // Forzar actualización inmediata si hay un SW esperando
                 if (reg.waiting) {
