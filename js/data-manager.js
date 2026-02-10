@@ -74,9 +74,7 @@ async function loadAppData() {
         }
 
     } catch (e) {
-        console.error("❌ Error de red durante la sincronización:", e);
-        console.error("📋 Detalles del error:", e.message);
-        console.error("📋 Stack trace:", e.stack);
+        console.warn("⚠️ No se pudo conectar con el servidor:", e.message);
 
         // Si hay error pero tenemos caché, usar el caché
         if (appConfig.data && appConfig.data.songs && appConfig.data.songs.length > 0) {
@@ -210,8 +208,9 @@ async function logActivity(action, song = null, extra = "") {
             body: JSON.stringify(logData)
         });
         console.log(`📊 Log enviado: ${action}`);
+        // No mostramos error de CORS porque es esperado con mode: 'no-cors'
     } catch (e) {
-        console.error("Error al enviar Log:", e);
+        // Silenciar errores de red en logs (no críticos)
     }
 }
 
