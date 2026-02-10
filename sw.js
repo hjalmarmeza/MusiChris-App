@@ -1,24 +1,27 @@
-﻿// Service Worker MusiChris - Versión Forzada 2.0
-const CACHE_NAME = 'musichris-v53';
+﻿// Service Worker MusiChris - Versión Forzada 3.0
+const CACHE_NAME = 'musichris-v60';
 const urlsToCache = [
   './',
-  './index.html?v=53',
-  './css/styles.css?v=53',
+  './index.html?v=60',
+  './css/styles.css?v=60',
   './assets/icon-512.png',
-  './js/config.js?v=53',
-  './js/app.js?v=53',
-  './js/player.js?v=53',
-  './js/ui-renderer.js?v=53',
-  './js/data-manager.js?v=53',
-  './js/modals.js?v=53',
-  './js/pwa-manager.js?v=53'
+  './js/config.js?v=60',
+  './js/app.js?v=60',
+  './js/player.js?v=60',
+  './js/ui-renderer.js?v=60',
+  './js/data-manager.js?v=60',
+  './js/modals.js?v=60',
+  './js/pwa-manager.js?v=60'
 ];
 
 // Forzar activación inmediata
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('📦 Cacheando recursos principales v60');
+      return cache.addAll(urlsToCache);
+    })
   );
 });
 
@@ -49,9 +52,7 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       caches.open(CACHE_NAME).then(cache => {
         return cache.match(event.request).then(cachedResponse => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
+          if (cachedResponse) return cachedResponse;
           return fetch(event.request).then(response => {
             if (response && response.status === 200) {
               cache.put(event.request, response.clone());
