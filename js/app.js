@@ -1,14 +1,14 @@
-/* ==========================================================
-   SHIELD PROTOCOL v8.1 - MASTER AUTH
-      ========================================================== */
-const _u_m = 'aGphbG1hcg=='; // hjalmar
-const _p_m = 'MjU4NjMy';     // 258632
 
 
-function checkMasterAuth(u, p) {
-        return btoa(u) === _u_m && btoa(p) === _p_m;
-}
+
+
 // ==========================================================
+
+
+
+
+
+
 
 
 // LÓGICA DE NEGOCIO Y ACCIONES DE LA APP
@@ -16,23 +16,46 @@ function checkMasterAuth(u, p) {
 
 
 
+
+
+
+
+// --- AUTENTICACIÓN ---
+/* ==========================================================
+SHIELD PROTOCOL v8.1 - MASTER AUTH
+========================================================== */
+const _u_m = 'aGphbG1hcg=='; // hjalmar
+const _p_m = 'MjU4NjMy'; // 258632
+
+
+function checkMasterAuth(u, p) {
+    return btoa(u) === _u_m && btoa(p) === _p_m;
+}
+// ==========================================================
+
+
+// LÓGICA DE NEGOCIO Y ACCIONES DE LA APP
+
+
 // --- AUTENTICACIÓN ---
 async function handleLoginAttempt() {
     const email = document.getElementById('loginEmail').value.trim().toLowerCase();
     const pass = document.getElementById('loginPass').value.trim();
-    if (checkMasterAuth(email, pass)) {
     
-        doLogin({ name: atob('SGphbG1hcg=='), email: atob('YWRtaW5AbXVzaWNocmlzLmNvbQ=='), role: atob('YWRtaW4='), avatar: ADMIN_AVATAR });
+    if (checkMasterAuth(email, pass)) {
+        doLogin({ 
+            name: atob('SGphbG1hcg=='), 
+            email: atob('YWRtaW5AbXVzaWNocmlzLmNvbQ=='), 
+            role: atob('YWRtaW4='), 
+            avatar: ADMIN_AVATAR 
+        });
         return;
+    }
 
-
-
-
+    
 
 
     if (!appConfig.data) await loadAppData();
-
-
 
 
     const user = appConfig.data?.users?.find(u => u.email.toLowerCase() === email);
@@ -44,26 +67,19 @@ async function handleLoginAttempt() {
 }
 
 
-
-
-async function doLogin(user) {
-    appConfig.user = user;
-    appConfig.isLoggedIn = true;
-    appConfig.isAdmin = (user.role === atob('YWRtaW4='));
-    localStorage.setItem('appConfig', JSON.stringify({
-        user,
-        isLoggedIn: true,
-        isAdmin: appConfig.isAdmin
-    }));
+    if (!appConfig.data) await loadAppData();
 
 
 
 
-    // Esperamos a que los datos se carguen antes de verificar mantenimiento
-    await loadAppData();
 
 
 
 
-    // 🔧 VERIFICAR MODO MANTENIMIENTO (solo para usuarios regulares)
+
+
+
+
+
+
 
