@@ -106,7 +106,7 @@ function handleLoginAttempt() {
 }
 
 function showView(id) {
-    console.log(`🎬 Mostrando vista: ${id}`);
+    console.log(`🎬 Vista solicitada: ${id}`);
     document.querySelectorAll('.view-section').forEach(v => {
         v.style.display = 'none';
         v.style.opacity = '0';
@@ -114,18 +114,14 @@ function showView(id) {
     });
     const target = document.getElementById(id);
     if (target) {
+        // Forzado inmediato de visibilidad y opacidad
         target.style.display = (id === 'view-login' || id === 'view-maintenance') ? 'flex' : 'block';
-        // Forzado de opacidad inmediato para evitar pantalla negra
         target.style.opacity = '1';
         target.classList.add('active');
         window.scrollTo(0, 0);
-    }
-});
-    const target = document.getElementById(id);
-    if (target) {
-        target.style.display = (id === 'view-login' || id === 'view-maintenance') ? 'flex' : 'block';
-        setTimeout(() => target.classList.add('active'), 50);
-        window.scrollTo(0, 0);
+        console.log(`✅ Vista activa: ${id}`);
+    } else {
+        console.error(`❌ Error: No se encontró la vista ${id}`);
     }
 }
 
@@ -134,7 +130,6 @@ function app_logout() {
     appConfig.isLoggedIn = false;
     appConfig.isAdmin = false;
     localStorage.removeItem('musichris_user');
-    console.log("💎 Fix v62.7: Forzando visibilidad inicial...");
     showView('view-login');
     showToast("Sesión cerrada");
 }
