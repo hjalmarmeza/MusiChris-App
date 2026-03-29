@@ -106,12 +106,17 @@ function handleLoginAttempt() {
 }
 
 function showView(id) {
-    document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+    document.querySelectorAll('.view-section').forEach(v => {
+        v.style.display = 'none';
+        v.classList.remove('active');
+    });
     const target = document.getElementById(id);
     if (target) {
-        target.classList.remove('hidden');
-        window.scrollTo(0,0);
+        target.style.display = (id === 'view-login' || id === 'view-maintenance') ? 'flex' : 'block';
+        setTimeout(() => target.classList.add('active'), 50);
+        window.scrollTo(0, 0);
     }
+}
 }
 
 function app_logout() {
