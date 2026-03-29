@@ -14,17 +14,22 @@ function updateUI(songListOverride = null) {
 
     console.log(`📊 Actualizando UI - Canciones: ${(appConfig.data.songs || []).length}, Usuarios: ${(appConfig.data.users || []).length}`);
 
+        // Actualización de KPIs Circular Innovative
     if (document.getElementById('statsTotalSongs')) {
         document.getElementById('statsTotalSongs').textContent = (appConfig.data.songs || []).length;
     }
     if (document.getElementById('statsTotalUsers')) {
         document.getElementById('statsTotalUsers').textContent = (appConfig.data.users || []).length;
     }
-
-    const songs = appConfig.currentFilter || appConfig.data.songs || [];
-    renderSongList(appConfig.isAdmin ? 'adminSongList' : 'userSongList', songs);
-    renderAlbumGrid(appConfig.isAdmin ? 'adminAlbumGrid' : 'userAlbumGrid', appConfig.data.albums);
-    renderSmartPlaylists(appConfig.isAdmin ? 'adminPlaylistGrid' : 'userPlaylistGrid');
+    if (document.getElementById('statsCloudinaryUsage')) {
+        document.getElementById('statsCloudinaryUsage').textContent = appConfig.cloudinaryUsage || '0%';
+    }
+    if (document.getElementById('statsCloudStatus')) {
+        const status = (appConfig.data && appConfig.data.songs) ? 'OK' : 'ERR';
+        document.getElementById('statsCloudStatus').textContent = status;
+        const dot = document.querySelector('.kpi-status-dot');
+        if (dot) dot.style.background = status === 'OK' ? '#22c55e' : '#ef4444';
+    }
 
     if (appConfig.isAdmin) {
         renderUserList('usersListGrid', appConfig.data.users);
@@ -51,6 +56,16 @@ function renderSongList(id, songs) {
     if (!c) return;
     c.innerHTML = '';
 
+        if (songs.length === 0) {
+        c.innerHTML = `
+            <div class="col-span-full py-20 text-center opacity-30 select-none">
+                <span class="material-symbols-outlined text-6xl mb-4">music_off</span>
+                <p class="text-sm font-medium uppercase tracking-[3px]">Biblioteca vacia o sincronizando...</p>
+                <p class="text-[10px] mt-2 opacity-50 italic">Verifica tu Bin ID en config.js si el error persiste</p>
+            </div>
+        `;
+        return;
+    }
     songs.forEach((s) => {
         const div = document.createElement('div');
         const art = getSongArtForList(s);
