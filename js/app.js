@@ -106,10 +106,21 @@ function handleLoginAttempt() {
 }
 
 function showView(id) {
+    console.log(`🎬 Mostrando vista: ${id}`);
     document.querySelectorAll('.view-section').forEach(v => {
         v.style.display = 'none';
+        v.style.opacity = '0';
         v.classList.remove('active');
     });
+    const target = document.getElementById(id);
+    if (target) {
+        target.style.display = (id === 'view-login' || id === 'view-maintenance') ? 'flex' : 'block';
+        // Forzado de opacidad inmediato para evitar pantalla negra
+        target.style.opacity = '1';
+        target.classList.add('active');
+        window.scrollTo(0, 0);
+    }
+});
     const target = document.getElementById(id);
     if (target) {
         target.style.display = (id === 'view-login' || id === 'view-maintenance') ? 'flex' : 'block';
@@ -135,36 +146,45 @@ function app_logout() {
 // INICIALIZACIÓN DE LA APP (SKILL FLOW v8.3)
 // ==========================================================
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("🚀 MusiChris v62.6 Rescue Init...");
+    
+    // Fallback de seguridad: Si en 3s nada carga, forzar Login
+    const fallbackTimer = setTimeout(() => {
+        if (!appConfig.isLoggedIn) {
+            console.warn("⚠️ Carga lenta detectada, forzando Login...");
+            showView('view-login');
+        }
+    }, 3000);
+
     // 1. Cargar datos (Nube + Caché)
     if (typeof loadAppData === 'function') {
-        loadAppData();
+        loadAppData().catch(e => console.error("Error cargando datos:", e));
     }
     
     // 2. Configurar PWA
-    if (typeof setupPWA === 'function') {
-        setupPWA();
-    }
+    if (typeof setupPWA === 'function') setupPWA();
     
-    // 3. Verificar si hay sesión guardada
+    // 3. Restauración de Sesión con protección
     const savedUser = localStorage.getItem('musichris_user');
     if (savedUser) {
         try {
             const user = JSON.parse(savedUser);
-            appConfig.user = user;
-            appConfig.isLoggedIn = true;
-            
-            // Re-validar si es Admin basado en nombre o campos previos
-            const isMaster = (btoa(user.name.toLowerCase()) === _u_m || user.email === 'admin@musichris.com');
-            appConfig.isAdmin = isMaster;
-            
-            console.log(`👤 Sesión restaurada: ${user.name} (${isMaster ? 'ADMIN' : 'USER'})`);
-            showView(isMaster ? 'view-admin' : 'view-user');
+            // Validar estructura básica del usuario guardado
+            if (user && user.name) {
+                appConfig.user = user;
+                appConfig.isLoggedIn = true;
+                const isMaster = (btoa(user.name.toLowerCase()) === _u_m);
+                appConfig.isAdmin = isMaster;
+                clearTimeout(fallbackTimer);
+                showView(isMaster ? 'view-admin' : 'view-user');
+                return;
+            }
         } catch (e) {
-            console.error("❌ Error al restaurar sesión:", e);
             localStorage.removeItem('musichris_user');
-            showView('view-login');
         }
-    } else {
-        showView('view-login');
     }
+    
+    // Por defecto, ir al Login
+    clearTimeout(fallbackTimer);
+    showView('view-login');
 });
