@@ -44,3 +44,7 @@ let appConfig = {
                     weeklyData: []
         }
 };
+// Utilidades Globales
+const norm = (str) => (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isAndroid = /Android/.test(navigator.userAgent);
