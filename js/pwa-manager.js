@@ -1,3 +1,5 @@
+const isAndroid = /Android/.test(navigator.userAgent);
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 // MANEJADOR DE PWA Y MEDIA SESSION (PANTALLA BLOQUEADA)
 
 function setupPWA() {
