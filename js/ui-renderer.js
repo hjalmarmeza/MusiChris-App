@@ -35,7 +35,14 @@ function updateUI(songListOverride = null) {
         renderUserList('usersListGrid', appConfig.data.users);
         renderStatsOverview();
         updateCloudinaryUsage();
-        updateMaintenanceUI(); // Actualizar estado del toggle de mantenimiento
+        updateMaintenanceUI(); 
+
+        // RENDERIZADO AUTOMÁTICO DE BIBLIOTECA - v65.5
+        const songs = appConfig.data.songs || [];
+        const albums = appConfig.data.albums || [];
+        renderSongList('adminSongList', songs);
+        renderAlbumGrid('adminAlbumGrid', albums);
+        
     } else {
         checkUserNotifications();
     }
