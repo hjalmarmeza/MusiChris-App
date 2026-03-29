@@ -55,7 +55,7 @@ function showView(id) {
  */
 function switchTab(tabId, btn) {
     // 1. Ocultar todos los contenidos de pestañas
-    document.querySelectorAll('.list-tab-content').forEach(tab => {
+    document.querySelectorAll('.list-tab-content, .user-view-tab').forEach(tab => {
         tab.classList.remove('active');
         tab.style.display = 'none';
     });
@@ -67,7 +67,14 @@ function switchTab(tabId, btn) {
         target.style.display = 'block';
     }
 
-    // 3. Actualizar estilos de los botones del NavBar
+    // 3. Limpiar filtros si volvemos a "Inicio" o "Cualquier Pestaña Principal"
+    if (tabId === 'admin-music' || tabId === 'view-user') {
+        appConfig.currentFilter = null;
+        appConfig.tempPlaylist = null;
+        updateUI();
+    }
+
+    // 4. Actualizar estilos de los botones del NavBar
     if (btn && btn.parentNode) {
         btn.parentNode.querySelectorAll('button').forEach(b => {
             b.classList.remove('text-primary');
@@ -75,19 +82,10 @@ function switchTab(tabId, btn) {
             const icon = b.querySelector('.material-symbols-outlined');
             if (icon) icon.classList.remove('fill-1');
         });
-        btn.classList.remove('text-white/40');
+        btn.classList.toggle('text-white/40', false);
         btn.classList.add('text-primary');
         const activeIcon = btn.querySelector('.material-symbols-outlined');
         if (activeIcon) activeIcon.classList.add('fill-1');
-    }
-
-    // 4. Forzar re-renderizado si es necesario
-    if (tabId === 'admin-music') {
-        const songs = (appConfig.data && appConfig.data.songs) ? appConfig.data.songs : [];
-        renderSongList('adminSongList', songs);
-        renderAlbumGrid('adminAlbumGrid', appConfig.data.albums || []);
-    } else if (tabId === 'admin-users') {
-        renderUserList();
     }
 }
 

@@ -45,6 +45,8 @@ function updateUI(songListOverride = null) {
             renderSongList('userSongList', songs);
             renderAlbumGrid('adminAlbumGrid', albums);
             renderAlbumGrid('userAlbumGrid', albums);
+            renderSmartPlaylists('userPlaylistGrid');
+            renderSmartPlaylists('adminPlaylistGrid');
             if (typeof rebindAppEvents === 'function') rebindAppEvents();
         } else {
             console.warn("⏳ Contenedores no encontrados. Reintentando en 500ms...");
@@ -67,7 +69,12 @@ function updateUI(songListOverride = null) {
         if (document.getElementById('adminAvatar')) document.getElementById('adminAvatar').src = avatar;
         if (document.getElementById('userAvatarImg')) document.getElementById('userAvatarImg').src = avatar;
         if (document.getElementById('adminNameDisplay')) document.getElementById('adminNameDisplay').textContent = appConfig.user.name;
-        if (document.getElementById('userGreeting')) document.getElementById('userGreeting').textContent = `Hola ${appConfig.user.name}`;
+        
+        // Saludo dinámico para ambos modos
+        const welcomeText = (appConfig.isAdmin) ? `Hola ${appConfig.user.name}` : `Hola ${appConfig.user.name.split(' ')[0]}`;
+        if (document.getElementById('userGreeting')) {
+             document.getElementById('userGreeting').textContent = welcomeText;
+        }
     }
 
     updatePlayingIndicators();

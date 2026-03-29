@@ -86,13 +86,13 @@ function editSong(e, id) {
     openModal('dom_modal_upload');
 }
 
-// GESTIÓN DE ÁLBUMES
 function createAlbum() {
     document.getElementById('modalAlbumTitle').textContent = "Nuevo Álbum";
-    document.getElementById('albName').value = "";
-    document.getElementById('albCover').value = "";
+    document.getElementById('albumName').value = "";
+    document.getElementById('albumArtist').value = "";
+    document.getElementById('albumCover').value = "";
     appConfig.editingAlbumIndex = null;
-    openModal('dom_modal_album');
+    openModal('dom_modal_create_album');
 }
 
 function editAlbum(e, index) {
@@ -102,9 +102,37 @@ function editAlbum(e, index) {
 
     appConfig.editingAlbumIndex = index;
     document.getElementById('modalAlbumTitle').textContent = "Editar Álbum";
-    document.getElementById('albName').value = alb.name || alb.title;
-    document.getElementById('albCover').value = alb.cover || alb.coverUrl;
-    openModal('dom_modal_album');
+    document.getElementById('albumName').value = alb.name || alb.title;
+    document.getElementById('albumArtist').value = alb.artist || "Hjalmar";
+    document.getElementById('albumCover').value = alb.cover || alb.coverUrl;
+    openModal('dom_modal_create_album');
+}
+
+async function do_create_album() {
+    const name = document.getElementById('albumName').value.trim();
+    const artist = document.getElementById('albumArtist').value.trim();
+    const cover = document.getElementById('albumCover').value.trim();
+
+    if (!name) return showToast("El nombre es obligatorio", 'error');
+
+    const newAlbum = {
+        name: name,
+        artist: artist || "Hjalmar",
+        cover: cover || DEFAULT_COVER,
+        id: Date.now()
+    };
+
+    if (appConfig.editingAlbumIndex !== null) {
+        appConfig.data.albums[appConfig.editingAlbumIndex] = newAlbum;
+    } else {
+        if (!appConfig.data.albums) appConfig.data.albums = [];
+        appConfig.data.albums.push(newAlbum);
+    }
+
+    await saveData();
+    updateUI();
+    closeModal('dom_modal_create_album');
+    showToast("Álbum guardado con éxito");
 }
 
 async function deleteAlbum(e, index) {
