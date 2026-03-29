@@ -4,7 +4,7 @@
 
 // Ofuscacion de API Key y Bin ID (Doble Blindaje)
 const _K_ = 'JDJhJDEwJE1FN2ZPOE9xcTJpV2hIa1lRS0dRc3UwTTZQcUo4ZDF5bUZCeEhWaGh4Rko3MEJjQWcxRlpl'; 
-const _B_ = 'NjVkMWE0OGYyNjRjYmViZTlhNDdiYTM0';
+const _B_ = 'NjkzNDlhNzZhZTU5NmU3MDhmODgwZTMx';
 
 const API_BASE_URL = "https://api.jsonbin.io/v3/b/";
 const PERMANENT_BIN_ID = atob(_B_);
