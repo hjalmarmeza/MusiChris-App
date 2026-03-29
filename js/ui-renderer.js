@@ -212,6 +212,44 @@ function renderAlbumGrid(id, albums) {
     });
 }
 
+/**
+ * Filtra la biblioteca por álbum y hace scroll a la lista
+ */
+function openAlbum(index) {
+    const album = appConfig.data.albums[index];
+    if (!album) return;
+
+    const albumName = album.name || album.title;
+    const filtered = appConfig.data.songs.filter(s => norm(s.album) === norm(albumName));
+
+    if (filtered.length === 0) {
+        return showToast(`No hay canciones en "${albumName}"`, 'info');
+    }
+
+    appConfig.tempPlaylist = filtered;
+    updateUI(filtered);
+
+    // Desplazamiento automático para ver los resultados
+    const target = document.getElementById('userSongList') || document.getElementById('adminSongList');
+    if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    showToast(`Álbum: ${albumName}`, 'info');
+}
+
+function updateLikeIcon() {
+    const btn = document.getElementById('pLike');
+    const song = appConfig.currentSong;
+    if (!btn || !song || !appConfig.user) return;
+
+    const email = appConfig.user.email.toLowerCase();
+    const isLiked = song.likes && song.likes.some(e => e.toLowerCase() === email);
+
+    btn.style.color = isLiked ? '#ff4d4d' : 'white';
+    btn.innerHTML = isLiked ? 'favorite' : 'favorite_border';
+}
+
 function renderSmartPlaylists(id) {
     const c = document.getElementById(id);
     if (!c) return;

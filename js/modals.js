@@ -85,3 +85,33 @@ function editSong(e, id) {
     }
     openModal('dom_modal_upload');
 }
+
+// GESTIÓN DE ÁLBUMES
+function createAlbum() {
+    document.getElementById('modalAlbumTitle').textContent = "Nuevo Álbum";
+    document.getElementById('albName').value = "";
+    document.getElementById('albCover').value = "";
+    appConfig.editingAlbumIndex = null;
+    openModal('dom_modal_album');
+}
+
+function editAlbum(e, index) {
+    if (e) e.stopPropagation();
+    const alb = appConfig.data.albums[index];
+    if (!alb) return;
+
+    appConfig.editingAlbumIndex = index;
+    document.getElementById('modalAlbumTitle').textContent = "Editar Álbum";
+    document.getElementById('albName').value = alb.name || alb.title;
+    document.getElementById('albCover').value = alb.cover || alb.coverUrl;
+    openModal('dom_modal_album');
+}
+
+async function deleteAlbum(e, index) {
+    if (e) e.stopPropagation();
+    if (!confirm('¿Seguro que quieres borrar este álbum? Las canciones no se borrarán pero quedarán "Sin Álbum".')) return;
+
+    appConfig.data.albums.splice(index, 1);
+    await saveData();
+    updateUI();
+}
