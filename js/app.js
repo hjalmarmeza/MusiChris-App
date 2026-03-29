@@ -15,6 +15,7 @@ function handleLoginAttempt() {
         return;
     }
 
+    // 1. Acceso Administrador (hjalmar + pass_m)
     if (checkMasterAuth(userOrEmail, pass)) {
         const user = { name: "Master Chris", email: "admin@musichris.com" };
         appConfig.user = user;
@@ -22,9 +23,27 @@ function handleLoginAttempt() {
         appConfig.isAdmin = true;
         localStorage.setItem('musichris_user', JSON.stringify(user));
         showView('view-admin');
-        updateUI(); // Forzar renderizado al entrar
-        logActivity('LOGIN');
+        updateUI();
+        logActivity('LOGIN (ADMIN)');
         showToast("Hola Master Chris");
+        return;
+    }
+
+    // 2. Acceso Usuarios Comunes (cualquiera + 1234)
+    if (pass === '1234') {
+        const nameClean = userOrEmail.split('@')[0];
+        const user = { 
+            name: nameClean, 
+            email: userOrEmail.includes('@') ? userOrEmail : `${nameClean}@musichris.com` 
+        };
+        appConfig.user = user;
+        appConfig.isLoggedIn = true;
+        appConfig.isAdmin = false;
+        localStorage.setItem('musichris_user', JSON.stringify(user));
+        showView('view-user');
+        updateUI();
+        logActivity('LOGIN (USER)', null, userOrEmail);
+        showToast(`Bienvenido ${nameClean}`);
     } else {
         showToast("Credenciales incorrectas", "error");
     }
