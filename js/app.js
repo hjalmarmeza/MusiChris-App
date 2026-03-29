@@ -6,6 +6,8 @@
 
 
 
+
+
 // ==========================================================
 
 
@@ -124,3 +126,41 @@ function app_logout() {
 
 
 
+
+// ==========================================================
+// INICIALIZACIÓN DE LA APP (SKILL FLOW v8.3)
+// ==========================================================
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Cargar datos (Nube + Caché)
+    if (typeof loadAppData === 'function') {
+        loadAppData();
+    }
+    
+    // 2. Configurar PWA
+    if (typeof setupPWA === 'function') {
+        setupPWA();
+    }
+    
+    // 3. Verificar si hay sesión guardada
+    const savedUser = localStorage.getItem('musichris_user');
+    if (savedUser) {
+        try {
+            const user = JSON.parse(savedUser);
+            appConfig.user = user;
+            appConfig.isLoggedIn = true;
+            
+            // Re-validar si es Admin basado en nombre o campos previos
+            const isMaster = (btoa(user.name.toLowerCase()) === _u_m || user.email === 'admin@musichris.com');
+            appConfig.isAdmin = isMaster;
+            
+            console.log(`👤 Sesión restaurada: ${user.name} (${isMaster ? 'ADMIN' : 'USER'})`);
+            showView(isMaster ? 'view-admin' : 'view-user');
+        } catch (e) {
+            console.error("❌ Error al restaurar sesión:", e);
+            localStorage.removeItem('musichris_user');
+            showView('view-login');
+        }
+    } else {
+        showView('view-login');
+    }
+});
