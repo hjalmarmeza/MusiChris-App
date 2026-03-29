@@ -1,9 +1,9 @@
-/* MusiChris App v63 - Final Stability */
+/* MusiChris App v65.3 - Full Functional Restoration */
 const _u_m = 'aGphbG1hcg=='; // hjalmar
 const _p_m = 'MjU4NjMy'; // 258632
 
 function checkMasterAuth(u, p) {
-    return btoa(u) === _u_m && btoa(p) === _p_m;
+    return btoa(u.toLowerCase()) === _u_m && btoa(p) === _p_m;
 }
 
 function handleLoginAttempt() {
@@ -22,6 +22,7 @@ function handleLoginAttempt() {
         appConfig.isAdmin = true;
         localStorage.setItem('musichris_user', JSON.stringify(user));
         showView('view-admin');
+        updateUI(); // Forzar renderizado al entrar
         logActivity('LOGIN');
         showToast("Hola Master Chris");
     } else {
@@ -38,11 +39,55 @@ function showView(id) {
 
     const target = document.getElementById(id);
     if (target) {
-        const displayType = (id === 'view-login' || id === 'view-maintenance' || id === 'view-admin') ? 'flex' : 'block';
+        // Importante: view-admin debe ser "block" para permitir el scroll natural del contenido
+        const displayType = (id === 'view-login' || id === 'view-maintenance') ? 'flex' : 'block';
         target.style.setProperty('display', displayType, 'important');
-        target.style.opacity = '1';
-        target.classList.add('active');
+        setTimeout(() => {
+            target.style.opacity = '1';
+            target.classList.add('active');
+        }, 50);
         window.scrollTo(0, 0);
+    }
+}
+
+/**
+ * Sistema de Navegación de Pestañas Administrador
+ */
+function switchTab(tabId, btn) {
+    // 1. Ocultar todos los contenidos de pestañas
+    document.querySelectorAll('.list-tab-content').forEach(tab => {
+        tab.classList.remove('active');
+        tab.style.display = 'none';
+    });
+
+    // 2. Mostrar la pestaña seleccionada
+    const target = document.getElementById(tabId);
+    if (target) {
+        target.classList.add('active');
+        target.style.display = 'block';
+    }
+
+    // 3. Actualizar estilos de los botones del NavBar
+    if (btn && btn.parentNode) {
+        btn.parentNode.querySelectorAll('button').forEach(b => {
+            b.classList.remove('text-primary');
+            b.classList.add('text-white/40');
+            const icon = b.querySelector('.material-symbols-outlined');
+            if (icon) icon.classList.remove('fill-1');
+        });
+        btn.classList.remove('text-white/40');
+        btn.classList.add('text-primary');
+        const activeIcon = btn.querySelector('.material-symbols-outlined');
+        if (activeIcon) activeIcon.classList.add('fill-1');
+    }
+
+    // 4. Forzar re-renderizado si es necesario
+    if (tabId === 'admin-music') {
+        const songs = appData.songs || [];
+        renderSongList('adminSongList', songs);
+        renderAlbumGrid('adminAlbumGrid', appData.albums || []);
+    } else if (tabId === 'admin-users') {
+        renderUserList();
     }
 }
 
@@ -69,6 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isMaster = (btoa(user.name.toLowerCase()) === _u_m);
                 appConfig.isAdmin = isMaster;
                 showView(isMaster ? 'view-admin' : 'view-user');
+                // Si es admin, forzar carga de la primera pestaña
+                if (isMaster) {
+                    setTimeout(() => {
+                        const firstBtn = document.querySelector('#adminNavBar button');
+                        if (firstBtn) switchTab('admin-music', firstBtn);
+                    }, 500);
+                }
                 return;
             }
         } catch (e) {
