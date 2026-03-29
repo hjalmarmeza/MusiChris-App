@@ -31,15 +31,27 @@ function updateUI(songListOverride = null) {
         if (dot) dot.style.background = status === 'OK' ? '#22c55e' : '#ef4444';
     }
 
-    // RENDERIZADO UNIVERSAL DE BIBLIOTECA - v65.8 (Soluciona pantalla vacía)
+    // RENDERIZADO UNIVERSAL DE BIBLIOTECA - v66.0 (Esperador de DOM)
     const songs = appConfig.data.songs || [];
     const albums = appConfig.data.albums || [];
     
-    // Dibujar en ambos contenedores para asegurar visibilidad si el PWA se confunde de vista
-    renderSongList('adminSongList', songs);
-    renderSongList('userSongList', songs);
-    renderAlbumGrid('adminAlbumGrid', albums);
-    renderAlbumGrid('userAlbumGrid', albums);
+    const attemptRender = () => {
+        const adminContainer = document.getElementById('adminSongList');
+        const userContainer = document.getElementById('userSongList');
+        
+        if (adminContainer || userContainer) {
+            console.log("🎨 Contenedores listos. Dibujando 111 canciones...");
+            renderSongList('adminSongList', songs);
+            renderSongList('userSongList', songs);
+            renderAlbumGrid('adminAlbumGrid', albums);
+            renderAlbumGrid('userAlbumGrid', albums);
+        } else {
+            console.warn("⏳ Contenedores no encontrados. Reintentando en 500ms...");
+            setTimeout(attemptRender, 500);
+        }
+    };
+
+    attemptRender();
 
     if (appConfig.isAdmin) {
         renderUserList('usersListGrid', appConfig.data.users);
