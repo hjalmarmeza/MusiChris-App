@@ -107,6 +107,29 @@ function handleLoginAttempt() {
 
 function showView(id) {
     console.log(`🎬 Vista solicitada: ${id}`);
+    
+    // Ocultar absolutamente todo con fuerza extrema
+    document.querySelectorAll('.view-section, #view-login, #view-maintenance, #view-admin, #view-user').forEach(v => {
+        v.style.setProperty('display', 'none', 'important');
+        v.style.opacity = '0';
+        v.classList.remove('active');
+    });
+
+    const target = document.getElementById(id);
+    if (target) {
+        // Mostrar la vista objetivo con flex o block según sea necesario
+        const displayType = (id === 'view-login' || id === 'view-maintenance' || id === 'view-admin') ? 'flex' : 'block';
+        target.style.setProperty('display', displayType, 'important');
+        
+        // Forzado de opacidad inmediato
+        target.style.opacity = '1';
+        target.classList.add('active');
+        window.scrollTo(0, 0);
+        console.log(`✅ Vista activa y forzada: ${id}`);
+    } else {
+        console.error(`❌ Error Crítico: No se encontró el ID ${id} en el DOM`);
+    }
+}`);
     document.querySelectorAll('.view-section').forEach(v => {
         v.style.display = 'none';
         v.style.opacity = '0';
