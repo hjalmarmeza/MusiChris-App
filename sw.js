@@ -1,5 +1,5 @@
-// Service Worker MusiChris - Versión Forzada v66.5.2
-const CACHE_NAME = 'musichris-v66-5-2';
+// Service Worker MusiChris - Versión Forzada v66.6
+const CACHE_NAME = 'musichris-v66-6';
 const urlsToCache = [
   './',
   './index.html',
@@ -18,7 +18,7 @@ self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('📦 Cacheando recursos principales v66.5.2');
+      console.log('📦 Cacheando recursos principales v66.6');
       return cache.addAll(urlsToCache);
     })
   );
@@ -74,7 +74,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Scripts/Estilos/HTML: Network First
+  // Scripts/Estilos/HTML: Network First con cache update
   if (url.origin === location.origin && (url.pathname.endsWith('.html') || url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.pathname === '/')) {
     event.respondWith(
       fetch(event.request)
