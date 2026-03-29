@@ -117,7 +117,6 @@ function showView(id) {
         window.scrollTo(0, 0);
     }
 }
-}
 
 function app_logout() {
     appConfig.user = null;
