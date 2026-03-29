@@ -134,6 +134,7 @@ function app_logout() {
     appConfig.isLoggedIn = false;
     appConfig.isAdmin = false;
     localStorage.removeItem('musichris_user');
+    console.log("💎 Fix v62.7: Forzando visibilidad inicial...");
     showView('view-login');
     showToast("Sesión cerrada");
 }
@@ -152,7 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const fallbackTimer = setTimeout(() => {
         if (!appConfig.isLoggedIn) {
             console.warn("⚠️ Carga lenta detectada, forzando Login...");
-            showView('view-login');
+            console.log("💎 Fix v62.7: Forzando visibilidad inicial...");
+    showView('view-login');
         }
     }, 3000);
 
@@ -186,5 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Por defecto, ir al Login
     clearTimeout(fallbackTimer);
+    console.log("💎 Fix v62.7: Forzando visibilidad inicial...");
     showView('view-login');
 });
