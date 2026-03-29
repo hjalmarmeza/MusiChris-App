@@ -31,17 +31,20 @@ function updateUI(songListOverride = null) {
         if (dot) dot.style.background = status === 'OK' ? '#22c55e' : '#ef4444';
     }
 
+    // RENDERIZADO UNIVERSAL DE BIBLIOTECA - v65.8 (Soluciona pantalla vacía)
+    const songs = appConfig.data.songs || [];
+    const albums = appConfig.data.albums || [];
+    
+    // Dibujar en ambos contenedores para asegurar visibilidad si el PWA se confunde de vista
+    renderSongList('adminSongList', songs);
+    renderSongList('userSongList', songs);
+    renderAlbumGrid('adminAlbumGrid', albums);
+    renderAlbumGrid('userAlbumGrid', albums);
+
     if (appConfig.isAdmin) {
         renderUserList('usersListGrid', appConfig.data.users);
         renderStatsOverview();
         updateCloudinaryUsage();
-        
-        // RENDERIZADO AUTOMÁTICO DE BIBLIOTECA - v65.6
-        const songs = appConfig.data.songs || [];
-        const albums = appConfig.data.albums || [];
-        renderSongList('adminSongList', songs);
-        renderAlbumGrid('adminAlbumGrid', albums);
-        
     } else {
         checkUserNotifications();
     }
