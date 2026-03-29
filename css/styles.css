@@ -12,11 +12,22 @@
     --dashed-border: #F79F1F;
 }
 
+/* View Sections with depth */
+.view-section {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.view-section[style*="display: block"] {
+    z-index: 50 !important;
+}
+
 .compact-song-list {
-    max-height: 480px !important;
+    max-height: calc(100vh - 350px) !important;
     overflow-y: auto !important;
-    padding-right: 8px;
-    padding-bottom: 120px !important;
+    padding-bottom: 20px;
 }
 
 .compact-song-list::-webkit-scrollbar {
@@ -454,6 +465,15 @@ input[type="file"] {
 .login-input:focus {
     border-color: var(--accent);
     box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* Fix Admin Module depth */
+#view-admin-dashboard {
+    background: var(--primary) !important;
+}
+
+.view-section {
+    background: var(--primary);
 }
 
 .btn-login {
