@@ -65,7 +65,7 @@ function openUpload() {
 }
 
 function editSong(e, id) {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     const song = appConfig.data.songs.find(s => s.id === id);
     if (!song) return;
 
@@ -84,6 +84,43 @@ function editSong(e, id) {
         });
     }
     openModal('dom_modal_upload');
+}
+
+async function do_upload() {
+    const title = document.getElementById('upTitle').value.trim();
+    const genre = document.getElementById('upGenre').value.trim();
+    const album = document.getElementById('upAlbum').value;
+    const url = document.getElementById('upUrl').value.trim();
+
+    if (!title || !url) return showToast("Título y URL son obligatorios", 'error');
+
+    const songData = {
+        id: appConfig.editingSongId || Date.now(),
+        title: title,
+        genre: genre || "Varios",
+        album: album || "",
+        url: url,
+        plays: 0,
+        likes: [],
+        addedDate: Date.now()
+    };
+
+    if (appConfig.editingSongId) {
+        const idx = appConfig.data.songs.findIndex(s => s.id === appConfig.editingSongId);
+        if (idx !== -1) {
+            // Mantener plays y likes si editamos
+            songData.plays = appConfig.data.songs[idx].plays || 0;
+            songData.likes = appConfig.data.songs[idx].likes || [];
+            appConfig.data.songs[idx] = songData;
+        }
+    } else {
+        appConfig.data.songs.push(songData);
+    }
+
+    await saveData();
+    updateUI();
+    closeModal('dom_modal_upload');
+    showToast(appConfig.editingSongId ? "Canción actualizada" : "Canción subida con éxito");
 }
 
 function createAlbum() {

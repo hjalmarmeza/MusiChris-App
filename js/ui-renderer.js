@@ -233,16 +233,44 @@ function openAlbum(index) {
         return showToast(`No hay canciones en "${albumName}"`, 'info');
     }
 
-    appConfig.tempPlaylist = filtered;
-    updateUI(filtered);
+    // Poblar modal de detalle del álbum
+    const modalCover = document.getElementById('modalAlbumCover');
+    const modalName = document.getElementById('modalAlbumName');
+    const modalArtist = document.getElementById('modalAlbumArtist');
+    const songList = document.getElementById('modalAlbumSongsList');
 
-    // Desplazamiento automático para ver los resultados
-    const target = document.getElementById('userSongList') || document.getElementById('adminSongList');
-    if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (modalCover) modalCover.src = getArtForAlbum(album);
+    if (modalName) modalName.textContent = albumName;
+    if (modalArtist) modalArtist.textContent = album.artist || "Hjalmar";
+
+    if (songList) {
+        songList.innerHTML = filtered.map(s => `
+            <div class="flex items-center gap-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer group" onclick="playSongId(${s.id})">
+                <div class="size-12 rounded-lg overflow-hidden shrink-0">
+                    <img src="${getSongArtForList(s)}" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold text-sm truncate text-white">${s.title}</p>
+                    <p class="text-[10px] text-white/50 truncate">${s.genre || "Varios"}</p>
+                </div>
+                <button class="size-10 bg-white/10 rounded-full flex items-center justify-center text-white/40 group-hover:text-white transition-all">
+                    <span class="material-symbols-outlined text-[20px]">play_arrow</span>
+                </button>
+            </div>
+        `).join('');
     }
-    
-    showToast(`Álbum: ${albumName}`, 'info');
+
+    // Configurar botón "Reproducir Todo"
+    const btnPlayAll = document.getElementById('btnPlayAllAlbum');
+    if (btnPlayAll) {
+        btnPlayAll.onclick = () => {
+            appConfig.tempPlaylist = filtered;
+            playSong(filtered[0]);
+            closeModal('dom_modal_album_detail');
+        };
+    }
+
+    openModal('dom_modal_album_detail');
 }
 
 function updateLikeIcon() {
