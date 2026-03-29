@@ -1,5 +1,5 @@
-// Service Worker MusiChris - Versión Forzada v66.6
-const CACHE_NAME = 'musichris-v66-6';
+// Service Worker MusiChris - Versión Forzada v66.6.2
+const CACHE_NAME = 'musichris-v66-6-2';
 const urlsToCache = [
   './',
   './index.html',

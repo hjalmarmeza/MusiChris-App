@@ -349,3 +349,54 @@ function adjustTitleSize() {
 window.addEventListener('resize', () => {
     requestAnimationFrame(adjustTitleSize);
 });
+
+
+/**
+ * LÓGICA DE FAVORITOS (LIKE)
+ */
+async function toggleLike() {
+    const song = appConfig.currentSong;
+    if (!song) return;
+
+    if (!appConfig.user) {
+        showToast("Inicia sesión para guardar favoritos", "info");
+        return;
+    }
+
+    const email = appConfig.user.email.toLowerCase();
+    
+    // Buscar la canción original en los datos persistentes
+    const songInMemory = appConfig.data.songs.find(s => s.id === song.id);
+    if (!songInMemory) return;
+
+    if (!songInMemory.likes) songInMemory.likes = [];
+    
+    const idx = songInMemory.likes.findIndex(e => e.toLowerCase() === email);
+    
+    if (idx !== -1) {
+        // Quitar de favoritos
+        songInMemory.likes.splice(idx, 1);
+        showToast("Eliminado de tus favoritos");
+        logActivity('UNLIKE', songInMemory);
+    } else {
+        // Agregar a favoritos
+        songInMemory.likes.push(email);
+        showToast("Agregado a tus favoritos ❤️");
+        logActivity('LIKE', songInMemory);
+    }
+
+    // Actualizar objeto en uso (por si acaso)
+    song.likes = songInMemory.likes;
+
+    // Guardar y Actualizar UI
+    await saveData(true); // Guardar silencioso
+    updateLikeIcon();
+    
+    // Si estamos viendo la lista de favoritos, refrescarla
+    if (appConfig.tempPlaylist && appConfig.tempPlaylist.length > 0 && 
+        appConfig.tempPlaylist.some(s => s.likes && s.likes.includes(email))) {
+        // No forzamos actualización total para no interrumpir reproducción, 
+        // pero updateUI lo hace suave.
+        // updateUI(); 
+    }
+}

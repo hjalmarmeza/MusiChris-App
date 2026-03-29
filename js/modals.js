@@ -180,3 +180,128 @@ async function deleteAlbum(e, index) {
     await saveData();
     updateUI();
 }
+
+/**
+ * GESTIÓN DE USUARIOS
+ */
+function do_create_user_modal() {
+    const name = prompt("Nombre del nuevo usuario:");
+    if (!name) return;
+    const email = prompt("Email del nuevo usuario:");
+    if (!email || !email.includes('@')) return showToast("Email inválido", "error");
+
+    if (appConfig.data.users && appConfig.data.users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+        return showToast("El usuario ya existe", "error");
+    }
+
+    if (!appConfig.data.users) appConfig.data.users = [];
+    
+    const newUser = {
+        name: name,
+        email: email,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+        role: 'user'
+    };
+
+    appConfig.data.users.push(newUser);
+    saveData();
+    updateUI();
+    showToast("Usuario creado con éxito");
+}
+
+async function deleteUser(email) {
+    if (!confirm(`¿Seguro que deseas eliminar a ${email}?`)) return;
+    
+    const idx = appConfig.data.users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+    if (idx !== -1) {
+        appConfig.data.users.splice(idx, 1);
+        await saveData();
+        updateUI();
+        showToast("Usuario eliminado");
+    }
+}
+
+/**
+ * GESTIÓN DE CANCIONES (BORRADO)
+ */
+async function deleteSong(e, id) {
+    if (e) e.stopPropagation();
+    if (!confirm("¿Seguro que deseas eliminar esta canción?")) return;
+
+    const idx = appConfig.data.songs.findIndex(s => s.id === id);
+    if (idx !== -1) {
+        appConfig.data.songs.splice(idx, 1);
+        await saveData();
+        updateUI();
+        showToast("Canción eliminada");
+    }
+}
+
+/**
+ * GESTIÓN DE PLAYLISTS
+ */
+async function createPlaylist() {
+    const name = prompt("Nombre de la nueva playlist:");
+    if (!name) return;
+
+    if (!appConfig.data.playlists) appConfig.data.playlists = [];
+    
+    const newPlaylist = {
+        id: Date.now(),
+        name: name,
+        songs: [],
+        owner: (appConfig.user && appConfig.user.email) ? appConfig.user.email : 'admin'
+    };
+
+    appConfig.data.playlists.push(newPlaylist);
+    await saveData();
+    updateUI();
+    showToast("Playlist creada");
+}
+
+async function deletePlaylist(e, id) {
+    if (e) e.stopPropagation();
+    if (!confirm("¿Eliminar esta playlist?")) return;
+
+    const idx = appConfig.data.playlists.findIndex(p => p.id === id);
+    if (idx !== -1) {
+        appConfig.data.playlists.splice(idx, 1);
+        await saveData();
+        updateUI();
+        showToast("Playlist eliminada");
+    }
+}
+
+function openAddToPlaylistModal(songId) {
+    appConfig.pendingSongId = songId;
+    const list = document.getElementById('addToPlaylistList');
+    if (!list) return;
+
+    if (!appConfig.data.playlists || appConfig.data.playlists.length === 0) {
+        list.innerHTML = '<p class="text-center opacity-40 py-4 text-xs">No tienes playlists creadas</p>';
+    } else {
+        list.innerHTML = appConfig.data.playlists.map(p => `
+            <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all cursor-pointer border border-white/5 active:scale-95 mb-2" onclick="addToPlaylist(${p.id})">
+                <span class="font-bold text-sm text-white">${p.name}</span>
+                <span class="material-symbols-outlined text-sm text-primary">add_circle</span>
+            </div>
+        `).join('');
+    }
+    openModal('dom_modal_add_to_playlist');
+}
+
+async function addToPlaylist(playlistId) {
+    const playlist = appConfig.data.playlists.find(p => p.id === playlistId);
+    if (!playlist) return;
+
+    if (!playlist.songs) playlist.songs = [];
+    if (playlist.songs.includes(appConfig.pendingSongId)) {
+        showToast("Esta canción ya está en la playlist", "info");
+        return;
+    }
+
+    playlist.songs.push(appConfig.pendingSongId);
+    await saveData();
+    closeModal('dom_modal_add_to_playlist');
+    showToast(`Agregada a ${playlist.name}`);
+}
