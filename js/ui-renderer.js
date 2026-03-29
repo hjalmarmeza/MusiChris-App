@@ -45,6 +45,7 @@ function updateUI(songListOverride = null) {
             renderSongList('userSongList', songs);
             renderAlbumGrid('adminAlbumGrid', albums);
             renderAlbumGrid('userAlbumGrid', albums);
+            if (typeof rebindAppEvents === 'function') rebindAppEvents();
         } else {
             console.warn("⏳ Contenedores no encontrados. Reintentando en 500ms...");
             setTimeout(attemptRender, 500);

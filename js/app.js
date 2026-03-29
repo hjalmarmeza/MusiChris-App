@@ -83,12 +83,79 @@ function switchTab(tabId, btn) {
 
     // 4. Forzar re-renderizado si es necesario
     if (tabId === 'admin-music') {
-        const songs = appData.songs || [];
+        const songs = (appConfig.data && appConfig.data.songs) ? appConfig.data.songs : [];
         renderSongList('adminSongList', songs);
-        renderAlbumGrid('adminAlbumGrid', appData.albums || []);
+        renderAlbumGrid('adminAlbumGrid', appConfig.data.albums || []);
     } else if (tabId === 'admin-users') {
         renderUserList();
     }
+}
+
+/**
+ * REBIND APP EVENTS
+ * Esta función es CRÍTICA: Se encarga de volver a vincular los eventos
+ * cuando el contenido se genera dinámicamente.
+ */
+function rebindAppEvents() {
+    console.log("🔗 Re-vinculando eventos de la UI...");
+    
+    // 1. Asegurar que el audio existe
+    if (!window.dom || !window.dom.audioElement) {
+        initAudioEngine();
+    }
+
+    // 2. Gestionar eventos de clics en listas generadas dinámicamente
+    // (Este sistema usa delegación de eventos o re-asignación según necesidad)
+    
+    // 3. Forzar actualización de indicadores de reproducción
+    if (typeof updatePlayingIndicators === 'function') {
+        updatePlayingIndicators();
+    }
+}
+
+/**
+ * INICIALIZACIÓN DEL MOTOR DE AUDIO (Shield-Audio v1.0)
+ */
+function initAudioEngine() {
+    console.log("🎵 Inicializando Motor de Audio...");
+    
+    // Crear elemento de audio si no existe
+    let au = document.getElementById('mainAudio');
+    if (!au) {
+        au = document.createElement('audio');
+        au.id = 'mainAudio';
+        au.preload = 'auto';
+        document.body.appendChild(au);
+    }
+
+    // Definir objeto DOM global para acceso rápido
+    window.dom = {
+        audioElement: au,
+        mainPlayer: document.getElementById('mainPlayer'),
+        playIcon: document.getElementById('iconPlay'),
+        curTime: document.getElementById('miniCurTime'),
+        totTime: document.getElementById('miniTotTime'),
+        progressBar: document.getElementById('seekSliderMini')
+    };
+
+    // Eventos del Audio
+    au.ontimeupdate = () => {
+        if (typeof updateProgress === 'function') updateProgress();
+    };
+    
+    au.onended = () => {
+        if (typeof next === 'function') next();
+    };
+
+    au.onplay = () => {
+        if (typeof togglePlayIcon === 'function') togglePlayIcon(true);
+    };
+
+    au.onpause = () => {
+        if (typeof togglePlayIcon === 'function') togglePlayIcon(false);
+    };
+
+    console.log("✅ Motor de Audio y objeto 'dom' listos.");
 }
 
 function app_logout() {
@@ -128,4 +195,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     showView('view-login');
+    initAudioEngine(); // Inicializar motor de audio al cargar
 });
